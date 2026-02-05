@@ -10,7 +10,7 @@ export default function Hero() {
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
       {/* Static background image */}
       <img
-        src="/assets/videos/videoV2.png"
+        src="/assets/videos/videoV2.jpg"
         alt="BioKEA Background"
         className="absolute inset-0 w-full h-full object-cover z-0"
       />

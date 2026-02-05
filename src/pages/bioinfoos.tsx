@@ -16,7 +16,7 @@ export default function BioinfoOS() {
       <main className="container mx-auto px-4 py-16">
         <div className="flex items-center gap-4 mb-8">
           <img
-            src="/assets/images/Pillar1-BioinfoOS.png"
+            src="/assets/images/Pillar1-BioinfoOS.webp"
             alt="BioinfoOS Pillar Icon"
             className="h-20 w-auto"
           />
@@ -59,7 +59,7 @@ export default function BioinfoOS() {
           <div className="p-8 bg-gray-800 rounded-lg text-center">
             <h2 className="text-2xl font-bold mb-4">The Large Data Collider</h2>
             <img
-              src="/assets/images/BioKEA-Large-Data-Collider.png"
+              src="/assets/images/BioKEA-Large-Data-Collider.webp"
               alt="BioKEA Large Data Collider Graphic"
               className="max-w-xl h-auto mx-auto rounded-md shadow-lg"
             />

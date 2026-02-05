@@ -57,7 +57,7 @@ export default function Home() {
               {/* Pillar 1: BioinfoOS */}
               <div className="p-6 rounded-xl bg-gradient-to-br from-blue-900/30 to-yellow-500/30 backdrop-blur-sm flex flex-col items-center text-center">
                 <img
-                  src="/assets/images/Pillar1-BioinfoOS.png"
+                  src="/assets/images/Pillar1-BioinfoOS.webp"
                   alt="BioinfoOS Pillar"
                   className="h-20 w-auto mb-4"
                 />
@@ -77,7 +77,7 @@ export default function Home() {
               {/* Pillar 2: Agentis Journal */}
               <div className="p-6 rounded-xl bg-gradient-to-br from-blue-900/30 to-yellow-500/30 backdrop-blur-sm flex flex-col items-center text-center">
                 <img
-                  src="/assets/images/Pillar2-Agentis.png"
+                  src="/assets/images/Pillar2-Agentis.webp"
                   alt="Agentis Journal Pillar"
                   className="h-20 w-auto mb-4"
                 />

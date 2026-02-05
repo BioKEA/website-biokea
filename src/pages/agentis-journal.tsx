@@ -15,7 +15,7 @@ export default function AgentisJournal() {
       <main className="container mx-auto px-4 py-16">
         <div className="flex items-center gap-4 mb-8">
           <img
-            src="/assets/images/Pillar2-Agentis.png"
+            src="/assets/images/Pillar2-Agentis.webp"
             alt="Agentis Journal Pillar Icon"
             className="h-20 w-auto"
           />

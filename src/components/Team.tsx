@@ -13,7 +13,7 @@ export default function Team() {
         >
           <div className="flex flex-col items-center">
             <img
-              src="/assets/images/team2.png"
+              src="/assets/images/team2.jpg"
               alt="BioKEA Team"
               className="w-full max-w-[75%] h-auto rounded-lg shadow-xl mb-8 mx-auto"
             />
