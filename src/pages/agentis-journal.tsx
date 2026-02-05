@@ -46,15 +46,14 @@ export default function AgentisJournal() {
             </ul>
         </div>
 
-        <div className="text-center mb-12"> 
-            <a
-            href="https://biokea-publishing.pages.dev/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-8 py-3 bg-gradient-to-r from-blue-500 to-yellow-500 hover:from-blue-600 hover:to-yellow-600 rounded-lg text-lg font-semibold transition-all"
+        <div className="text-center mb-12">
+            <button
+            disabled
+            className="inline-block px-8 py-3 bg-gray-600 rounded-lg text-lg font-semibold cursor-not-allowed opacity-60"
             >
-            Visit External Agentis Site &raquo;
-            </a>
+            Coming Soon
+            </button>
+            <p className="text-gray-400 text-sm mt-3">The external Agentis site is currently under development</p>
         </div>
 
       </main>

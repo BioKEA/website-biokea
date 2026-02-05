@@ -27,12 +27,6 @@ export default function Navbar() {
             <Link href="/agentis-journal" className="text-gray-300 hover:text-white transition-colors">
               Agentis
             </Link>
-            <Link href="/droplet-edna" className="text-gray-300 hover:text-white transition-colors">
-              Droplet
-            </Link>
-            <Link href="/investors" className="text-gray-300 hover:text-white transition-colors">
-              Investors
-            </Link>
             <Link href="/contact" className="text-gray-300 hover:text-white transition-colors">
               Contact
             </Link>
@@ -77,12 +71,6 @@ export default function Navbar() {
           </Link>
           <Link href="/agentis-journal" className="block px-3 py-2 text-gray-300 hover:text-white transition-colors">
             Agentis
-          </Link>
-          <Link href="/droplet-edna" className="block px-3 py-2 text-gray-300 hover:text-white transition-colors">
-            Droplet
-          </Link>
-          <Link href="/investors" className="block px-3 py-2 text-gray-300 hover:text-white transition-colors">
-            Investors
           </Link>
           <Link href="/contact" className="block px-3 py-2 text-gray-300 hover:text-white transition-colors">
             Contact

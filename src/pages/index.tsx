@@ -32,7 +32,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-900 text-white">
       <Head>
         <title>BioKEA – an AI-driven Bioinformatics OS</title>
-        <meta name="description" content="BioKEA integrates agent-based bioinformatics, eDNA solutions via Droplet, and AI-enhanced publishing through Agentis." />
+        <meta name="description" content="BioKEA integrates agent-based bioinformatics and AI-enhanced publishing through Agentis." />
         <link rel="icon" href="/favicon.ico" />
         <script
           type="application/ld+json"
@@ -43,7 +43,7 @@ export default function Home() {
               "name": "BioKEA",
               "url": "https://biokea.ai",
               "logo": "https://biokea.ai/assets/images/logo2.png",
-              "description": "BioKEA is an AI-driven Bioinformatics OS integrating agent-based bioinformatics, eDNA solutions, and AI-enhanced publishing.",
+              "description": "BioKEA is an AI-driven Bioinformatics OS integrating agent-based bioinformatics and AI-enhanced publishing.",
               "sameAs": [
                 "https://twitter.com/biokea",
                 "https://github.com/biokea"
@@ -59,7 +59,7 @@ export default function Home() {
               "@type": "WebSite",
               "url": "https://biokea.ai",
               "name": "BioKEA – an AI-driven Bioinformatics OS",
-              "description": "BioKEA integrates agent-based bioinformatics, eDNA solutions via Droplet, and AI-enhanced publishing through Agentis."
+              "description": "BioKEA integrates agent-based bioinformatics and AI-enhanced publishing through Agentis."
             })
           }}
         />
@@ -72,7 +72,7 @@ export default function Home() {
         {/* Four Pillars Section */}
         <section id="pillars" className="py-20 bg-gray-900 text-white">
           <div className="container mx-auto px-4">
-            <h2 className="text-4xl font-bold text-center mb-16">Our Three Pillars</h2>
+            <h2 className="text-4xl font-bold text-center mb-16">Our Two Pillars</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {/* Pillar 1: BioinfoOS */}
               <div className="p-6 rounded-xl bg-gradient-to-br from-blue-900/30 to-yellow-500/30 backdrop-blur-sm flex flex-col items-center text-center">
@@ -83,23 +83,14 @@ export default function Home() {
                   Learn More &raquo;
                 </a>
               </div>
-              {/* Pillar 2: Droplet eDNA */}
-              <div className="p-6 rounded-xl bg-gradient-to-br from-blue-900/30 to-yellow-500/30 backdrop-blur-sm flex flex-col items-center text-center">
-                <img src="/assets/images/Pillar3-Droplet.png" alt="Droplet eDNA Pillar" className="h-20 w-auto mb-4"/>
-                <h3 className="text-xl font-bold mb-2">Droplet eDNA</h3>
-                <p className="text-gray-300 mb-4 flex-grow">Providing comprehensive end-to-end environmental DNA services, from field sampling strategy and collection to advanced lab analysis and ecological interpretation for biodiversity monitoring.</p>
-                <a href="/droplet-edna" className="mt-auto inline-block px-6 py-2 bg-gradient-to-r from-blue-500 to-yellow-500 hover:from-blue-600 hover:to-yellow-600 rounded-lg text-sm font-semibold transition-all">
-                  Explore eDNA &raquo;
-                </a>
-              </div>
-              {/* Pillar 3: Agentis Journal */}
+              {/* Pillar 2: Agentis Journal */}
               <div className="p-6 rounded-xl bg-gradient-to-br from-blue-900/30 to-yellow-500/30 backdrop-blur-sm flex flex-col items-center text-center">
                 <img src="/assets/images/Pillar2-Agentis.png" alt="Agentis Journal Pillar" className="h-20 w-auto mb-4"/>
                 <h3 className="text-xl font-bold mb-2">Agentis Journal</h3>
                 <p className="text-gray-300 mb-4 flex-grow">Reimagining scientific publishing with our open-access journal featuring an innovative AI co-review process. Agentis accelerates knowledge sharing while ensuring rigorous peer evaluation.</p>
-                <a href="/agentis-journal" className="mt-auto inline-block px-6 py-2 bg-gradient-to-r from-blue-500 to-yellow-500 hover:from-blue-600 hover:to-yellow-600 rounded-lg text-sm font-semibold transition-all">
-                  Visit Agentis &raquo;
-                </a>
+                <div className="mt-auto inline-block px-6 py-2 bg-gray-600 rounded-lg text-sm font-semibold cursor-not-allowed opacity-60">
+                  Coming Soon
+                </div>
               </div>
             </div>
           </div>
@@ -132,44 +123,6 @@ export default function Home() {
                   <p className="text-gray-300">{feature.description}</p>
                 </motion.div>
               ))}
-            </div>
-          </div>
-        </section>
-
-        {/* eDNA Solutions Section */}
-        <section id="edna" className="py-20 bg-gradient-to-b from-black to-blue-900/20">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center mb-12">
-              <h2 className="text-4xl font-bold mb-6">eDNA Solutions</h2>
-              <p className="text-xl text-gray-300">
-                From backyard biodiversity to blue-water research cruises, BioKEA's Droplet division delivers end-to-end environmental DNA (eDNA) insight.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-12">
-              <div className="p-6 rounded-xl bg-gradient-to-br from-blue-900/30 to-yellow-500/30 backdrop-blur-sm">
-                <h3 className="text-xl font-bold mb-4">Field Surveys</h3>
-                <p className="text-gray-300">Study design, sampling logistics, and on-site collection protocols for any habitat.</p>
-              </div>
-              <div className="p-6 rounded-xl bg-gradient-to-br from-blue-900/30 to-yellow-500/30 backdrop-blur-sm">
-                <h3 className="text-xl font-bold mb-4">Laboratory Analyses</h3>
-                <p className="text-gray-300">Wet-lab workflows for species ID, community profiling, trophic-link tracing, and more.</p>
-              </div>
-              <div className="p-6 rounded-xl bg-gradient-to-br from-blue-900/30 to-yellow-500/30 backdrop-blur-sm">
-                <h3 className="text-xl font-bold mb-4">Data Analysis & Interpretation</h3>
-                <p className="text-gray-300">Phylogenetics, diversity metrics, indicator-species detection, and custom ecological models.</p>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <a
-                href="https://www.dropletedna.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block px-8 py-3 bg-gradient-to-r from-blue-500 to-yellow-500 hover:from-blue-600 hover:to-yellow-600 rounded-lg text-lg font-semibold transition-all"
-              >
-                Explore Droplet eDNA &raquo;
-              </a>
             </div>
           </div>
         </section>

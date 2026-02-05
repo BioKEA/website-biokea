@@ -24,7 +24,7 @@ const milestones: Milestone[] = [
   },
   {
     date: "2026",
-    description: "Placeholder: Scale Droplet eDNA operations & establish key strategic partnerships"
+    description: "Placeholder: Establish key strategic partnerships & expand platform capabilities"
   }
 ]
 
