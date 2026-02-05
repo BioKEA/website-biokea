@@ -49,11 +49,11 @@ export default function Home() {
         {/* Use the Hero component instead of defining the hero section inline */}
         <Hero />
 
-        {/* Four Pillars Section */}
+        {/* Two Pillars Section */}
         <section id="pillars" className="py-20 bg-gray-900 text-white">
           <div className="container mx-auto px-4">
             <h2 className="text-4xl font-bold text-center mb-16">Our Two Pillars</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
               {/* Pillar 1: BioinfoOS */}
               <div className="p-6 rounded-xl bg-gradient-to-br from-blue-900/30 to-yellow-500/30 backdrop-blur-sm flex flex-col items-center text-center">
                 <img
