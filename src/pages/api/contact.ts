@@ -1,32 +1,29 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import nodemailer from 'nodemailer';
+import type { NextApiRequest, NextApiResponse } from 'next'
+import nodemailer from 'nodemailer'
 
 type ResponseData = {
-  success?: boolean;
-  error?: string;
-  testAccount?: any;
-};
+  success?: boolean
+  error?: string
+  testAccount?: any
+}
 
-export default async function handler(
-  req: NextApiRequest, 
-  res: NextApiResponse<ResponseData>
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   // Only allow POST method
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { email, message } = req.body;
+  const { email, message } = req.body
 
   // Simple validation
   if (!email || !message) {
-    return res.status(400).json({ error: 'Email and message are required' });
+    return res.status(400).json({ error: 'Email and message are required' })
   }
 
   try {
-    let transporter;
-    let testAccount;
-    
+    let transporter
+    let testAccount
+
     // Check if we have SMTP credentials
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
       // Use configured SMTP
@@ -38,12 +35,12 @@ export default async function handler(
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASSWORD,
         },
-      });
+      })
     } else {
       // Create a test account for development
-      console.log('No SMTP credentials found. Using test account...');
-      testAccount = await nodemailer.createTestAccount();
-      
+      console.log('No SMTP credentials found. Using test account...')
+      testAccount = await nodemailer.createTestAccount()
+
       transporter = nodemailer.createTransport({
         host: 'smtp.ethereal.email',
         port: 587,
@@ -52,12 +49,14 @@ export default async function handler(
           user: testAccount.user,
           pass: testAccount.pass,
         },
-      });
+      })
     }
 
     // Email content
     const mailOptions = {
-      from: process.env.EMAIL_FROM || `"BioKEA Contact" <${testAccount ? testAccount.user : 'contact@biokea.ai'}>`,
+      from:
+        process.env.EMAIL_FROM ||
+        `"BioKEA Contact" <${testAccount ? testAccount.user : 'contact@biokea.ai'}>`,
       to: process.env.EMAIL_TO || 'frederik@biokea.ai',
       subject: 'New Contact Form Submission',
       text: `You have received a new message from ${email}:\n\n${message}`,
@@ -70,28 +69,28 @@ export default async function handler(
           </div>
         </div>
       `,
-    };
+    }
 
     // Send email
-    const info = await transporter.sendMail(mailOptions);
-    
+    const info = await transporter.sendMail(mailOptions)
+
     // If using test account, provide the test URL to view the email
     if (testAccount) {
-      console.log('Test email sent: %s', info.messageId);
-      console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-      return res.status(200).json({ 
+      console.log('Test email sent: %s', info.messageId)
+      console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info))
+      return res.status(200).json({
         success: true,
         testAccount: {
           previewUrl: nodemailer.getTestMessageUrl(info),
-          messageId: info.messageId
-        }
-      });
+          messageId: info.messageId,
+        },
+      })
     }
-    
+
     // Return success
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ success: true })
   } catch (error) {
-    console.error('Error sending email:', error);
-    return res.status(500).json({ error: 'Failed to send email' });
+    console.error('Error sending email:', error)
+    return res.status(500).json({ error: 'Failed to send email' })
   }
-} 
+}
