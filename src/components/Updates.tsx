@@ -12,18 +12,13 @@ const updates: Update[] = [
     title: 'Agentis Journal prototype launched',
     link: '#',
   },
-  {
-    date: 'May 2025',
-    title: 'Sean talking @ Joint Berkeley Initiative for Microbiome Sciences Industry Mixer',
-    link: '#',
-  },
 ]
 
 export default function Updates() {
   return (
     <section className="py-20 bg-black/30">
       <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-12">Latest Updates</h2>
+        <h2 className="text-4xl font-bold text-center mb-12">Milestones</h2>
 
         <div className="max-w-4xl mx-auto grid gap-6">
           {updates.map((update, index) => (
