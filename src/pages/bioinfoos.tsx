@@ -1,6 +1,5 @@
 import Head from 'next/head'
 import Footer from '../components/Footer'
-import Link from 'next/link'
 
 export default function BioinfoOS() {
   return (
@@ -64,20 +63,6 @@ export default function BioinfoOS() {
               className="max-w-xl h-auto mx-auto rounded-md shadow-lg"
             />
           </div>
-        </div>
-
-        <div className="mt-8 p-8 bg-gray-800 rounded-lg">
-          <h2 className="text-2xl font-bold mb-4">API Access & Pricing</h2>
-          <p className="text-gray-300 text-lg mb-6">
-            Access the power of BioinfoOS programmatically via our comprehensive APIs. Explore
-            tailored solutions and detailed cost structures on our pricing page.
-          </p>
-          <Link
-            href="/pricing"
-            className="inline-block px-8 py-3 bg-gradient-to-r from-blue-500 to-yellow-500 hover:from-blue-600 hover:to-yellow-600 rounded-lg text-lg font-semibold transition-all"
-          >
-            View Pricing Details &raquo;
-          </Link>
         </div>
       </main>
 
