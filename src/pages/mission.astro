@@ -65,7 +65,7 @@ import { milestones } from '@/data/milestones';
   <section class="max-w-6xl mx-auto px-6 py-12">
     <Eyebrow>PARTNERS</Eyebrow>
     <div class="mt-5 flex gap-2 flex-wrap">
-      {partners.map((p) => <PartnerMark name={p.name} note={p.note} />)}
+      {partners.map((p) => <PartnerMark name={p.name} note={p.note} major={p.major} />)}
     </div>
   </section>
 
