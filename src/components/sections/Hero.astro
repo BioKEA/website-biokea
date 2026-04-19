@@ -1,0 +1,66 @@
+---
+// src/components/sections/Hero.astro
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+
+interface Props {
+  eyebrow: string;
+  headline: string;
+  subheadline: string;
+  ctaPrimary: { href: string; label: string };
+  ctaSecondary: { href: string; label: string };
+  badgeImage?: string;
+  badgeAlt?: string;
+  badgeCaption?: string;
+}
+const {
+  eyebrow,
+  headline,
+  subheadline,
+  ctaPrimary,
+  ctaSecondary,
+  badgeImage,
+  badgeAlt,
+  badgeCaption,
+} = Astro.props;
+---
+
+<section class="max-w-6xl mx-auto px-6 pt-16 pb-10">
+  <div class="grid md:grid-cols-[1.4fr_1fr] gap-10 items-center">
+    <div>
+      <Eyebrow>{eyebrow}</Eyebrow>
+      <h1
+        class="text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] mt-3 max-w-[18ch]"
+      >
+        {headline}
+      </h1>
+      <p class="mt-4 text-slate-600 max-w-[58ch] leading-relaxed">{subheadline}</p>
+      <div class="mt-6 flex items-center gap-4">
+        <a
+          href={ctaPrimary.href}
+          class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium"
+        >
+          {ctaPrimary.label}
+        </a>
+        <a href={ctaSecondary.href} class="text-[var(--color-teal)] text-sm font-medium">
+          {ctaSecondary.label} →
+        </a>
+      </div>
+    </div>
+    {
+      badgeImage && (
+        <figure class="relative">
+          <img
+            src={badgeImage}
+            alt={badgeAlt ?? ''}
+            class="w-full max-w-[320px] rounded-md shadow-[0_8px_30px_rgba(11,31,26,0.15)] ml-auto block"
+          />
+          {badgeCaption && (
+            <figcaption class="absolute bottom-3 left-3 bg-black/45 text-[var(--color-cream)] px-2 py-1 rounded-sm font-mono text-[10px] tracking-[0.12em]">
+              {badgeCaption}
+            </figcaption>
+          )}
+        </figure>
+      )
+    }
+  </div>
+</section>

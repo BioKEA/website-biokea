@@ -1,0 +1,41 @@
+---
+// src/components/sections/Origin.astro
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import Portrait from '@/components/ui/Portrait.astro';
+import PartnerMark from '@/components/ui/PartnerMark.astro';
+
+interface Person {
+  src: string;
+  alt: string;
+  name: string;
+  role: string;
+}
+interface Partner {
+  name: string;
+  note?: string;
+}
+interface Props {
+  eyebrow: string;
+  title: string;
+  paragraphs: string[];
+  people: Person[];
+  partners: Partner[];
+}
+const { eyebrow, title, paragraphs, people, partners } = Astro.props;
+---
+
+<section class="max-w-6xl mx-auto px-6 py-16">
+  <Eyebrow>{eyebrow}</Eyebrow>
+  <div class="grid md:grid-cols-[1.2fr_1fr] gap-10 mt-5 items-start">
+    <div>
+      <h2 class="text-2xl font-semibold tracking-tight text-[var(--color-ink)]">{title}</h2>
+      {paragraphs.map((p) => <p class="mt-4 text-slate-600 leading-relaxed">{p}</p>)}
+      <div class="mt-6 flex gap-2 flex-wrap">
+        {partners.map((p) => <PartnerMark name={p.name} note={p.note} />)}
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      {people.map((p) => <Portrait src={p.src} alt={p.alt} name={p.name} role={p.role} />)}
+    </div>
+  </div>
+</section>
