@@ -37,8 +37,9 @@ const concepts = [
           An AI-first scientific journal, built on the AT Protocol.
         </h1>
         <p class="mt-5 max-w-[60ch] text-slate-600 leading-relaxed">
-          Fast, verifiable peer review. Publications as interactive StoryMaps. FAIR data packages
-          that never go stale. Launching at
+          Fast, verifiable peer review on the AT Protocol (the decentralized social-web protocol
+          that underpins Bluesky). Publications as interactive StoryMaps. FAIR (Findable,
+          Accessible, Interoperable, Reusable) data packages that never go stale. Launching at
           <span class="font-mono text-sm text-[var(--color-teal)]">agentis.science</span>.
         </p>
         <div class="mt-6 flex items-center gap-4">
@@ -117,5 +118,31 @@ const concepts = [
     title="Get notified when Agentis launches."
     subtitle="We'll be in touch when the first issue goes live."
     cta={{ href: '/contact?topic=agentis', label: 'Send us a line' }}
+  />
+
+  <script
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      '@id': 'https://biokea.ai/agentis#app',
+      name: 'Agentis',
+      applicationCategory: 'Scientific publishing platform',
+      operatingSystem: 'Web',
+      url: 'https://biokea.ai/agentis',
+      description:
+        'An AI-first open-access scientific journal built on the AT Protocol. Multi-agent AI pre-screen plus verified human peer review with transparent weighted scoring. Publications render as interactive StoryMaps tethered to their FAIR data packages.',
+      creator: { '@id': 'https://biokea.ai/#org' },
+      provider: { '@id': 'https://biokea.ai/#org' },
+      releaseNotes: 'Coming soon — launching at agentis.science.',
+      featureList: [
+        'AI pre-screen of manuscript structure and methodology',
+        'Verified human peer review via AT Protocol DIDs',
+        'Publications as interactive StoryMaps, not PDFs',
+        'FAIR-compliant data package tethering (GBIF, NCBI SRA, Zenodo)',
+        'Cryptographically signed peer-review records',
+      ],
+    })}
   />
 </BaseLayout>

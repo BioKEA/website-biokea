@@ -26,6 +26,17 @@ test('home exposes Organization structured data', async ({ page }) => {
   const ld = await page.locator('script[type="application/ld+json"]').first().textContent();
   expect(ld).not.toBeNull();
   const parsed = JSON.parse(ld!);
-  expect(parsed['@type']).toBe('Organization');
-  expect(parsed.name).toBe('BioKEA');
+  const org = parsed['@graph']?.find(
+    (node: { '@type': string; name?: string }) => node['@type'] === 'Organization',
+  );
+  expect(org).toBeDefined();
+  expect(org.name).toBe('BioKEA');
+  expect(org.makesOffer).toBeDefined();
+});
+
+test('home hero uses a semantic <h1> element', async ({ page }) => {
+  await page.goto('/');
+  const h1s = await page.locator('h1').count();
+  expect(h1s).toBeGreaterThan(0);
+  await expect(page.locator('h1').first()).toHaveText('Biology, decoded in the public interest.');
 });

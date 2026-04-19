@@ -6,9 +6,9 @@ test('mission page includes BioKEA expansion, team, partners, milestones', async
   await expect(page.getByText('Sean Jungbluth')).toBeVisible();
   await expect(page.getByText('Michelle Jungbluth')).toBeVisible();
   await expect(page.getByText('Austin Baker')).toBeVisible();
-  await expect(page.getByText(/California Institute of Biodiversity/)).toBeVisible();
-  await expect(page.getByText(/San Francisco Estuary Institute/)).toBeVisible();
-  await expect(page.getByText(/Coastal Quest/)).toBeVisible();
+  await expect(page.getByText(/California Institute of Biodiversity/).first()).toBeVisible();
+  await expect(page.getByText(/San Francisco Estuary Institute/).first()).toBeVisible();
+  await expect(page.getByText(/Coastal Quest/).first()).toBeVisible();
   await expect(page.locator('[data-milestone-date]').first()).toHaveText('2025-03');
 });
 

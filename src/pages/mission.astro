@@ -71,8 +71,8 @@ import { milestones } from '@/data/milestones';
         loading="lazy"
       />
       <figcaption class="mt-3 text-xs text-slate-500 leading-relaxed">
-        Move-in day, March 2026. Austin, Sean, Michelle — and Cora, the team's youngest. The 5,000+
-        sq ft Berkeley warehouse, newly empty and waiting.
+        Move-in day, <time datetime="2026-03">March 2026</time>. Austin, Sean, Michelle — and Cora,
+        the team's youngest. The 5,000+ sq ft Berkeley warehouse, newly empty and waiting.
       </figcaption>
     </figure>
   </section>
@@ -80,8 +80,31 @@ import { milestones } from '@/data/milestones';
   <section class="max-w-6xl mx-auto px-6 py-12">
     <Eyebrow>PARTNERS</Eyebrow>
     <div class="mt-5 flex gap-2 flex-wrap">
-      {partners.map((p) => <PartnerMark name={p.name} note={p.note} major={p.major} />)}
+      {
+        partners.map((p) => (
+          <PartnerMark
+            name={p.name}
+            note={p.note}
+            major={p.major}
+            url={p.url}
+            description={p.description}
+          />
+        ))
+      }
     </div>
+    <ul class="mt-5 space-y-2 text-sm text-slate-600 leading-relaxed max-w-[62ch]">
+      {
+        partners
+          .filter((p) => p.description)
+          .map((p) => (
+            <li>
+              <span class="font-semibold text-[var(--color-ink)]">{p.name}</span>
+              <span class="text-slate-500"> — </span>
+              <span>{p.description}</span>
+            </li>
+          ))
+      }
+    </ul>
   </section>
 
   <section class="max-w-6xl mx-auto px-6 py-12">
@@ -90,9 +113,13 @@ import { milestones } from '@/data/milestones';
       {
         milestones.map((m) => (
           <li class="grid md:grid-cols-[120px_1fr] gap-4 border-t border-slate-900/10 pt-4">
-            <div data-milestone-date class="font-mono text-sm text-[var(--color-teal)]">
+            <time
+              datetime={m.date}
+              data-milestone-date
+              class="font-mono text-sm text-[var(--color-teal)]"
+            >
               {m.date}
-            </div>
+            </time>
             <div>
               <p class="font-semibold text-[var(--color-ink)]">{m.title}</p>
               {m.body && <p class="mt-1 text-sm text-slate-600 leading-relaxed">{m.body}</p>}
@@ -111,9 +138,11 @@ import { milestones } from '@/data/milestones';
           Public domain, FAIR, and on open protocols.
         </h2>
         <p class="mt-3 max-w-[62ch] text-slate-600 leading-relaxed">
-          Data packages land in GBIF, NCBI SRA, and Zenodo. Publication happens on AT Protocol with
-          verified identity and immutable review history. The infrastructure is as open as the
-          science.
+          Data packages land in GBIF (Global Biodiversity Information Facility), NCBI SRA (Sequence
+          Read Archive), and Zenodo. Publication happens on the AT Protocol (decentralized
+          social-web protocol) with verified identity and immutable review history. The
+          infrastructure is as open as the science — and every output conforms to FAIR (Findable,
+          Accessible, Interoperable, Reusable) standards.
         </p>
       </div>
       <figure class="hidden md:block">
@@ -133,5 +162,70 @@ import { milestones } from '@/data/milestones';
     title="Fund the work. Or build it with us."
     subtitle="We're in active partnership and funding conversations."
     cta={{ href: '/contact', label: 'Get in touch' }}
+  />
+
+  <script
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Person',
+          '@id': 'https://biokea.ai/mission#sean',
+          name: 'Sean Jungbluth',
+          jobTitle: 'CEO / CTO, Founder',
+          worksFor: { '@id': 'https://biokea.ai/#org' },
+          image: 'https://biokea.ai/assets/images/portrait-sean.webp',
+          knowsAbout: [
+            'Environmental DNA',
+            'Metabarcoding',
+            'Biodiversity informatics',
+            'Long-read sequencing',
+            'FAIR data',
+            'AT Protocol',
+          ],
+        },
+        {
+          '@type': 'Person',
+          '@id': 'https://biokea.ai/mission#michelle',
+          name: 'Michelle Jungbluth',
+          jobTitle: 'Advisor and Head of Science and Operations',
+          worksFor: { '@id': 'https://biokea.ai/#org' },
+          image: 'https://biokea.ai/assets/images/portrait-michelle.webp',
+          knowsAbout: ['Marine biology', 'Estuarine ecology', 'Zooplankton', 'Metabarcoding'],
+        },
+        {
+          '@type': 'Person',
+          '@id': 'https://biokea.ai/mission#austin',
+          name: 'Austin Baker',
+          jobTitle: 'Biodiversity Research Scientist',
+          worksFor: { '@id': 'https://biokea.ai/#org' },
+          image: 'https://biokea.ai/assets/images/portrait-austin.webp',
+          knowsAbout: [
+            'DNA barcoding',
+            'Entomology',
+            'California insect biodiversity',
+            'Conservation biology',
+          ],
+        },
+        {
+          '@type': 'Person',
+          '@id': 'https://biokea.ai/mission#sunit',
+          name: 'Sunit Jain',
+          jobTitle: 'Advisor',
+          worksFor: { '@id': 'https://biokea.ai/#org' },
+          knowsAbout: ['Multi-agent AI', 'Scientific deliberation', 'Bioinformatics'],
+          sameAs: ['https://github.com/sunitj'],
+        },
+        {
+          '@type': 'Person',
+          '@id': 'https://biokea.ai/mission#greg',
+          name: 'Greg Fedewa',
+          jobTitle: 'Advisor',
+          worksFor: { '@id': 'https://biokea.ai/#org' },
+        },
+      ],
+    })}
   />
 </BaseLayout>

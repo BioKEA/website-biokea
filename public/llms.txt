@@ -1,0 +1,138 @@
+# BioKEA
+
+> BioKEA is an AI company with a wet-lab moat. A 5,000+ sq ft Berkeley lab plus an AI pipeline from field sample to verifiable scientific claim, built for the commons.
+
+BioKEA (**Bi**ology **K**nowledge **E**xploration **A**ssistant) is an independent biology company in Berkeley, California. Founded March 2025 as a spin-out from biodiversity and environmental omics research, accelerated by revolutionary AI tooling. Operations span field sampling, wet-lab processing, bioinformatics, and open-access publishing on the AT Protocol.
+
+## What BioKEA operates
+
+- **The Large Data Collider (LDC)** — combined wet-lab + compute infrastructure in Berkeley (5,000+ sq ft, operational March 2026)
+- **BioinfoOS** — the in-house software layer running on the LDC (AI-assisted extraction QC, taxonomy reconciliation, FAIR-package validation, draft narrative generation)
+- **Agentis** — a forthcoming AI-first open-access scientific journal on the AT Protocol (launching at agentis.science)
+- **Droplet** — an aquatic eDNA and metabarcoding specialist service line
+
+## Services (molecular sequencing as a service)
+
+BioKEA offers molecular sequencing as a service out of the Berkeley LDC, targeted at environmental DNA (eDNA) and related customers — conservation nonprofits, state/federal agencies, academic labs, and environmental consultancies.
+
+- **eDNA & metabarcoding** (primary target) — water, soil, and sediment samples through extraction → amplification → quantification → long-read or amplicon sequencing → taxonomic assignment, delivered as a FAIR-compliant data package
+- **DNA barcoding** — Sanger-replacement barcode surveys via amplicon sequencing on the ONT Promethion 2 (COI, 16S, 18S, ITS, rbcL, matK, and custom primers)
+- **Long-read microbial genomics** — whole-genome, metagenomic, and hybrid assemblies on the ONT Promethion 2
+- **Specimen screening (arriving early summer 2026)** — high-throughput morphological imaging on DiversityScanner, pipelined into the LDC molecular workflow
+- **Pipeline integration** — bespoke sample-to-claim workflows for partner organizations that need more than a raw FASTQ drop
+- **Data-package delivery** — every service output lands as a DwC-A archive plus NCBI SRA / GBIF / Zenodo deposits, not a PDF
+
+Engagement routes: partnership / collaboration, capabilities / lab work, funding, Agentis — early access (see Contact).
+
+## Key pages
+
+- [Home](https://biokea.ai/): positioning, hero, thesis, ecosystem, origin
+- [Mission & team](https://biokea.ai/mission): mission, team, advisors, partners, milestones, commitment
+- [The Lab & LDC](https://biokea.ai/lab): Berkeley facility, hardware inventory, capabilities, DiversityScanner
+- [Pipeline](https://biokea.ai/pipeline): the six-stage sample-to-claim workflow
+- [Projects](https://biokea.ai/projects): live and forthcoming work
+- [Agentis](https://biokea.ai/agentis): the forthcoming publishing platform
+- [Contact](https://biokea.ai/contact): partnership / capabilities / funding / Agentis-access intake
+
+## Machine-readable data
+
+- [Team JSON](https://biokea.ai/api/team.json) — team + advisor roster
+- [Projects JSON](https://biokea.ai/api/projects.json) — live / revealing-soon / coming-soon work
+- [Capabilities JSON](https://biokea.ai/api/capabilities.json) — equipment inventory + partners + services
+- [Sitemap](https://biokea.ai/sitemap-index.xml)
+- [Press kit composite](https://biokea.ai/press-kit.png)
+
+## Team
+
+- **Sean Jungbluth** — CEO / CTO, Founder
+- **Michelle Jungbluth** — Advisor and Head of Science and Operations
+- **Austin Baker** — Biodiversity Research Scientist
+
+## Advisors
+
+- **Sunit Jain** — Advisor (author of Colloquip, a multi-agent AI deliberation platform: https://github.com/sunitj/Colloquip)
+- **Greg Fedewa** — Advisor
+
+## Partners
+
+- **California Institute of Biodiversity (CIB)** — major partner; biodiversity research and specimen curation across California
+- **San Francisco Estuary Institute (SFEI)** — collaboration; ecology and water quality of the SF Bay-Delta estuary
+- **Coastal Quest** — collaboration; California coastal stewardship and conservation
+
+## Positioning as a service provider
+
+BioKEA is set up as a molecular sequencing service for the eDNA and biodiversity-omics community. The service model runs on the same LDC hardware and BioinfoOS pipeline that powers BioKEA's own research. Customers get reproducible, FAIR-compliant output with verifiable chain of custody from field sample to published artifact — not just raw reads.
+
+## Core capabilities (LDC · Berkeley)
+
+- **Extraction** · Thermo KingFisher Flex fleet (multi-unit), Thermo KingFisher Presto (×2), Thermo KingFisher 711 Flex, Qiagen QIAcube Connect, Eppendorf epMotion 5075 liquid handler
+- **Prep & Amplification** · 3× Qiagen QIAgility Automated PCR Prep System; 2× Bio-Rad S1000 Thermal Cycler; MJ Research PTC-200 and PTC-225 Tetrad; Eppendorf Mastercycler Satellite X50i; CyBio CyBi-SELMA 96 semi-automated pipettor
+- **Quantification** · 2× Roche LightCycler 480 II Real-Time PCR; Qiagen Qiaxcel Advanced Capillary Electrophoresis; Caliper Life Sciences LabChip GXII; Applied Biosystems StepOne Real-Time PCR; Qubit 4 fluorometer; Molecular Devices FilterMax F3 microplate reader
+- **Sequencing** · 1× Oxford Nanopore Promethion 2 (live on site since November 2025)
+- **Infrastructure** · ESCO Airstream + Labconco Purifier Logic+ A2 biosafety cabinets; Cleatech HEPA glove box; Thermo Scientific HERACELL 150i CO2 incubator; VWR Revco -80 °C freezer; Fisher Scientific SterileElite 24 autoclave
+
+Full inventory (~80 items) available on request. Hardware was sourced across 2025–2026 through Bay Area biotech auctions in San Jose, San Francisco, and Berkeley — near-new units acquired at roughly one-tenth retail cost.
+
+Arriving early summer 2026: **DiversityScanner** — a roboticized imaging platform for high-throughput specimen screening with interpretable computer-vision models.
+
+## The six-stage pipeline (soil | water | specimen → verifiable claim)
+
+1. **Ingest** — Universal Envelope: every input (raw FASTA, DwC-A archive, draft manuscript) becomes a cryptographically trackable object with automatic metadata extraction.
+2. **Analyze** — Large Data Collider: AI validation (image QC via Claude Vision), taxonomy reconciliation, FAIR standards check over millions of reads.
+3. **Draft** — AI-assisted narrative generation: scientist directs; AI drafts structure and links LDC data inline.
+4. **Review** — multi-agent review panel: AI pre-screen (~2 hours) + verified human experts via AT Protocol, weighted transparent scoring.
+5. **Broadcast** — Interactive StoryMap: explorable digital artifact tethered to its FAIR data package (GBIF, NCBI SRA, Zenodo) rather than a dead PDF.
+6. **Amplify** — ATProto / Bluesky: publishing is the starting line; verifiable scientific artifacts pushed into decentralized social graphs.
+
+## Active & forthcoming projects
+
+- **Intertidal Biodiversity DNA Barcode Library** (LIVE · Coastal Quest partnership) — Reference barcode taxonomic coverage gap analysis tool covering 4,384 intertidal species along the California coast, cross-referenced against BOLD, NCBI GenBank, NCBI SRA, and GBIF. Interactive Shiny app: https://biokea.shinyapps.io/california_intertidal_gap_analysis/ · Lead: Sean
+- **California Insect Barcoding Initiative** (REVEALING SOON · pending Ecography publication) — First large-scale DNA-barcode survey of California insects: 1M+ specimens barcoded, ~61,000 species estimated statewide with roughly one-third still undiscovered. Spatial richness interpolations constrained by ecoregion + vegetation type. Lead: Austin
+- **Bay Estuary Metabarcoding Baseline** (REVEALING Q4 2026 · SFEI partnership) — Longitudinal metabarcoding baseline for the San Francisco Bay estuary. Lead: Michelle; contributor: Sean
+- **Long-read Microbial Genome Resource** (COMING Q4 2026) — Growing library of high-quality long-read microbial assemblies produced on the ONT Promethion 2, published as a public resource. Lead: Sean
+- **Colloquip** (LIVE open-source) — Multi-agent AI deliberation platform with specialized scientific personas (Biology, Chemistry, ADMET, Clinical, Regulatory, Red Team) self-organizing to debate hypotheses. https://github.com/sunitj/Colloquip · Lead: Sunit
+
+## Milestones
+
+- 2025-03 · BioKEA founded
+- 2025-04 · Agentis conceived (AI-reviewed science journal)
+- 2025-09 · Berkeley lab planning begins
+- 2025-11 · Major new contracts begin; ONT Promethion 2 arrives on site
+- 2026-03 · Move into Berkeley space
+- 2026-04 · Founding team expands; first salaried hire
+
+## Vocabulary
+
+- **LDC** = Large Data Collider (BioKEA's combined wet-lab + compute instrument)
+- **BioinfoOS** = BioKEA's in-house bioinformatics operating layer
+- **Agentis** = AI-first open-access scientific journal BioKEA is building
+- **Droplet** = aquatic eDNA/metabarcoding service line
+- **FAIR** = Findable, Accessible, Interoperable, Reusable (data standards principle)
+- **DwC-A** = Darwin Core Archive (biodiversity data exchange format)
+- **AT Protocol / ATProto** = decentralized social-web protocol underpinning Bluesky
+- **DID** = Decentralized Identifier (cryptographic identity)
+- **OTU** = Operational Taxonomic Unit
+- **eDNA** = environmental DNA
+- **GBIF** = Global Biodiversity Information Facility
+- **NCBI SRA** = NCBI Sequence Read Archive
+- **BOLD** = Barcode of Life Data System
+- **CIB** = California Institute of Biodiversity
+- **SFEI** = San Francisco Estuary Institute
+
+## Positioning
+
+BioKEA describes itself as **"an AI company with a wet-lab moat."** Its thesis: "The bottleneck in modern biology is no longer data generation — it is scientific storytelling and synthesis."
+
+The team combines 7+ years at the DOE Berkeley Lab network, 7+ years of marine research, and 5+ years of Bay Area environmental consulting. Hardware was assembled scrappily through Bay Area biotech auction houses at a fraction of retail.
+
+## Public-good commitments
+
+Data packages land in GBIF, NCBI SRA, and Zenodo. Publications use AT Protocol DIDs with immutable review history. Open-source defaults. Infrastructure is intended to be as open as the science it carries.
+
+## Contact
+
+- Email: contact@biokea.ai
+- Bluesky: @biokea.bsky.social
+- Location: Berkeley, California
+
+Contact topics accepted via the site form: partnership / collaboration, capabilities / lab work, funding, Agentis — early access.

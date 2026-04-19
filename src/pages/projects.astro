@@ -57,4 +57,96 @@ const tallies = {
     subtitle="We're taking collaboration, contract, and funding conversations."
     cta={{ href: '/contact', label: 'Start a conversation' }}
   />
+
+  <script
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'SoftwareApplication',
+          '@id': 'https://biokea.ai/projects#intertidal-gap',
+          name: 'Intertidal Biodiversity DNA Barcode Library',
+          applicationCategory: 'Biodiversity analysis tool',
+          operatingSystem: 'Web',
+          url: 'https://biokea.shinyapps.io/california_intertidal_gap_analysis/',
+          description:
+            'A reference barcode taxonomic coverage gap analysis tool — 4,384 intertidal species along the California coast, cross-referenced against BOLD, NCBI GenBank, NCBI SRA, and GBIF.',
+          creator: { '@id': 'https://biokea.ai/mission#sean' },
+          provider: { '@id': 'https://biokea.ai/#org' },
+          sponsor: { '@id': 'https://biokea.ai/#partner-coastalquest' },
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+          about: [
+            { '@type': 'DefinedTerm', name: 'DNA barcoding' },
+            { '@type': 'DefinedTerm', name: 'Intertidal biodiversity' },
+            { '@type': 'DefinedTerm', name: 'California coastal ecology' },
+          ],
+        },
+        {
+          '@type': 'Dataset',
+          '@id': 'https://biokea.ai/projects#california-insect-barcoding',
+          name: 'California Insect Barcoding Initiative',
+          description:
+            'The first large-scale DNA-barcode survey of California insects — over 1 million specimens barcoded, estimating a conservative minimum of ~61,000 species statewide with roughly one third still undiscovered.',
+          creator: { '@id': 'https://biokea.ai/mission#austin' },
+          publisher: { '@id': 'https://biokea.ai/#org' },
+          creativeWorkStatus: 'In preparation',
+          about: [
+            { '@type': 'DefinedTerm', name: 'Insecta' },
+            { '@type': 'DefinedTerm', name: 'California biodiversity' },
+            { '@type': 'DefinedTerm', name: 'DNA barcoding' },
+          ],
+        },
+        {
+          '@type': 'Dataset',
+          '@id': 'https://biokea.ai/projects#bay-estuary-metabarcoding',
+          name: 'Bay estuary metabarcoding baseline',
+          description:
+            'A longitudinal metabarcoding baseline for the San Francisco Bay estuary, in partnership with the San Francisco Estuary Institute.',
+          creator: [
+            { '@id': 'https://biokea.ai/mission#michelle' },
+            { '@id': 'https://biokea.ai/mission#sean' },
+          ],
+          publisher: { '@id': 'https://biokea.ai/#org' },
+          creativeWorkStatus: 'In preparation',
+          about: [
+            { '@type': 'DefinedTerm', name: 'Metabarcoding' },
+            { '@type': 'DefinedTerm', name: 'San Francisco Bay estuary' },
+            { '@type': 'DefinedTerm', name: 'Environmental DNA' },
+          ],
+        },
+        {
+          '@type': 'Dataset',
+          '@id': 'https://biokea.ai/projects#long-read-microbial',
+          name: 'Long-read microbial genome resource',
+          description:
+            'A growing library of high-quality long-read microbial assemblies produced on the Oxford Nanopore Promethion 2 and published as a public resource.',
+          creator: { '@id': 'https://biokea.ai/mission#sean' },
+          publisher: { '@id': 'https://biokea.ai/#org' },
+          creativeWorkStatus: 'In preparation',
+          about: [
+            { '@type': 'DefinedTerm', name: 'Long-read sequencing' },
+            { '@type': 'DefinedTerm', name: 'Microbial genomics' },
+            { '@type': 'DefinedTerm', name: 'Oxford Nanopore' },
+          ],
+        },
+        {
+          '@type': 'SoftwareSourceCode',
+          '@id': 'https://biokea.ai/projects#colloquip',
+          name: 'Colloquip',
+          description:
+            'An open-source multi-agent AI deliberation platform. Specialized scientific personas — Biology, Chemistry, ADMET, Clinical, Regulatory, Red Team — self-organize to debate hypotheses.',
+          codeRepository: 'https://github.com/sunitj/Colloquip',
+          programmingLanguage: 'Python',
+          license: 'https://github.com/sunitj/Colloquip/blob/main/LICENSE',
+          author: { '@id': 'https://biokea.ai/mission#sunit' },
+          about: [
+            { '@type': 'DefinedTerm', name: 'Multi-agent AI' },
+            { '@type': 'DefinedTerm', name: 'Scientific reasoning' },
+          ],
+        },
+      ],
+    })}
+  />
 </BaseLayout>

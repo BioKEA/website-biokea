@@ -3,13 +3,14 @@ export interface Stat {
   value: string;
   label: string;
   live?: boolean;
+  datetime?: string;
 }
 
 // Homepage: 3 pills. Inventory-first, with one dated live signal.
 export const homepageStats: Stat[] = [
   { value: '5,000+', label: 'sq ft · Berkeley' },
   { value: '~80', label: 'instruments on site' },
-  { value: 'Nov 2025', label: 'sequencer live', live: true },
+  { value: 'Nov 2025', label: 'sequencer live', live: true, datetime: '2025-11' },
 ];
 
 // Lab page: 4 pills, inventory-scale story.

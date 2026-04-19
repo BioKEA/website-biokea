@@ -3,9 +3,11 @@
 interface Props {
   name: string;
   note?: string;
+  url?: string;
+  description?: string;
   major?: boolean;
 }
-const { name, note, major = false } = Astro.props;
+const { name, note, url, description, major = false } = Astro.props;
 const shell = major
   ? 'bg-[rgba(15,118,110,0.08)] border-[var(--color-teal)]'
   : 'bg-white/60 border-slate-900/10';
@@ -17,7 +19,28 @@ const noteClass = major
   : 'font-mono text-[10px] text-slate-500';
 ---
 
-<div class:list={['inline-flex items-center gap-2 px-3 py-1.5 border rounded-sm', shell]}>
-  <span class={nameClass}>{name}</span>
-  {note && <span class={noteClass}>{note}</span>}
-</div>
+{
+  url ? (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={description ?? name}
+      class:list={[
+        'inline-flex items-center gap-2 px-3 py-1.5 border rounded-sm hover:bg-[rgba(15,118,110,0.12)] transition-colors',
+        shell,
+      ]}
+    >
+      <span class={nameClass}>{name}</span>
+      {note && <span class={noteClass}>{note}</span>}
+    </a>
+  ) : (
+    <div
+      class:list={['inline-flex items-center gap-2 px-3 py-1.5 border rounded-sm', shell]}
+      title={description}
+    >
+      <span class={nameClass}>{name}</span>
+      {note && <span class={noteClass}>{note}</span>}
+    </div>
+  )
+}

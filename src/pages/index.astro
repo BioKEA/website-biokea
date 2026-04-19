@@ -47,7 +47,7 @@ const ecosystemTiles = [
   <Hero
     eyebrow="BIOKEA // BERKELEY, CA"
     headline="Biology, decoded in the public interest."
-    subheadline="A 5,000+ sq ft open lab in Berkeley and an AI pipeline from soil sample to published claim — built for the commons. BioKEA operates the Large Data Collider, a compute + wet-lab platform for biodiversity and environmental omics."
+    subheadline="A 5,000+ sq ft open lab in Berkeley and an AI pipeline from soil sample to published claim — built for the commons. BioKEA operates the Large Data Collider, a compute + wet-lab platform for biodiversity and environmental omics, and runs molecular sequencing as a service for eDNA and related customers."
     ctaPrimary={{ href: '/lab', label: "See what we're building" }}
     ctaSecondary={{ href: '/contact', label: 'Schedule a call' }}
     badgeImage="/assets/images/BioKEA-Large-Data-Collider.webp"
@@ -97,20 +97,83 @@ const ecosystemTiles = [
     is:inline
     set:html={JSON.stringify({
       '@context': 'https://schema.org',
-      '@type': 'Organization',
-      name: 'BioKEA',
-      alternateName: 'Biology Knowledge Exploration Assistant',
-      url: 'https://biokea.ai',
-      logo: 'https://biokea.ai/assets/images/logo2.png',
-      description:
-        'A 5,000+ sq ft open lab and an AI pipeline from soil sample to published claim — built for the commons.',
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: 'Berkeley',
-        addressRegion: 'CA',
-        addressCountry: 'US',
-      },
-      sameAs: ['https://bsky.app/profile/biokea.bsky.social'],
+      '@graph': [
+        {
+          '@type': 'Organization',
+          '@id': 'https://biokea.ai/#org',
+          name: 'BioKEA',
+          alternateName: 'Biology Knowledge Exploration Assistant',
+          url: 'https://biokea.ai',
+          logo: 'https://biokea.ai/assets/images/logo2.png',
+          description:
+            'BioKEA is an AI company with a wet-lab moat — a 5,000+ sq ft Berkeley lab plus an AI pipeline from field sample to verifiable scientific claim, built for the commons. BioKEA runs molecular sequencing as a service for environmental-DNA and biodiversity-omics customers.',
+          foundingDate: '2025-03',
+          founder: { '@id': 'https://biokea.ai/mission#sean' },
+          member: [
+            { '@id': 'https://biokea.ai/mission#sean' },
+            { '@id': 'https://biokea.ai/mission#michelle' },
+            { '@id': 'https://biokea.ai/mission#austin' },
+            { '@id': 'https://biokea.ai/mission#sunit' },
+            { '@id': 'https://biokea.ai/mission#greg' },
+          ],
+          knowsAbout: [
+            'Environmental DNA',
+            'Metabarcoding',
+            'Biodiversity informatics',
+            'DNA barcoding',
+            'Long-read nanopore sequencing',
+            'Oxford Nanopore Promethion 2',
+            'FAIR data',
+            'Darwin Core Archive',
+            'AT Protocol',
+            'Open-access publishing',
+          ],
+          location: { '@id': 'https://biokea.ai/lab#place' },
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: 'Berkeley',
+            addressRegion: 'CA',
+            addressCountry: 'US',
+          },
+          makesOffer: [
+            {
+              '@type': 'Offer',
+              itemOffered: {
+                '@type': 'Service',
+                name: 'Molecular sequencing as a service',
+                serviceType: 'eDNA and metabarcoding, DNA barcoding, long-read microbial genomics',
+                description:
+                  'Full sample-to-claim molecular sequencing service for environmental-DNA and biodiversity-omics customers, delivered as a FAIR-compliant data package.',
+                provider: { '@id': 'https://biokea.ai/#org' },
+              },
+            },
+          ],
+          contactPoint: {
+            '@type': 'ContactPoint',
+            email: 'contact@biokea.ai',
+            contactType: 'Partnerships / capabilities / funding',
+          },
+          sameAs: ['https://bsky.app/profile/biokea.bsky.social'],
+        },
+        {
+          '@type': 'Organization',
+          '@id': 'https://biokea.ai/#partner-cib',
+          name: 'California Institute of Biodiversity',
+          url: 'https://www.cabiodiversity.org/',
+        },
+        {
+          '@type': 'Organization',
+          '@id': 'https://biokea.ai/#partner-sfei',
+          name: 'San Francisco Estuary Institute',
+          url: 'https://www.sfei.org/',
+        },
+        {
+          '@type': 'Organization',
+          '@id': 'https://biokea.ai/#partner-coastalquest',
+          name: 'Coastal Quest',
+          url: 'https://www.coastalquest.org/',
+        },
+      ],
     })}
   />
 </BaseLayout>

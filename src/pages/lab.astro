@@ -20,12 +20,14 @@ import { equipmentByStage } from '@/data/equipment';
     <h1
       class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[22ch]"
     >
-      5,000+ sq ft of lab, coming online in 2026.
+      5,000+ sq ft of lab, coming online in <time datetime="2026">2026</time>.
     </h1>
     <p class="mt-5 max-w-[60ch] text-slate-600 leading-relaxed">
-      The BioKEA Large Data Collider is a combined wet-lab + compute platform in Berkeley,
-      California. Space secured in late 2025; move-in March 2026; operating alongside partner
-      institutions.
+      The BioKEA Large Data Collider (LDC) is a combined wet-lab + compute platform in Berkeley,
+      California — and the backbone of our molecular sequencing service for environmental DNA (eDNA)
+      and related customers. Space secured in late 2025; move-in <time datetime="2026-03"
+        >March 2026</time
+      >; operating alongside partner institutions.
     </p>
   </section>
 
@@ -65,11 +67,75 @@ import { equipmentByStage } from '@/data/equipment';
     </figure>
   </section>
 
+  <section class="max-w-6xl mx-auto px-6 py-14">
+    <Eyebrow>SERVICES · MOLECULAR SEQUENCING</Eyebrow>
+    <h2 class="mt-3 text-2xl font-semibold max-w-[30ch]">
+      Sequencing as a service, built for eDNA.
+    </h2>
+    <p class="mt-3 max-w-[62ch] text-slate-600 leading-relaxed">
+      The LDC runs as shared infrastructure <em>and</em> as a molecular sequencing service for environmental-DNA
+      and biodiversity-omics customers. Conservation nonprofits, agencies, academic labs, and environmental
+      consultancies can route samples through the same pipeline BioKEA uses for its own work — with the
+      same FAIR-compliant, chain-of-custody output.
+    </p>
+    <div class="mt-6 grid md:grid-cols-2 gap-3 max-w-4xl">
+      <article class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-5">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-teal)]">
+          Primary
+        </div>
+        <h3 class="mt-1 font-semibold text-[var(--color-ink)]">eDNA &amp; metabarcoding</h3>
+        <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+          Water, soil, and sediment samples through extraction, amplification, quantification, and
+          long-read or amplicon sequencing. Delivered as a FAIR data package (DwC-A, NCBI SRA, GBIF,
+          Zenodo).
+        </p>
+      </article>
+      <article class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-5">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-teal)]">
+          Capability
+        </div>
+        <h3 class="mt-1 font-semibold text-[var(--color-ink)]">DNA barcoding surveys</h3>
+        <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+          Amplicon sequencing on the ONT Promethion 2 across COI, 16S, 18S, ITS, rbcL, matK, and
+          custom primers — a reproducible Sanger replacement.
+        </p>
+      </article>
+      <article class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-5">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-teal)]">
+          Capability
+        </div>
+        <h3 class="mt-1 font-semibold text-[var(--color-ink)]">Long-read microbial genomics</h3>
+        <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+          Whole-genome, metagenomic, and hybrid assemblies on the ONT Promethion 2 — library prep
+          through basecalling through deposit.
+        </p>
+      </article>
+      <article class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-5">
+        <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-teal)]">
+          Bespoke
+        </div>
+        <h3 class="mt-1 font-semibold text-[var(--color-ink)]">Pipeline integration</h3>
+        <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+          Sample-to-claim workflows for partner organizations that need more than a FASTQ drop —
+          integrated taxonomy reconciliation, QC, and FAIR packaging.
+        </p>
+      </article>
+    </div>
+    <p class="mt-6 text-xs text-slate-500 font-mono max-w-[62ch]">
+      Engagement routes: capabilities / lab work, partnership / collaboration, funding. See
+      <a href="/contact" class="text-[var(--color-teal)] underline">Contact</a> to start a conversation.
+    </p>
+  </section>
+
   <section class="max-w-6xl mx-auto px-6 py-16">
     <Eyebrow>OPERATIONAL</Eyebrow>
     <h2 class="mt-3 text-2xl font-semibold">Current state</h2>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-6">
-      {labStats.map((s) => <StatPill value={s.value} label={s.label} live={s.live} />)}
+      {
+        labStats.map((s) => (
+          <StatPill value={s.value} label={s.label} live={s.live} datetime={s.datetime} />
+        ))
+      }
     </div>
     <div class="mt-8">
       <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500 mb-3">
@@ -157,12 +223,16 @@ import { equipmentByStage } from '@/data/equipment';
         loading="lazy"
       />
       <div>
-        <Eyebrow>DIVERSITYSCANNER · ARRIVING EARLY SUMMER 2026</Eyebrow>
+        <Eyebrow>DIVERSITYSCANNER · ARRIVING EARLY SUMMER <time datetime="2026">2026</time></Eyebrow
+        >
         <h3 class="mt-3 text-xl font-semibold">Roboticized species discovery</h3>
         <p class="mt-3 text-sm text-slate-600 leading-relaxed">
-          A collaborative imaging platform for high-throughput specimen screening. Computer-vision
-          models generate interpretable attention maps that reveal which morphological features
-          drive each identification.
+          A collaborative imaging platform for high-throughput specimen screening. BioKEA is
+          adopting a unit as part of the California Institute of Biodiversity (CIB) collaborative
+          expansion — arriving on site in <time datetime="2026-06">early summer 2026</time>.
+          Computer-vision models generate interpretable attention heatmaps that reveal which
+          morphological features drive each species assignment, feeding validated specimens into the
+          LDC molecular pipeline.
         </p>
         <img
           src="/assets/images/diversityscanner-heatmaps-cream.webp"
@@ -177,8 +247,98 @@ import { equipmentByStage } from '@/data/equipment';
   </section>
 
   <CtaBand
-    title="Work with our lab."
-    subtitle="We take sample-processing, pipeline integration, and capability-development conversations."
+    title="Route samples through the LDC."
+    subtitle="Molecular sequencing as a service for eDNA and biodiversity customers. We also take pipeline integration and capability-development conversations."
     cta={{ href: '/contact', label: 'Get in touch' }}
+  />
+
+  <script
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': ['ResearchOrganization', 'LocalBusiness'],
+          '@id': 'https://biokea.ai/lab#lab',
+          name: 'BioKEA Large Data Collider',
+          alternateName: 'BioKEA LDC',
+          url: 'https://biokea.ai/lab',
+          parentOrganization: { '@id': 'https://biokea.ai/#org' },
+          description:
+            'A 5,000+ sq ft combined wet-lab and compute platform in Berkeley, California. BioKEA runs molecular sequencing as a service out of the LDC, targeted at environmental-DNA (eDNA) and biodiversity-omics customers.',
+          areaServed: ['California', 'United States'],
+          foundingDate: '2025-09',
+          location: { '@id': 'https://biokea.ai/lab#place' },
+          knowsAbout: [
+            'Environmental DNA',
+            'Metabarcoding',
+            'DNA barcoding',
+            'Long-read nanopore sequencing',
+            'Oxford Nanopore Promethion 2',
+            'Biodiversity informatics',
+            'FAIR data',
+          ],
+          makesOffer: [
+            {
+              '@type': 'Offer',
+              itemOffered: {
+                '@type': 'Service',
+                name: 'eDNA and metabarcoding',
+                serviceType: 'Molecular sequencing service',
+                description:
+                  'Water, soil, and sediment samples routed through extraction, amplification, quantification, and long-read or amplicon sequencing. Delivered as a FAIR data package (DwC-A, NCBI SRA, GBIF, Zenodo).',
+                audience: {
+                  '@type': 'BusinessAudience',
+                  audienceType:
+                    'Conservation nonprofits, state and federal agencies, academic labs, environmental consultancies',
+                },
+              },
+            },
+            {
+              '@type': 'Offer',
+              itemOffered: {
+                '@type': 'Service',
+                name: 'DNA barcoding surveys',
+                serviceType: 'Molecular sequencing service',
+                description:
+                  'Amplicon sequencing on the ONT Promethion 2 across COI, 16S, 18S, ITS, rbcL, matK, and custom primers.',
+              },
+            },
+            {
+              '@type': 'Offer',
+              itemOffered: {
+                '@type': 'Service',
+                name: 'Long-read microbial genomics',
+                serviceType: 'Molecular sequencing service',
+                description:
+                  'Whole-genome, metagenomic, and hybrid assemblies on the Oxford Nanopore Promethion 2.',
+              },
+            },
+            {
+              '@type': 'Offer',
+              itemOffered: {
+                '@type': 'Service',
+                name: 'Pipeline integration',
+                serviceType: 'Bioinformatics service',
+                description:
+                  'Bespoke sample-to-claim workflows with integrated taxonomy reconciliation, QC, and FAIR packaging.',
+              },
+            },
+          ],
+        },
+        {
+          '@type': 'Place',
+          '@id': 'https://biokea.ai/lab#place',
+          name: 'BioKEA Berkeley Lab',
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: 'Berkeley',
+            addressRegion: 'CA',
+            addressCountry: 'US',
+          },
+        },
+      ],
+    })}
   />
 </BaseLayout>
