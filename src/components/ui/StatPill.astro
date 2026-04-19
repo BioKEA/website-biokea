@@ -1,0 +1,20 @@
+---
+// src/components/ui/StatPill.astro
+interface Props {
+  value: string;
+  label: string;
+  live?: boolean;
+}
+const { value, label, live = false } = Astro.props;
+const tone = live
+  ? 'bg-[rgba(190,24,93,0.08)] border-l-[var(--color-pink)]'
+  : 'bg-[rgba(15,118,110,0.08)] border-l-[var(--color-teal)]';
+const numColor = live ? 'text-[#831843]' : 'text-[var(--color-ink)]';
+---
+
+<div class:list={[tone, 'border-l-2 pl-3 pr-3 py-2 rounded-r-sm']}>
+  <div class:list={[numColor, 'font-mono font-bold text-lg leading-tight']}>{value}</div>
+  <div class="font-mono text-[0.625rem] tracking-[0.1em] uppercase text-slate-600 mt-0.5">
+    {label}
+  </div>
+</div>

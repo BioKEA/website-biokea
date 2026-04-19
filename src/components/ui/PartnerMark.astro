@@ -1,0 +1,15 @@
+---
+// src/components/ui/PartnerMark.astro
+interface Props {
+  name: string;
+  note?: string;
+}
+const { name, note } = Astro.props;
+---
+
+<div
+  class="inline-flex items-center gap-2 px-3 py-1.5 bg-white/60 border border-slate-900/10 rounded-sm"
+>
+  <span class="font-medium text-[13px] text-slate-700">{name}</span>
+  {note && <span class="font-mono text-[10px] text-slate-500">{note}</span>}
+</div>

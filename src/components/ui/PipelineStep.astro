@@ -1,0 +1,15 @@
+---
+// src/components/ui/PipelineStep.astro
+interface Props {
+  number: string;
+  title: string;
+  subtitle?: string;
+}
+const { number, title, subtitle } = Astro.props;
+---
+
+<div class="bg-white/70 border border-slate-900/10 rounded-md px-3 py-3 text-center">
+  <div class="font-mono text-[9px] tracking-[0.12em] text-[var(--color-teal)]">{number}</div>
+  <div class="font-semibold text-xs mt-1 text-[var(--color-ink)]">{title}</div>
+  {subtitle && <div class="text-[10px] text-slate-500 mt-1">{subtitle}</div>}
+</div>

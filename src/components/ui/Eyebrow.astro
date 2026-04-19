@@ -1,0 +1,9 @@
+---
+// src/components/ui/Eyebrow.astro
+interface Props {
+  class?: string;
+}
+const { class: klass = '' } = Astro.props;
+---
+
+<p class:list={['font-mono-label', klass]}><slot /></p>

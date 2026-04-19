@@ -1,0 +1,18 @@
+---
+// src/components/ui/Portrait.astro
+interface Props {
+  src: string;
+  alt: string;
+  name: string;
+  role: string;
+}
+const { src, alt, name, role } = Astro.props;
+---
+
+<article class="bg-[var(--color-cream)] border border-[rgba(120,53,15,0.15)] rounded-sm p-3">
+  <img src={src} alt={alt} class="w-full rounded-[2px] block" loading="lazy" />
+  <p class="font-semibold text-sm mt-2 text-[var(--color-ink)]">{name}</p>
+  <p class="font-mono text-[10px] tracking-[0.1em] uppercase text-[var(--color-teal)] mt-1">
+    {role}
+  </p>
+</article>

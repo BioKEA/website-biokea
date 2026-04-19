@@ -1,0 +1,29 @@
+---
+// src/components/ui/PhotoCard.astro
+interface Props {
+  src: string;
+  alt: string;
+  caption?: string;
+  liveLabel?: string;
+  class?: string;
+}
+const { src, alt, caption, liveLabel, class: klass = '' } = Astro.props;
+---
+
+<figure class:list={['relative rounded-sm overflow-hidden border border-black/10', klass]}>
+  <img src={src} alt={alt} class="w-full h-full object-cover block" loading="lazy" />
+  {
+    caption && (
+      <figcaption class="absolute bottom-2 left-2 bg-black/45 text-[var(--color-cream)] px-2 py-1 rounded-sm font-mono text-[10px] tracking-[0.12em] uppercase">
+        {caption}
+      </figcaption>
+    )
+  }
+  {
+    liveLabel && (
+      <span class="absolute top-2 right-2 bg-[var(--color-pink)] text-[var(--color-pink-soft)] px-2 py-1 rounded-sm font-mono text-[9px] font-semibold tracking-[0.16em] uppercase">
+        {liveLabel}
+      </span>
+    )
+  }
+</figure>
