@@ -4,14 +4,27 @@ import Eyebrow from '@/components/ui/Eyebrow.astro';
 ---
 
 <BaseLayout title="Not found" description="This page doesn't exist.">
-  <section class="max-w-3xl mx-auto px-6 py-24 text-center">
+  <section class="max-w-3xl mx-auto px-6 py-20 text-center">
     <Eyebrow>404</Eyebrow>
     <h1 class="mt-4 text-4xl font-semibold tracking-tight text-[var(--color-ink)]">
       This page isn't here.
     </h1>
     <p class="mt-4 text-slate-600">
-      It may have moved, or it may have never existed. Back to
+      Someone wandered off the transect. Back to
       <a href="/" class="text-[var(--color-teal)] underline">biokea.ai</a>.
     </p>
+    <figure class="mt-10">
+      <img
+        src="/assets/images/field-sampling-404.jpg"
+        alt="A field scientist kneeling in an empty landscape, off the main transect."
+        width="1800"
+        height="1200"
+        class="w-full rounded-md"
+        loading="eager"
+      />
+      <figcaption class="mt-3 font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500">
+        Fig · off-trail
+      </figcaption>
+    </figure>
   </section>
 </BaseLayout>
