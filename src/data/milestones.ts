@@ -9,7 +9,7 @@ export const milestones: Milestone[] = [
   {
     date: '2025-03',
     title: 'BioKEA founded',
-    body: 'Biology Knowledge Exploration Assistant — spin-out from biodiversity and environmental omics research.',
+    body: 'Biology Knowledge Exploration Assistant — spin-out from biodiversity and environmental omics research, accelerated by revolutionary AI tooling.',
   },
   {
     date: '2025-09',
