@@ -4,7 +4,7 @@ import Eyebrow from '@/components/ui/Eyebrow.astro';
 import PhotoCard from '@/components/ui/PhotoCard.astro';
 import StatPill from '@/components/ui/StatPill.astro';
 import CtaBand from '@/components/sections/CtaBand.astro';
-import { labStats } from '@/data/stats';
+import { labStats, capabilityLines } from '@/data/stats';
 import { equipmentByStage } from '@/data/equipment';
 ---
 
@@ -52,6 +52,14 @@ import { equipmentByStage } from '@/data/equipment';
     <h2 class="mt-3 text-2xl font-semibold">Current state</h2>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-6">
       {labStats.map((s) => <StatPill value={s.value} label={s.label} live={s.live} />)}
+    </div>
+    <div class="mt-8">
+      <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500 mb-3">
+        Capability
+      </div>
+      <ul class="space-y-1.5 text-sm text-slate-600 leading-relaxed max-w-[62ch]">
+        {capabilityLines.map((line) => <li>· {line}</li>)}
+      </ul>
     </div>
   </section>
 
