@@ -10,13 +10,13 @@ export interface TeamMember {
 export const team: TeamMember[] = [
   {
     name: 'Sean Jungbluth',
-    role: 'CEO / CTO',
+    role: 'CEO / CTO, Founder',
     image: '/assets/images/portrait-sean.webp',
     alt: 'Headshot of Sean Jungbluth',
   },
   {
     name: 'Michelle Jungbluth',
-    role: 'Head of Science and Operations',
+    role: 'Advisor and Head of Science and Operations',
     image: '/assets/images/portrait-michelle.webp',
     alt: 'Headshot of Michelle Jungbluth',
   },
