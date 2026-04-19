@@ -1,0 +1,203 @@
+{
+  "palette": {
+    "cream": "#F3EFE6",
+    "ink": "#0b1f1a",
+    "slate": "#475569",
+    "teal": "#0f766e",
+    "ochre": "#92400e",
+    "magenta": "#be185d"
+  },
+  "files": [
+    {
+      "path": "BioKEA-13-assets-contact-sheet.png",
+      "bytes": 1280529,
+      "kb": 1250.5,
+      "dimensions": [2400, 2440],
+      "mode": "RGBA"
+    },
+    {
+      "path": "android-chrome-192x192.png",
+      "bytes": 6106,
+      "kb": 6.0,
+      "dimensions": [192, 192],
+      "mode": "RGBA"
+    },
+    {
+      "path": "android-chrome-512x512.png",
+      "bytes": 16941,
+      "kb": 16.5,
+      "dimensions": [512, 512],
+      "mode": "RGBA"
+    },
+    {
+      "path": "apple-touch-icon.png",
+      "bytes": 5991,
+      "kb": 5.9,
+      "dimensions": [180, 180],
+      "mode": "RGBA"
+    },
+    {
+      "path": "asset-manifest.json",
+      "bytes": 6319,
+      "kb": 6.2
+    },
+    {
+      "path": "favicon.ico",
+      "bytes": 4194,
+      "kb": 4.1,
+      "dimensions": [48, 48],
+      "mode": "RGBA"
+    },
+    {
+      "path": "favicon.svg",
+      "bytes": 670,
+      "kb": 0.7
+    },
+    {
+      "path": "public/assets/images/agentis-discourse-graph.webp",
+      "bytes": 64962,
+      "kb": 63.4,
+      "dimensions": [1200, 1200],
+      "mode": "RGBA",
+      "alt": "A lattice of interconnected signed publication nodes illustrating verifiable peer review and transparent scientific discourse."
+    },
+    {
+      "path": "public/assets/images/agentis-storymap-mockup.webp",
+      "bytes": 51256,
+      "kb": 50.1,
+      "dimensions": [1600, 1100],
+      "mode": "RGB",
+      "alt": "A mockup of an Agentis StoryMap: an interactive scientific publication with map, data, FAIR package badges, and inline citations."
+    },
+    {
+      "path": "public/assets/images/bay-area-map.webp",
+      "bytes": 44910,
+      "kb": 43.9,
+      "dimensions": [1200, 900],
+      "mode": "RGB",
+      "alt": "A hand-drawn editorial map of the San Francisco Bay Area showing BioKEA's Berkeley lab and partner institutions at CIB, SFEI, and Coastal Quest."
+    },
+    {
+      "path": "public/assets/images/cta-seal.webp",
+      "bytes": 15074,
+      "kb": 14.7,
+      "dimensions": [200, 200],
+      "mode": "RGBA",
+      "alt": "BioKEA editorial seal \u2014 a circular stamp with the mascot and a mono wordmark around the rim."
+    },
+    {
+      "path": "public/assets/images/diversityscanner-heatmaps-cream.webp",
+      "bytes": 35632,
+      "kb": 34.8,
+      "dimensions": [800, 600],
+      "mode": "RGB",
+      "alt": "Four specimen panels overlaid with topographic-style attention contours in the BioKEA cream palette."
+    },
+    {
+      "path": "public/assets/images/field-sampling.jpg",
+      "bytes": 137898,
+      "kb": 134.7,
+      "dimensions": [1800, 1200],
+      "mode": "RGB",
+      "alt": "An editorial fallback illustration of a field scientist collecting a water sample beside a creek."
+    },
+    {
+      "path": "public/assets/images/ldc-interior-iso.webp",
+      "bytes": 88008,
+      "kb": 85.9,
+      "dimensions": [1800, 1200],
+      "mode": "RGB",
+      "alt": "An isometric cutaway illustration of the BioKEA Berkeley lab, showing extraction, prep, quantification, and sequencing equipment arranged along the pipeline flow."
+    },
+    {
+      "path": "public/assets/images/marg-daphnia.webp",
+      "bytes": 9102,
+      "kb": 8.9,
+      "dimensions": [200, 200],
+      "mode": "RGBA",
+      "alt": "A daphnia water flea in editorial teal line-art."
+    },
+    {
+      "path": "public/assets/images/marg-diatom.webp",
+      "bytes": 7638,
+      "kb": 7.5,
+      "dimensions": [200, 200],
+      "mode": "RGBA",
+      "alt": "A diatom in editorial teal line-art."
+    },
+    {
+      "path": "public/assets/images/marg-fish.webp",
+      "bytes": 5120,
+      "kb": 5.0,
+      "dimensions": [200, 200],
+      "mode": "RGBA",
+      "alt": "A small aquatic fish in editorial teal line-art."
+    },
+    {
+      "path": "public/assets/images/marg-leaf.webp",
+      "bytes": 8054,
+      "kb": 7.9,
+      "dimensions": [200, 200],
+      "mode": "RGBA",
+      "alt": "A leaf with veining in editorial teal line-art."
+    },
+    {
+      "path": "public/assets/images/og-agentis.jpg",
+      "bytes": 99937,
+      "kb": 97.6,
+      "dimensions": [1200, 630],
+      "mode": "RGB",
+      "alt": "Agentis \u2014 an AI-first scientific journal on the AT Protocol."
+    },
+    {
+      "path": "public/assets/images/og-home.jpg",
+      "bytes": 102824,
+      "kb": 100.4,
+      "dimensions": [1200, 630],
+      "mode": "RGB",
+      "alt": "BioKEA \u2014 an AI company with a wet-lab moat. Biology, decoded in the public interest."
+    },
+    {
+      "path": "public/assets/images/og-lab.jpg",
+      "bytes": 102533,
+      "kb": 100.1,
+      "dimensions": [1200, 630],
+      "mode": "RGB",
+      "alt": "BioKEA Lab \u2014 5,000+ square feet and an open lab in Berkeley."
+    },
+    {
+      "path": "public/assets/images/pipeline-flow.webp",
+      "bytes": 42556,
+      "kb": 41.6,
+      "dimensions": [2000, 500],
+      "mode": "RGB",
+      "alt": "The BioKEA pipeline: field samples flow through Ingest, Analyze, Draft, Review, Broadcast, and Amplify to become verifiable scientific claims."
+    },
+    {
+      "path": "public/assets/images/press-kit-composite.png",
+      "bytes": 66090,
+      "kb": 64.5,
+      "dimensions": [3000, 2000],
+      "mode": "P",
+      "alt": "BioKEA press kit composite: logo, Large Data Collider illustration, wordmark, and tagline."
+    },
+    {
+      "path": "public/assets/images/taxonomic-tree.webp",
+      "bytes": 36768,
+      "kb": 35.9,
+      "dimensions": [400, 800],
+      "mode": "RGBA",
+      "alt": "A small phylogenetic tree illustration in editorial teal line-art."
+    },
+    {
+      "path": "safari-pinned.svg",
+      "bytes": 670,
+      "kb": 0.7
+    },
+    {
+      "path": "site.webmanifest",
+      "bytes": 371,
+      "kb": 0.4
+    }
+  ]
+}

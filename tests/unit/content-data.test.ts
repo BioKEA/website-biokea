@@ -6,8 +6,9 @@ import { milestones } from '@/data/milestones';
 import { homepageStats, labStats } from '@/data/stats';
 
 describe('team data', () => {
-  it('has all three team members', () => {
-    expect(team).toHaveLength(3);
+  it('has three core team members and two advisors', () => {
+    expect(team.filter((p) => p.tier !== 'advisor')).toHaveLength(3);
+    expect(team.filter((p) => p.tier === 'advisor')).toHaveLength(2);
   });
   it('every entry has name, role, image, alt', () => {
     for (const p of team) {
@@ -17,11 +18,13 @@ describe('team data', () => {
       expect(p.alt).toBeTruthy();
     }
   });
-  it('includes the three named members', () => {
+  it('includes the named team + advisor members', () => {
     const names = team.map((m) => m.name);
     expect(names).toContain('Sean Jungbluth');
     expect(names).toContain('Michelle Jungbluth');
     expect(names).toContain('Austin Baker');
+    expect(names).toContain('Sunit Jain');
+    expect(names).toContain('Greg Fedewa');
   });
 });
 

@@ -5,11 +5,18 @@ interface Props {
   alt: string;
   name: string;
   role: string;
+  size?: 'md' | 'sm';
 }
-const { src, alt, name, role } = Astro.props;
+const { src, alt, name, role, size = 'md' } = Astro.props;
+
+const padding = size === 'sm' ? 'p-2' : 'p-3';
+const nameSize = size === 'sm' ? 'text-xs' : 'text-sm';
+const roleSize = size === 'sm' ? 'text-[9px]' : 'text-[10px]';
 ---
 
-<article class="bg-[var(--color-cream)] border border-[rgba(120,53,15,0.15)] rounded-sm p-3">
+<article
+  class:list={['bg-[var(--color-cream)] border border-[rgba(120,53,15,0.15)] rounded-sm', padding]}
+>
   <img
     src={src}
     alt={alt}
@@ -18,8 +25,8 @@ const { src, alt, name, role } = Astro.props;
     class="w-full rounded-[2px] block aspect-[10/11] object-cover"
     loading="lazy"
   />
-  <p class="font-semibold text-sm mt-2 text-[var(--color-ink)]">{name}</p>
-  <p class="font-mono text-[10px] tracking-[0.1em] uppercase text-[var(--color-teal)] mt-1">
+  <p class:list={['font-semibold mt-2 text-[var(--color-ink)]', nameSize]}>{name}</p>
+  <p class:list={['font-mono tracking-[0.1em] uppercase text-[var(--color-teal)] mt-1', roleSize]}>
     {role}
   </p>
 </article>

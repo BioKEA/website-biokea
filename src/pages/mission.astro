@@ -37,13 +37,28 @@ import { milestones } from '@/data/milestones';
     <Eyebrow>TEAM</Eyebrow>
     <div class="grid md:grid-cols-3 gap-5 mt-6">
       {
-        team.map((p) => (
-          <div>
-            <Portrait src={p.image} alt={p.alt} name={p.name} role={p.role} />
-            {p.bio && <p class="mt-3 text-xs text-slate-600 leading-relaxed">{p.bio}</p>}
-          </div>
-        ))
+        team
+          .filter((p) => p.tier !== 'advisor')
+          .map((p) => (
+            <div>
+              <Portrait src={p.image} alt={p.alt} name={p.name} role={p.role} />
+              {p.bio && <p class="mt-3 text-xs text-slate-600 leading-relaxed">{p.bio}</p>}
+            </div>
+          ))
       }
+    </div>
+
+    <div class="mt-12">
+      <Eyebrow>ADVISORS</Eyebrow>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 max-w-3xl">
+        {
+          team
+            .filter((p) => p.tier === 'advisor')
+            .map((p) => (
+              <Portrait src={p.image} alt={p.alt} name={p.name} role={p.role} size="sm" />
+            ))
+        }
+      </div>
     </div>
 
     <figure class="mt-10 max-w-3xl">
