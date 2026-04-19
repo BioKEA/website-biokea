@@ -3,7 +3,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
 
 const requestedTopic = Astro.url.searchParams.get('topic');
-const presetTopic = requestedTopic === 'agentis' ? 'Agentis — early access' : '';
+const presetTopic: string = requestedTopic === 'agentis' ? 'Agentis — early access' : '';
 ---
 
 <BaseLayout

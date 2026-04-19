@@ -6,7 +6,6 @@ import Evidence from '@/components/sections/Evidence.astro';
 import Ecosystem from '@/components/sections/Ecosystem.astro';
 import Origin from '@/components/sections/Origin.astro';
 import CtaBand from '@/components/sections/CtaBand.astro';
-import { team } from '@/data/team';
 import { partners } from '@/data/partners';
 import { homepageStats } from '@/data/stats';
 
@@ -83,7 +82,6 @@ const ecosystemTiles = [
       'BioKEA — Biology Knowledge Exploration Assistant — is an independent lab and AI platform for biodiversity and environmental omics, based in Berkeley, California.',
       'The team builds on years at the DOE Berkeley Lab network, in marine research, and in Bay Area environmental consulting. The Berkeley space came online in March 2026.',
     ]}
-    people={team.map((p) => ({ src: p.image, alt: p.alt, name: p.name, role: p.role }))}
     partners={partners}
   />
 
