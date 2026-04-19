@@ -2,7 +2,7 @@
 
 **Scope:** everything still missing from the biokea.ai visual system, each as a standalone brief ready to paste into Midjourney, DALL·E 3, Stable Diffusion XL / Flux, Ideogram, Recraft, or a photography direction.
 
-**Companion docs:** `docs/biokea-ldc-style-guide.md` covers the core visual system at depth (palette, line quality, what-to-avoid). This brief recaps the essentials at the top, then drops a full per-asset spec for all 13 images. Read the LDC guide first.
+**Companion docs:** `docs/briefs/biokea-ldc-style-guide.md` covers the core visual system at depth (palette, line quality, what-to-avoid). This brief recaps the essentials at the top, then drops a full per-asset spec for all 13 images. Read the LDC guide first.
 
 **Why this order:** Tier 1 assets ship first because they are visible everywhere (OG card, favicon) or they anchor a major page (map). Tier 2 deepens the story. Tier 3 is polish. Tier 4 is aspirational.
 
@@ -25,7 +25,7 @@ Every asset specifies: filename, dimensions, file format, max KB, transparent-vs
 
 ## Shared style system (recap)
 
-Full detail: see `docs/biokea-ldc-style-guide.md`. Short version:
+Full detail: see `docs/briefs/biokea-ldc-style-guide.md`. Short version:
 
 ### Palette (all hex from `src/styles/tokens.css`)
 
@@ -53,7 +53,7 @@ Full detail: see `docs/biokea-ldc-style-guide.md`. Short version:
 
 ### Reference aesthetic
 
-Your v2026.01 NotebookLM-styled deck (`docs/AI_First_Bio_Publishing.pdf`) IS the visual language. Look at slides 1, 4, 5, 10, and 12 before every generation. If the output doesn't feel like it could be a new slide in that deck, it's wrong.
+Your v2026.01 NotebookLM-styled deck (`docs/references/AI_First_Bio_Publishing.pdf`) IS the visual language. Look at slides 1, 4, 5, 10, and 12 before every generation. If the output doesn't feel like it could be a new slide in that deck, it's wrong.
 
 Also usable as live references:
 
@@ -644,7 +644,7 @@ Replace or augment the text-based stage list at the top of `/pipeline`.
 - **Some nodes are filled teal** (accepted/published), some are outlined ochre (in review), one is highlighted with a magenta ring (a newly-published or contested claim).
 - **Each connecting line is labeled implicitly** with a tiny icon — a cryptographic lock symbol, a quill (review), a data file (citation).
 - **No real-world text.** The typography is purely suggestive — looks like a directed acyclic graph viewer rendered in editorial line-art.
-- **Reference:** slide 10 of `docs/AI_First_Bio_Publishing.pdf` (the "Connecting the Dots: The Agentis Knowledge Graph" illustration). Aim for that register.
+- **Reference:** slide 10 of `docs/references/AI_First_Bio_Publishing.pdf` (the "Connecting the Dots: The Agentis Knowledge Graph" illustration). Aim for that register.
 
 ### Palette usage
 
@@ -1130,7 +1130,7 @@ After saving a new asset to `public/assets/images/`:
 4. Run `npm run check` to confirm no TypeScript errors.
 5. Run `npm run test:e2e` to confirm no e2e regressions (image alt or dimension checks may fail).
 6. Run `npm run build` followed by Lighthouse against preview to confirm perf didn't regress.
-7. Commit with a descriptive message; update `docs/biokea-imagery-production-brief.md` if the brief itself needed adjustment.
+7. Commit with a descriptive message; update `docs/briefs/biokea-imagery-production-brief.md` if the brief itself needed adjustment.
 
 ## D. When to re-consult the LDC style guide
 
@@ -1141,7 +1141,7 @@ For anything related to:
 - Per-tool prompt structure (Midjourney / DALL·E / SDXL template)
 - Delivery format specifics
 
-See `docs/biokea-ldc-style-guide.md` — it remains the canonical reference.
+See `docs/briefs/biokea-ldc-style-guide.md` — it remains the canonical reference.
 
 ## E. Sign-off
 

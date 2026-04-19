@@ -67,7 +67,7 @@ Use **teal as the dominant hue.** Ochre secondary. Magenta is a _signal_ — it 
 
 ## 5. Reference for the overall style
 
-The existing BioKEA deck `docs/AI_First_Bio_Publishing.pdf` (v2026.01) is the **target visual language**. Every slide in that deck already lives in the aesthetic we want: cream paper, muted jewel tones, blueprint-isometric backgrounds, flat illustrations, editorial typography. Study it before generating.
+The existing BioKEA deck `docs/references/AI_First_Bio_Publishing.pdf` (v2026.01) is the **target visual language**. Every slide in that deck already lives in the aesthetic we want: cream paper, muted jewel tones, blueprint-isometric backgrounds, flat illustrations, editorial typography. Study it before generating.
 
 In particular:
 

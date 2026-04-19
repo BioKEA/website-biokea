@@ -1,7 +1,7 @@
 // src/data/equipment.ts
 // Curated per-stage equipment view for /lab. Each stage features one
 // hero piece (photo + name + why-it-matters) plus a secondary list.
-// Full inventory lives in docs/equipment-list.txt.
+// Full inventory lives in docs/source/equipment-list.txt.
 
 export interface EquipmentStage {
   label: string;
