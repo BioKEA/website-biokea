@@ -34,6 +34,6 @@ export const milestones: Milestone[] = [
   {
     date: '2026-04',
     title: 'First employee hired',
-    body: 'Beyond the three founders, the first salaried hire joins the team.',
+    body: 'Founding team expands, the first salaried hire joins the team.',
   },
 ];
