@@ -23,6 +23,11 @@ export interface Project {
   heroHeight?: number;
   revealTarget?: string;
   team?: ProjectMember[];
+  // Project originated outside BioKEA — the team member who owns it
+  // brought it in or continues it independently. Surfaced on the card
+  // so partners/LLMs can't mistake provenance.
+  originIndependent?: boolean;
+  originNote?: string;
 }
 
 export const projects: Project[] = [
@@ -59,6 +64,9 @@ export const projects: Project[] = [
     status: 'revealing-soon',
     revealTarget: 'Pending Ecography publication',
     team: [{ name: 'Austin', lead: true }],
+    originIndependent: true,
+    originNote:
+      "Originated independently of BioKEA as Austin's prior research program; now continued under the BioKEA umbrella.",
   },
   {
     slug: 'bay-estuary-metabarcoding-baseline',
@@ -96,5 +104,8 @@ export const projects: Project[] = [
     status: 'live',
     link: 'https://github.com/sunitj/Colloquip',
     team: [{ name: 'Sunit', lead: true }],
+    originIndependent: true,
+    originNote:
+      "Originated and maintained independently by Sunit Jain on GitHub; surfaced here through Sunit's advisor role, not authored by BioKEA.",
   },
 ];

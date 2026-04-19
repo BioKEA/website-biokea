@@ -87,10 +87,10 @@ Arriving early summer 2026: **DiversityScanner** — a roboticized imaging platf
 ## Active & forthcoming projects
 
 - **Intertidal Biodiversity DNA Barcode Library** (LIVE · Coastal Quest partnership) — Reference barcode taxonomic coverage gap analysis tool covering 4,384 intertidal species along the California coast, cross-referenced against BOLD, NCBI GenBank, NCBI SRA, and GBIF. Interactive Shiny app: https://biokea.shinyapps.io/california_intertidal_gap_analysis/ · Lead: Sean
-- **California Insect Barcoding Initiative** (REVEALING SOON · pending Ecography publication) — First large-scale DNA-barcode survey of California insects: 1M+ specimens barcoded, ~61,000 species estimated statewide with roughly one-third still undiscovered. Spatial richness interpolations constrained by ecoregion + vegetation type. Lead: Austin
+- **California Insect Barcoding Initiative** (REVEALING SOON · pending Ecography publication · _independent origin_) — First large-scale DNA-barcode survey of California insects: 1M+ specimens barcoded, ~61,000 species estimated statewide with roughly one-third still undiscovered. Spatial richness interpolations constrained by ecoregion + vegetation type. Originated independently of BioKEA as Austin Baker's prior research program; continued under the BioKEA umbrella. Lead: Austin
 - **Bay Estuary Metabarcoding Baseline** (REVEALING Q4 2026 · SFEI partnership) — Longitudinal metabarcoding baseline for the San Francisco Bay estuary. Lead: Michelle; contributor: Sean
 - **Long-read Microbial Genome Resource** (COMING Q4 2026) — Growing library of high-quality long-read microbial assemblies produced on the ONT Promethion 2, published as a public resource. Lead: Sean
-- **Colloquip** (LIVE open-source) — Multi-agent AI deliberation platform with specialized scientific personas (Biology, Chemistry, ADMET, Clinical, Regulatory, Red Team) self-organizing to debate hypotheses. https://github.com/sunitj/Colloquip · Lead: Sunit
+- **Colloquip** (LIVE open-source · _independent origin_) — Multi-agent AI deliberation platform with specialized scientific personas (Biology, Chemistry, ADMET, Clinical, Regulatory, Red Team) self-organizing to debate hypotheses. Originated and maintained independently by Sunit Jain on GitHub; surfaced here through Sunit's BioKEA advisor role, not authored by BioKEA. https://github.com/sunitj/Colloquip · Lead: Sunit
 
 ## Milestones
 
