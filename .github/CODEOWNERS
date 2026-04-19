@@ -2,20 +2,20 @@
 # Default owners for everything in this repo. Tag-based routing can be
 # added here as the team grows.
 
-*                               @BioKEA/maintainers
+*                               @jungbluth
 
 # Content areas that specific people should review
-/src/data/team.ts               @BioKEA/maintainers
-/src/data/partners.ts           @BioKEA/maintainers
-/src/data/projects.ts           @BioKEA/maintainers
-/src/data/milestones.ts         @BioKEA/maintainers
-/src/pages/                     @BioKEA/maintainers
-/public/llms.txt                @BioKEA/maintainers
+/src/data/team.ts               @jungbluth
+/src/data/partners.ts           @jungbluth
+/src/data/projects.ts           @jungbluth
+/src/data/milestones.ts         @jungbluth
+/src/pages/                     @jungbluth
+/public/llms.txt                @jungbluth
 
 # Infra / deploy
-/.github/workflows/             @BioKEA/maintainers
-/wrangler.toml                  @BioKEA/maintainers
-/astro.config.mjs               @BioKEA/maintainers
+/.github/workflows/             @jungbluth
+/wrangler.toml                  @jungbluth
+/astro.config.mjs               @jungbluth
 
 # Docs (lower-stakes review)
-/docs/                          @BioKEA/maintainers
+/docs/                          @jungbluth
