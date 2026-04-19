@@ -1,52 +1,45 @@
 {
   "name": "biokea-website",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "format": "prettier --write \"**/*.{ts,tsx,json,md,css}\"",
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "lint": "prettier --check \"src/**/*.{astro,ts,tsx,md,mdx,css}\"",
+    "format": "prettier --write \"src/**/*.{astro,ts,tsx,md,mdx,css}\"",
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md,css}": [
+    "*.{astro,ts,tsx,md,mdx,json,css}": [
       "prettier --write"
     ]
   },
   "dependencies": {
-    "@cloudflare/kv-asset-handler": "^0.3.4",
-    "@emotion/is-prop-valid": "^1.4.0",
-    "framer-motion": "^12.31.0",
-    "mime": "^3.0.0",
-    "next": "^13.5.7",
-    "nodemailer": "^6.10.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@astrojs/cloudflare": "^13.0.0",
+    "@astrojs/mdx": "^5.0.0",
+    "@astrojs/sitemap": "^3.7.0",
+    "@tailwindcss/vite": "^4.2.0",
+    "astro": "^6.0.0",
+    "resend": "^6.0.0",
+    "tailwindcss": "^4.2.0",
+    "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.19.31",
-    "@types/nodemailer": "^6.4.17",
-    "@types/react": "^18.3.27",
-    "@types/react-dom": "^18.3.7",
-    "@typescript-eslint/eslint-plugin": "^8.54.0",
-    "@typescript-eslint/parser": "^8.54.0",
-    "autoprefixer": "^10.4.24",
-    "eslint": "^8.57.1",
-    "eslint-config-next": "^14.2.29",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.5",
+    "@fontsource/inter": "^5.1.0",
+    "@fontsource/jetbrains-mono": "^5.1.0",
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^22.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "postcss": "^8.5.6",
     "prettier": "^3.8.1",
-    "tailwindcss": "^3.4.19",
-    "typescript": "^5.9.3"
+    "prettier-plugin-astro": "^0.14.0",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.0"
   }
 }
