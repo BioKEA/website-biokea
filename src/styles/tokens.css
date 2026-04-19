@@ -1,0 +1,37 @@
+/* src/styles/tokens.css — design tokens per spec §4 */
+@theme {
+  /* Backgrounds */
+  --color-cream: #f3efe6;
+  --color-cream-warm: #f6f2e9;
+
+  /* Surfaces */
+  --color-ink: #0b1f1a;
+  --color-ink-soft: #06111a;
+
+  /* Text */
+  --color-slate: #475569;
+  --color-slate-soft: #64748b;
+
+  /* Accents */
+  --color-teal: #0f766e;
+  --color-teal-bright: #5eead4;
+
+  /* Signal — reserved for live/novel/active only */
+  --color-pink: #be185d;
+  --color-pink-soft: #fbcfe8;
+
+  /* Warm */
+  --color-ochre: #92400e;
+
+  /* Grid line */
+  --color-grid: rgba(30, 41, 59, 0.04);
+
+  /* Fonts */
+  --font-sans: 'Inter', -apple-system, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Radii */
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 14px;
+}
