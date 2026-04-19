@@ -11,19 +11,19 @@ export const team: TeamMember[] = [
   {
     name: 'Sean Jungbluth',
     role: 'CEO / CTO',
-    image: '/assets/images/profile-sean.png',
-    alt: 'Painterly portrait of Sean Jungbluth',
+    image: '/assets/images/portrait-sean.webp',
+    alt: 'Headshot of Sean Jungbluth',
   },
   {
     name: 'Michelle Jungbluth',
     role: 'Head of Science and Operations',
-    image: '/assets/images/portrait-placeholder.svg', // VERIFY: replace with real portrait when ready
-    alt: 'Portrait of Michelle Jungbluth',
+    image: '/assets/images/portrait-michelle.webp',
+    alt: 'Headshot of Michelle Jungbluth',
   },
   {
     name: 'Austin Baker',
     role: 'Biodiversity Research Scientist',
-    image: '/assets/images/portrait-placeholder.svg', // VERIFY: replace with real portrait when ready
-    alt: 'Portrait of Austin Baker',
+    image: '/assets/images/portrait-austin.webp',
+    alt: 'Headshot of Austin Baker',
   },
 ];

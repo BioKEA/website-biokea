@@ -13,9 +13,9 @@ const { src, alt, name, role } = Astro.props;
   <img
     src={src}
     alt={alt}
-    width="200"
-    height="220"
-    class="w-full rounded-[2px] block"
+    width="500"
+    height="550"
+    class="w-full rounded-[2px] block aspect-[10/11] object-cover"
     loading="lazy"
   />
   <p class="font-semibold text-sm mt-2 text-[var(--color-ink)]">{name}</p>

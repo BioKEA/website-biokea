@@ -43,3 +43,10 @@
   text-transform: uppercase;
   color: var(--color-teal);
 }
+
+/* Softens the dark-navy + neon illustrations until cream-palette
+   recolors are produced. Reversible — drop this class to restore. */
+@utility illo-rebalance {
+  filter: contrast(0.9) saturate(0.55) hue-rotate(-8deg) brightness(1.02);
+  mix-blend-mode: multiply;
+}
