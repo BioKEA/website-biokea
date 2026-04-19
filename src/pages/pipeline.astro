@@ -1,0 +1,86 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import CtaBand from '@/components/sections/CtaBand.astro';
+import { pipelineStages } from '@/data/pipeline';
+---
+
+<BaseLayout
+  title="Soil to Claim — the pipeline"
+  description="The six-stage pipeline from raw sample to published, verifiable scientific claim."
+>
+  <section class="max-w-6xl mx-auto px-6 pt-16 pb-8">
+    <Eyebrow>PIPELINE · SOIL TO CLAIM</Eyebrow>
+    <h1
+      class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[24ch]"
+    >
+      Six stages. One verifiable chain of custody.
+    </h1>
+    <p class="mt-5 max-w-[60ch] text-slate-600 leading-relaxed">
+      From a raw FASTA or DwC-A archive through to a published, data-tethered scientific artifact —
+      every step recorded, every claim re-derivable.
+    </p>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-8">
+    <ol class="space-y-6">
+      {
+        pipelineStages.map((s) => (
+          <li class="grid md:grid-cols-[120px_1fr] gap-6 border-t border-slate-900/10 pt-6">
+            <div>
+              <div
+                data-step-number
+                class="font-mono text-sm text-[var(--color-teal)] font-semibold tracking-[0.1em]"
+              >
+                {s.number}
+              </div>
+              <div class="font-semibold text-[var(--color-ink)] mt-1">{s.title}</div>
+              <div class="font-mono text-[11px] text-slate-500 mt-1">{s.subtitle}</div>
+            </div>
+            <p class="text-slate-600 leading-relaxed">{s.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <Eyebrow>BEING BUILT</Eyebrow>
+    <h2 class="mt-3 text-2xl font-semibold">BioinfoOS</h2>
+    <p class="mt-3 text-slate-600 max-w-[62ch] leading-relaxed">
+      The software layer running on the BioKEA LDC. AI-assisted pipelines for extraction QC,
+      taxonomy reconciliation, and FAIR validation — developed in-house. In active development.
+    </p>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <Eyebrow>PUBLISHED AT</Eyebrow>
+    <h2 class="mt-3 text-2xl font-semibold">Agentis</h2>
+    <p class="mt-3 text-slate-600 max-w-[62ch] leading-relaxed">
+      Our open-access publishing platform — AI pre-screen plus verified human peer review, with
+      outputs as interactive StoryMaps rather than static PDFs. Lives on AT Protocol.
+    </p>
+    <a
+      href="https://agentis.science"
+      rel="noopener"
+      class="mt-4 inline-block font-mono text-sm text-[var(--color-pink)]"
+    >
+      agentis.science ↗
+    </a>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <Eyebrow>TRUST</Eyebrow>
+    <h2 class="mt-3 text-2xl font-semibold">Verifiable, open, resistant to capture</h2>
+    <p class="mt-3 text-slate-600 max-w-[62ch] leading-relaxed">
+      Every artifact carries an AT Protocol DID. Every peer review is a signed record. Data packages
+      land in GBIF, NCBI SRA, and Zenodo. FAIR compliance is not optional — it is the output format.
+    </p>
+  </section>
+
+  <CtaBand
+    title="Want to plug a sample into this?"
+    subtitle="We're onboarding sample streams and collaboration partners."
+    cta={{ href: '/contact', label: 'Start a conversation' }}
+  />
+</BaseLayout>
