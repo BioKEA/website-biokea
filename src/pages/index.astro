@@ -1,7 +1,89 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import Hero from '@/components/sections/Hero.astro';
+import Thesis from '@/components/sections/Thesis.astro';
+import Evidence from '@/components/sections/Evidence.astro';
+import Ecosystem from '@/components/sections/Ecosystem.astro';
+import Origin from '@/components/sections/Origin.astro';
+import CtaBand from '@/components/sections/CtaBand.astro';
+import { team } from '@/data/team';
+import { partners } from '@/data/partners';
+import { homepageStats } from '@/data/stats';
+
+const ecosystemTiles = [
+  {
+    image: '/assets/images/Pillar3-Droplet.webp',
+    imageAlt: 'Droplet — eDNA lab service',
+    label: 'Field to data',
+    name: 'Droplet',
+    description: 'eDNA and metabarcoding, from sample to sequence.',
+  },
+  {
+    image: '/assets/images/Pillar1-BioinfoOS.webp',
+    imageAlt: 'BioinfoOS — compute layer',
+    label: 'Compute layer',
+    name: 'BioinfoOS',
+    description: 'Software on the LDC. AI-assisted pipelines, developed in-house.',
+  },
+  {
+    image: '/assets/images/Pillar2-Agentis.webp',
+    imageAlt: 'Agentis — publishing',
+    label: 'Publish',
+    name: 'Agentis',
+    description: 'Open-access publishing on AT Protocol.',
+    href: 'https://agentis.science',
+    external: true,
+  },
+];
 ---
 
-<BaseLayout title="BioKEA" description="Biology, decoded in the public interest.">
-  <div style="min-height: 50vh; padding: 3rem;">scaffold</div>
+<BaseLayout
+  title="BioKEA — Biology, decoded in the public interest"
+  description="A 5,000 sq ft open lab and an AI pipeline from soil sample to published claim — built for the commons."
+>
+  <Hero
+    eyebrow="BIOKEA // BERKELEY, CA"
+    headline="Biology, decoded in the public interest."
+    subheadline="A 5,000 sq ft open lab in Berkeley and an AI pipeline from soil sample to published claim — built for the commons. BioKEA operates the Large Data Collider, a compute + wet-lab platform for biodiversity and environmental omics."
+    ctaPrimary={{ href: '/lab', label: "See what we're building" }}
+    ctaSecondary={{ href: '/contact', label: 'Schedule a call' }}
+    badgeImage="/assets/images/BioKEA-Large-Data-Collider.webp"
+    badgeAlt="BioKEA Large Data Collider illustration"
+    badgeCaption="LDC · v2026.04"
+  />
+
+  <Thesis
+    eyebrow="MISSION"
+    quote="The bottleneck in modern biology is no longer data generation. It is scientific storytelling and synthesis."
+    attribution="— BioKEA thesis"
+  />
+
+  <Evidence
+    eyebrow="CAPABILITY · THE LDC"
+    title="The Large Data Collider"
+    body="A 5,000 sq ft Berkeley lab housing an ONT Promethion 2 sequencer and a growing suite of extraction and prep automation. Designed as shared infrastructure with California Institute of Biodiversity, San Francisco Estuary Institute, and Coastal Quest."
+    photoSrc="/assets/images/lab-warehouse-after.jpg"
+    photoAlt="Berkeley lab interior, operational"
+    photoCaption="BERKELEY · 5,000 SQ FT"
+    stats={homepageStats}
+  />
+
+  <Ecosystem eyebrow="ECOSYSTEM" title="What we're building" tiles={ecosystemTiles} />
+
+  <Origin
+    eyebrow="ORIGIN"
+    title="Founded in March 2025."
+    paragraphs={[
+      'BioKEA — Biology Knowledge Exploration Assistant — is an independent lab and AI platform for biodiversity and environmental omics, based in Berkeley, California.',
+      'The team builds on years at the DOE Berkeley Lab network, in marine research, and in Bay Area environmental consulting. The Berkeley space came online in March 2026.',
+    ]}
+    people={team.map((p) => ({ src: p.image, alt: p.alt, name: p.name, role: p.role }))}
+    partners={partners}
+  />
+
+  <CtaBand
+    title="Collaborate, fund, or plug into the pipeline."
+    subtitle="We're actively taking partnership and capabilities conversations."
+    cta={{ href: '/contact', label: 'Schedule a call' }}
+  />
 </BaseLayout>
