@@ -2,6 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
 import CtaBand from '@/components/sections/CtaBand.astro';
+import { stringifyJsonLd } from '@/lib/json-ld';
 
 const concepts = [
   {
@@ -123,7 +124,7 @@ const concepts = [
   <script
     type="application/ld+json"
     is:inline
-    set:html={JSON.stringify({
+    set:html={stringifyJsonLd({
       '@context': 'https://schema.org',
       '@type': 'SoftwareApplication',
       '@id': 'https://biokea.ai/agentis#app',

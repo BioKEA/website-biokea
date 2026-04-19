@@ -3,6 +3,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
 import CtaBand from '@/components/sections/CtaBand.astro';
 import { pipelineStages } from '@/data/pipeline';
+import { stringifyJsonLd } from '@/lib/json-ld';
 ---
 
 <BaseLayout
@@ -129,7 +130,7 @@ import { pipelineStages } from '@/data/pipeline';
   <script
     type="application/ld+json"
     is:inline
-    set:html={JSON.stringify({
+    set:html={stringifyJsonLd({
       '@context': 'https://schema.org',
       '@type': 'HowTo',
       '@id': 'https://biokea.ai/pipeline#how-to',

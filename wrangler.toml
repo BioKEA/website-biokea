@@ -8,5 +8,10 @@ compatibility_date = "2026-04-18"
 CONTACT_FROM_EMAIL = "hello@biokea.ai"
 CONTACT_TO_EMAIL = "team@biokea.ai"
 
-# RESEND_API_KEY is a secret; set once with:
+# Secrets — set once per environment:
 #   wrangler secret put RESEND_API_KEY
+#   wrangler secret put TURNSTILE_SECRET_KEY   # optional; enables captcha
+#
+# If TURNSTILE_SECRET_KEY is unset, the contact endpoint skips captcha
+# verification. Pair it with PUBLIC_TURNSTILE_SITE_KEY at build time so
+# the widget renders on the contact page.

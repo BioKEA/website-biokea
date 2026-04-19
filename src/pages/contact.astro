@@ -4,6 +4,11 @@ import Eyebrow from '@/components/ui/Eyebrow.astro';
 
 const requestedTopic = Astro.url.searchParams.get('topic');
 const presetTopic: string = requestedTopic === 'agentis' ? 'Agentis — early access' : '';
+
+// Turnstile is optional — when PUBLIC_TURNSTILE_SITE_KEY is set at build
+// time, the widget renders and the server requires a valid token. Without
+// it, the form submits normally (local dev + initial launch without a key).
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | undefined;
 ---
 
 <BaseLayout
@@ -100,6 +105,16 @@ const presetTopic: string = requestedTopic === 'agentis' ? 'Agentis — early ac
         class="hidden"
         aria-hidden="true"
       />
+      {
+        turnstileSiteKey && (
+          <div
+            class="cf-turnstile"
+            data-sitekey={turnstileSiteKey}
+            data-theme="light"
+            data-size="flexible"
+          />
+        )
+      }
       <button
         type="submit"
         class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-3 rounded-sm font-semibold text-sm self-start"
@@ -116,6 +131,12 @@ const presetTopic: string = requestedTopic === 'agentis' ? 'Agentis — early ac
       </a>.
     </p>
   </section>
+
+  {
+    turnstileSiteKey && (
+      <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+    )
+  }
 
   <script is:inline>
     const form = document.getElementById('contact-form');

@@ -4,6 +4,7 @@ import Eyebrow from '@/components/ui/Eyebrow.astro';
 import ProjectCard from '@/components/ui/ProjectCard.astro';
 import CtaBand from '@/components/sections/CtaBand.astro';
 import { projects } from '@/data/projects';
+import { stringifyJsonLd } from '@/lib/json-ld';
 
 const live = projects.filter((p) => p.status === 'live');
 const revealing = projects.filter((p) => p.status === 'revealing-soon');
@@ -61,7 +62,7 @@ const tallies = {
   <script
     type="application/ld+json"
     is:inline
-    set:html={JSON.stringify({
+    set:html={stringifyJsonLd({
       '@context': 'https://schema.org',
       '@graph': [
         {

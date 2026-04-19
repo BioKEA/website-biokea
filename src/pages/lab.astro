@@ -6,6 +6,7 @@ import StatPill from '@/components/ui/StatPill.astro';
 import CtaBand from '@/components/sections/CtaBand.astro';
 import { labStats, capabilityLines } from '@/data/stats';
 import { equipmentByStage } from '@/data/equipment';
+import { stringifyJsonLd } from '@/lib/json-ld';
 ---
 
 <BaseLayout
@@ -255,7 +256,7 @@ import { equipmentByStage } from '@/data/equipment';
   <script
     type="application/ld+json"
     is:inline
-    set:html={JSON.stringify({
+    set:html={stringifyJsonLd({
       '@context': 'https://schema.org',
       '@graph': [
         {

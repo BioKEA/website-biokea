@@ -8,6 +8,7 @@ import Origin from '@/components/sections/Origin.astro';
 import CtaBand from '@/components/sections/CtaBand.astro';
 import { partners } from '@/data/partners';
 import { homepageStats } from '@/data/stats';
+import { stringifyJsonLd } from '@/lib/json-ld';
 
 const ecosystemTiles = [
   {
@@ -95,7 +96,7 @@ const ecosystemTiles = [
   <script
     type="application/ld+json"
     is:inline
-    set:html={JSON.stringify({
+    set:html={stringifyJsonLd({
       '@context': 'https://schema.org',
       '@graph': [
         {

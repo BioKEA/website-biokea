@@ -5,6 +5,7 @@ interface Env {
   RESEND_API_KEY: string;
   CONTACT_FROM_EMAIL: string;
   CONTACT_TO_EMAIL: string;
+  TURNSTILE_SECRET_KEY?: string;
 }
 
 const env: Env = {
@@ -65,6 +66,46 @@ describe('contact endpoint', () => {
     expect(res.status).toBe(400);
   });
 
+  it('rejects CR/LF in name (header-injection guard)', async () => {
+    const res = await handleContact(
+      makeRequest({
+        name: 'Alice\r\nBcc: evil@x.com',
+        email: 'a@b.com',
+        topic: 'Funding',
+        message: 'hi',
+      }),
+      env,
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects CR/LF in organization', async () => {
+    const res = await handleContact(
+      makeRequest({
+        name: 'Alice',
+        email: 'a@b.com',
+        organization: 'Acme\nInc',
+        topic: 'Funding',
+        message: 'hi',
+      }),
+      env,
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('allows newlines in the message body (legitimate multi-line)', async () => {
+    const res = await handleContact(
+      makeRequest({
+        name: 'Alice',
+        email: 'a@b.com',
+        topic: 'Funding',
+        message: 'Line one.\nLine two.\n\nLine three.',
+      }),
+      env,
+    );
+    expect(res.status).toBe(200);
+  });
+
   it('sends via Resend and returns ok on valid input', async () => {
     const res = await handleContact(
       makeRequest({ name: 'Alice', email: 'a@b.com', topic: 'Funding', message: 'Hello!' }),
@@ -89,5 +130,65 @@ describe('contact endpoint', () => {
       env,
     );
     expect(res.status).toBe(502);
+  });
+
+  describe('with Turnstile enabled', () => {
+    const envWithTurnstile: Env = { ...env, TURNSTILE_SECRET_KEY: 'secret_xxx' };
+
+    it('rejects when token is missing', async () => {
+      const res = await handleContact(
+        makeRequest({ name: 'A', email: 'a@b.com', topic: 'Funding', message: 'hi' }),
+        envWithTurnstile,
+      );
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/captcha/i);
+    });
+
+    it('rejects when Turnstile siteverify returns failure', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async (url: string) => {
+          if (String(url).includes('siteverify')) {
+            return new Response(JSON.stringify({ success: false }), { status: 200 });
+          }
+          return new Response(JSON.stringify({ id: 'msg_1' }), { status: 200 });
+        }),
+      );
+      const res = await handleContact(
+        makeRequest({
+          name: 'A',
+          email: 'a@b.com',
+          topic: 'Funding',
+          message: 'hi',
+          'cf-turnstile-response': 'bad-token',
+        }),
+        envWithTurnstile,
+      );
+      expect(res.status).toBe(400);
+    });
+
+    it('accepts when Turnstile siteverify returns success', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async (url: string) => {
+          if (String(url).includes('siteverify')) {
+            return new Response(JSON.stringify({ success: true }), { status: 200 });
+          }
+          return new Response(JSON.stringify({ id: 'msg_1' }), { status: 200 });
+        }),
+      );
+      const res = await handleContact(
+        makeRequest({
+          name: 'Alice',
+          email: 'a@b.com',
+          topic: 'Funding',
+          message: 'hi',
+          'cf-turnstile-response': 'good-token',
+        }),
+        envWithTurnstile,
+      );
+      expect(res.status).toBe(200);
+    });
   });
 });

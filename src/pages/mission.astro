@@ -7,6 +7,7 @@ import CtaBand from '@/components/sections/CtaBand.astro';
 import { team } from '@/data/team';
 import { partners } from '@/data/partners';
 import { milestones } from '@/data/milestones';
+import { stringifyJsonLd } from '@/lib/json-ld';
 ---
 
 <BaseLayout
@@ -109,53 +110,56 @@ import { milestones } from '@/data/milestones';
 
   <section class="max-w-6xl mx-auto px-6 py-12">
     <Eyebrow>MILESTONES</Eyebrow>
-    <ol class="mt-6 space-y-4">
-      {
-        milestones.map((m) => (
-          <li class="grid md:grid-cols-[120px_1fr] gap-4 border-t border-slate-900/10 pt-4">
-            <time
-              datetime={m.date}
-              data-milestone-date
-              class="font-mono text-sm text-[var(--color-teal)]"
-            >
-              {m.date}
-            </time>
-            <div>
-              <p class="font-semibold text-[var(--color-ink)]">{m.title}</p>
-              {m.body && <p class="mt-1 text-sm text-slate-600 leading-relaxed">{m.body}</p>}
-            </div>
-          </li>
-        ))
-      }
-    </ol>
-  </section>
-
-  <section class="max-w-6xl mx-auto px-6 py-12">
-    <Eyebrow>COMMITMENT</Eyebrow>
-    <div class="mt-3 grid md:grid-cols-[1fr_360px] gap-10 items-end">
-      <div>
-        <h2 class="text-2xl font-semibold max-w-[30ch]">
-          Public domain, FAIR, and on open protocols.
-        </h2>
-        <p class="mt-3 max-w-[62ch] text-slate-600 leading-relaxed">
-          Data packages land in GBIF (Global Biodiversity Information Facility), NCBI SRA (Sequence
-          Read Archive), and Zenodo. Publication happens on the AT Protocol (decentralized
-          social-web protocol) with verified identity and immutable review history. The
-          infrastructure is as open as the science — and every output conforms to FAIR (Findable,
-          Accessible, Interoperable, Reusable) standards.
-        </p>
-      </div>
-      <figure class="hidden md:block">
+    <div class="mt-6 grid md:grid-cols-[1fr_320px] gap-10 items-start">
+      <ol class="space-y-4">
+        {
+          milestones.map((m) => (
+            <li class="grid md:grid-cols-[120px_1fr] gap-4 border-t border-slate-900/10 pt-4">
+              <time
+                datetime={m.date}
+                data-milestone-date
+                class="font-mono text-sm text-[var(--color-teal)]"
+              >
+                {m.date}
+              </time>
+              <div>
+                <p class="font-semibold text-[var(--color-ink)]">{m.title}</p>
+                {m.body && <p class="mt-1 text-sm text-slate-600 leading-relaxed">{m.body}</p>}
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+      <figure class="hidden md:block sticky top-24 self-start">
         <img
           src="/assets/images/taxonomic-tree.webp"
-          alt="A small phylogenetic tree illustration in editorial teal line-art."
+          alt="A phylogenetic tree illustration in editorial teal line-art — branching lineage as a visual companion to the BioKEA timeline."
           width="400"
           height="800"
           class="w-full max-w-[320px] ml-auto block opacity-80"
           loading="lazy"
         />
+        <figcaption
+          class="mt-3 font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500 text-right"
+        >
+          Fig · branching lineage
+        </figcaption>
       </figure>
     </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <Eyebrow>COMMITMENT</Eyebrow>
+    <h2 class="mt-3 text-2xl font-semibold max-w-[30ch]">
+      Public domain, FAIR, and on open protocols.
+    </h2>
+    <p class="mt-3 max-w-[62ch] text-slate-600 leading-relaxed">
+      Data packages land in GBIF (Global Biodiversity Information Facility), NCBI SRA (Sequence Read
+      Archive), and Zenodo. Publication happens on the AT Protocol (decentralized social-web
+      protocol) with verified identity and immutable review history. The infrastructure is as open
+      as the science — and every output conforms to FAIR (Findable, Accessible, Interoperable,
+      Reusable) standards.
+    </p>
   </section>
 
   <CtaBand
@@ -167,7 +171,7 @@ import { milestones } from '@/data/milestones';
   <script
     type="application/ld+json"
     is:inline
-    set:html={JSON.stringify({
+    set:html={stringifyJsonLd({
       '@context': 'https://schema.org',
       '@graph': [
         {
