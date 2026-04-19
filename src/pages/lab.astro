@@ -1,0 +1,150 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import PhotoCard from '@/components/ui/PhotoCard.astro';
+import StatPill from '@/components/ui/StatPill.astro';
+import CtaBand from '@/components/sections/CtaBand.astro';
+import { labStats } from '@/data/stats';
+
+const hardwareConfirmed = [
+  {
+    name: 'ONT Promethion 2',
+    note: 'long-read sequencer · live on site since November 2025',
+  },
+];
+
+// VERIFY: additional hardware items below are aspirational per the Jan 2025
+// Capabilities deck. Confirm what is actually on site and update copy.
+const hardwarePlanned = [
+  {
+    name: 'Extraction automation',
+    note: 'KingFisher 96-well platform (planned / in-progress)',
+  },
+  {
+    name: 'Prep & amplification',
+    note: 'PCR and prep automation (planned / in-progress)',
+  },
+  {
+    name: 'DiversityScanner',
+    note: 'imaging-based robotic species discovery (collaboration)',
+  },
+];
+---
+
+<BaseLayout
+  title="The Lab & LDC"
+  description="The Berkeley lab, the Large Data Collider hardware, and collaboration with partner institutions."
+>
+  <section class="max-w-6xl mx-auto px-6 pt-16 pb-8">
+    <Eyebrow>BIOKEA LAB · BERKELEY, CA</Eyebrow>
+    <h1
+      class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[22ch]"
+    >
+      5,000 sq ft of lab, coming online in 2026.
+    </h1>
+    <p class="mt-5 max-w-[60ch] text-slate-600 leading-relaxed">
+      The BioKEA Large Data Collider is a combined wet-lab + compute platform being built in
+      Berkeley, California. Space leased and equipment arriving through late 2025 and early 2026,
+      with full operations from March 2026.
+    </p>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-5">
+    <PhotoCard
+      src="/assets/images/lab-warehouse-before.jpg"
+      alt="Warehouse interior before buildout"
+      caption="BEFORE · BUILDOUT 2025"
+      class="aspect-[4/3]"
+    />
+    <PhotoCard
+      src="/assets/images/lab-warehouse-after.jpg"
+      alt="Lab interior, operational"
+      caption="OPERATIONAL · 2026"
+      class="aspect-[4/3]"
+    />
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-16">
+    <Eyebrow>OPERATIONAL</Eyebrow>
+    <h2 class="mt-3 text-2xl font-semibold">Current state</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-6">
+      {labStats.map((s) => <StatPill value={s.value} label={s.label} live={s.live} />)}
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 pb-16">
+    <Eyebrow>HARDWARE · LIVE</Eyebrow>
+    <h2 class="mt-3 text-2xl font-semibold">On site today</h2>
+    <ul class="mt-6 space-y-3">
+      {
+        hardwareConfirmed.map((h) => (
+          <li class="bg-white/60 border border-slate-900/10 rounded-md px-5 py-4">
+            <p class="font-semibold text-[var(--color-ink)]">{h.name}</p>
+            <p class="text-sm text-slate-600 mt-1">{h.note}</p>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="mt-10">
+      <Eyebrow>HARDWARE · IN PROGRESS</Eyebrow>
+      <h2 class="mt-3 text-2xl font-semibold">Pipeline coming online</h2>
+      <p class="mt-3 text-slate-600 max-w-[62ch] leading-relaxed">
+        An automated extraction-to-sequencing pipeline is being assembled alongside partners at the
+        California Institute of Biodiversity. The roadmap below reflects what is built and arriving.
+      </p>
+      <ul class="mt-6 space-y-3">
+        {
+          hardwarePlanned.map((h) => (
+            <li class="bg-white/40 border border-slate-900/10 border-dashed rounded-md px-5 py-4">
+              <p class="font-semibold text-[var(--color-ink)]">{h.name}</p>
+              <p class="text-sm text-slate-600 mt-1">{h.note}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <figure class="mt-12">
+      <img
+        src="/assets/images/lab-equipment-pipeline.jpg"
+        alt="Four-stage lab pipeline: extraction, prep and amplification, quantification, sequencing"
+        class="w-full rounded-md border border-slate-900/10"
+        loading="lazy"
+      />
+      <figcaption class="mt-3 font-mono text-[11px] text-slate-500 tracking-[0.08em]">
+        FIG · 4-STAGE PIPELINE CONCEPT (PER CAPABILITIES DECK)
+      </figcaption>
+    </figure>
+
+    <figure class="mt-10 grid md:grid-cols-[1.2fr_1fr] gap-6 items-start">
+      <img
+        src="/assets/images/lab-diversityscanner.jpg"
+        alt="DiversityScanner — a roboticized specimen-imaging platform"
+        class="w-full rounded-md border border-slate-900/10"
+        loading="lazy"
+      />
+      <div>
+        <Eyebrow>DIVERSITYSCANNER</Eyebrow>
+        <h3 class="mt-3 text-xl font-semibold">Roboticized species discovery</h3>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed">
+          A collaborative imaging platform for high-throughput specimen screening. Computer-vision
+          models generate interpretable attention maps that reveal which morphological features
+          drive each identification.
+        </p>
+        <img
+          src="/assets/images/lab-diversityscanner-heatmaps.jpg"
+          alt="Attention heatmaps over insect specimens showing model focus regions"
+          class="mt-4 w-full rounded-sm border border-slate-900/10"
+          loading="lazy"
+        />
+      </div>
+    </figure>
+  </section>
+
+  <CtaBand
+    title="Work with our lab."
+    subtitle="We take sample-processing, pipeline integration, and capability-development conversations."
+    cta={{ href: '/contact', label: 'Get in touch' }}
+  />
+</BaseLayout>
