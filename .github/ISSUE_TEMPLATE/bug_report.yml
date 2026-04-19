@@ -1,0 +1,39 @@
+name: Bug report
+description: Something on biokea.ai is broken, visually wrong, or behaves unexpectedly.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What's broken?
+      description: One or two sentences, plus the URL.
+      placeholder: "The partner chips on /mission don't wrap on 320px screens (example.url)."
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Visit /mission
+        2. Resize the window below 400px
+        3. Observe the partner chips overflow the viewport
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should happen?
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Browser / device
+      placeholder: "Safari 18 on iPhone 15 / Chrome 130 on macOS"
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or console errors
+      description: Optional. Drag-and-drop images work here.

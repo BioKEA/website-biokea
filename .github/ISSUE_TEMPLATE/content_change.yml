@@ -1,0 +1,47 @@
+name: Content change
+description: Update copy, team roster, partners, projects, milestones, or any content on the site.
+title: "[content] "
+labels: ["content"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Content area
+      options:
+        - Page copy (specify page below)
+        - Team roster (src/data/team.ts)
+        - Partners (src/data/partners.ts)
+        - Projects (src/data/projects.ts)
+        - Milestones (src/data/milestones.ts)
+        - Stats (src/data/stats.ts)
+        - Equipment (src/data/equipment.ts)
+        - Pipeline stages (src/data/pipeline.ts)
+        - Agent-facing (public/llms.txt or /api/*.json)
+        - Imagery (public/assets/images/)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current state
+      description: What's on the site right now (paste the line or describe).
+    validations:
+      required: true
+  - type: textarea
+    id: desired
+    attributes:
+      label: Desired state
+      description: What it should be after this change.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why now?
+      description: Deadline, partner ask, launch milestone, corrective fact, etc.
+  - type: input
+    id: verify
+    attributes:
+      label: How will we know this is correct?
+      placeholder: "New title matches their LinkedIn / partner confirmed by email on 2026-04-20"

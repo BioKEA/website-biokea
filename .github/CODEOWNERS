@@ -1,0 +1,21 @@
+# .github/CODEOWNERS
+# Default owners for everything in this repo. Tag-based routing can be
+# added here as the team grows.
+
+*                               @BioKEA/maintainers
+
+# Content areas that specific people should review
+/src/data/team.ts               @BioKEA/maintainers
+/src/data/partners.ts           @BioKEA/maintainers
+/src/data/projects.ts           @BioKEA/maintainers
+/src/data/milestones.ts         @BioKEA/maintainers
+/src/pages/                     @BioKEA/maintainers
+/public/llms.txt                @BioKEA/maintainers
+
+# Infra / deploy
+/.github/workflows/             @BioKEA/maintainers
+/wrangler.toml                  @BioKEA/maintainers
+/astro.config.mjs               @BioKEA/maintainers
+
+# Docs (lower-stakes review)
+/docs/                          @BioKEA/maintainers
