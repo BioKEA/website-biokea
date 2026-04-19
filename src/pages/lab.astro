@@ -5,30 +5,7 @@ import PhotoCard from '@/components/ui/PhotoCard.astro';
 import StatPill from '@/components/ui/StatPill.astro';
 import CtaBand from '@/components/sections/CtaBand.astro';
 import { labStats } from '@/data/stats';
-
-const hardwareConfirmed = [
-  {
-    name: 'ONT Promethion 2',
-    note: 'long-read sequencer · live on site since November 2025',
-  },
-];
-
-// VERIFY: additional hardware items below are aspirational per the Jan 2025
-// Capabilities deck. Confirm what is actually on site and update copy.
-const hardwarePlanned = [
-  {
-    name: 'Extraction automation',
-    note: 'KingFisher 96-well platform (planned / in-progress)',
-  },
-  {
-    name: 'Prep & amplification',
-    note: 'PCR and prep automation (planned / in-progress)',
-  },
-  {
-    name: 'DiversityScanner',
-    note: 'imaging-based robotic species discovery (collaboration)',
-  },
-];
+import { equipmentByStage } from '@/data/equipment';
 ---
 
 <BaseLayout
@@ -45,9 +22,9 @@ const hardwarePlanned = [
       5,000 sq ft of lab, coming online in 2026.
     </h1>
     <p class="mt-5 max-w-[60ch] text-slate-600 leading-relaxed">
-      The BioKEA Large Data Collider is a combined wet-lab + compute platform being built in
-      Berkeley, California. Space leased and equipment arriving through late 2025 and early 2026,
-      with full operations from March 2026.
+      The BioKEA Large Data Collider is a combined wet-lab + compute platform in Berkeley,
+      California. Space secured in late 2025; move-in March 2026; operating alongside partner
+      institutions.
     </p>
   </section>
 
@@ -79,53 +56,57 @@ const hardwarePlanned = [
   </section>
 
   <section class="max-w-6xl mx-auto px-6 pb-16">
-    <Eyebrow>HARDWARE · LIVE</Eyebrow>
-    <h2 class="mt-3 text-2xl font-semibold">On site today</h2>
-    <ul class="mt-6 space-y-3">
+    <Eyebrow>HARDWARE</Eyebrow>
+    <h2 class="mt-3 text-2xl font-semibold max-w-[30ch]">
+      A full extraction-to-sequencing pipeline, component by component.
+    </h2>
+    <p class="mt-3 text-slate-600 max-w-[62ch] leading-relaxed">
+      Acquired across 2025–2026 through auction and partner transfer. Roughly one-tenth retail cost
+      on average, positioned to run serious throughput on public-interest projects.
+    </p>
+
+    <div class="mt-10 space-y-8">
       {
-        hardwareConfirmed.map((h) => (
-          <li class="bg-white/60 border border-slate-900/10 rounded-md px-5 py-4">
-            <p class="font-semibold text-[var(--color-ink)]">{h.name}</p>
-            <p class="text-sm text-slate-600 mt-1">{h.note}</p>
-          </li>
+        equipmentByStage.map((stage, idx) => (
+          <article class="grid md:grid-cols-[160px_1fr] gap-6 border-t border-slate-900/10 pt-6">
+            <div>
+              <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-teal)]">
+                {String(idx + 1).padStart(2, '0')} · Stage
+              </div>
+              <div class="mt-1 font-semibold text-[var(--color-ink)]">{stage.label}</div>
+            </div>
+            <div>
+              <p class="font-semibold text-[var(--color-ink)]">{stage.title}</p>
+              <ul class="mt-3 space-y-1.5 text-sm text-slate-600 leading-relaxed">
+                {stage.items.map((item) => (
+                  <li>· {item}</li>
+                ))}
+              </ul>
+            </div>
+          </article>
         ))
       }
-    </ul>
-
-    <div class="mt-10">
-      <Eyebrow>HARDWARE · IN PROGRESS</Eyebrow>
-      <h2 class="mt-3 text-2xl font-semibold">Pipeline coming online</h2>
-      <p class="mt-3 text-slate-600 max-w-[62ch] leading-relaxed">
-        An automated extraction-to-sequencing pipeline is being assembled alongside partners at the
-        California Institute of Biodiversity. The roadmap below reflects what is built and arriving.
-      </p>
-      <ul class="mt-6 space-y-3">
-        {
-          hardwarePlanned.map((h) => (
-            <li class="bg-white/40 border border-slate-900/10 border-dashed rounded-md px-5 py-4">
-              <p class="font-semibold text-[var(--color-ink)]">{h.name}</p>
-              <p class="text-sm text-slate-600 mt-1">{h.note}</p>
-            </li>
-          ))
-        }
-      </ul>
     </div>
+
+    <p class="mt-10 text-xs text-slate-500 font-mono">
+      Full inventory (~80 items) available on request.
+    </p>
 
     <figure class="mt-12">
       <img
         src="/assets/images/lab-equipment-pipeline.jpg"
-        alt="Four-stage lab pipeline: extraction, prep and amplification, quantification, sequencing"
+        alt="Pipeline overview — extraction, prep and amplification, quantification, sequencing"
         width="1600"
         height="712"
         class="w-full rounded-md border border-slate-900/10"
         loading="lazy"
       />
       <figcaption class="mt-3 font-mono text-[11px] text-slate-500 tracking-[0.08em]">
-        FIG · 4-STAGE PIPELINE CONCEPT (PER CAPABILITIES DECK)
+        FIG · PIPELINE OVERVIEW
       </figcaption>
     </figure>
 
-    <figure class="mt-10 grid md:grid-cols-[1.2fr_1fr] gap-6 items-start">
+    <figure class="mt-14 grid md:grid-cols-[1.2fr_1fr] gap-8 items-start">
       <img
         src="/assets/images/lab-diversityscanner.jpg"
         alt="DiversityScanner — a roboticized specimen-imaging platform"
@@ -144,9 +125,9 @@ const hardwarePlanned = [
         </p>
         <img
           src="/assets/images/lab-diversityscanner-heatmaps.jpg"
-          alt="Attention heatmaps over insect specimens showing model focus regions"
-          width="520"
-          height="500"
+          alt="Attention heatmaps over four insect specimens showing model focus regions"
+          width="440"
+          height="325"
           class="mt-4 w-full rounded-sm border border-slate-900/10"
           loading="lazy"
         />
