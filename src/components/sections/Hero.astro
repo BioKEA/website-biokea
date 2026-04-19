@@ -52,7 +52,10 @@ const {
           <img
             src={badgeImage}
             alt={badgeAlt ?? ''}
+            width="640"
+            height="640"
             class="w-full max-w-[320px] rounded-md shadow-[0_8px_30px_rgba(11,31,26,0.15)] ml-auto block"
+            fetchpriority="high"
           />
           {badgeCaption && (
             <figcaption class="absolute bottom-3 left-3 bg-black/45 text-[var(--color-cream)] px-2 py-1 rounded-sm font-mono text-[10px] tracking-[0.12em]">

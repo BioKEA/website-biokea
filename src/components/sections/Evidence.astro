@@ -15,11 +15,24 @@ interface Props {
   body: string;
   photoSrc: string;
   photoAlt: string;
+  photoWidth: number;
+  photoHeight: number;
   photoCaption?: string;
   liveLabel?: string;
   stats: Stat[];
 }
-const { eyebrow, title, body, photoSrc, photoAlt, photoCaption, liveLabel, stats } = Astro.props;
+const {
+  eyebrow,
+  title,
+  body,
+  photoSrc,
+  photoAlt,
+  photoWidth,
+  photoHeight,
+  photoCaption,
+  liveLabel,
+  stats,
+} = Astro.props;
 ---
 
 <section class="max-w-6xl mx-auto px-6 py-16">
@@ -35,6 +48,8 @@ const { eyebrow, title, body, photoSrc, photoAlt, photoCaption, liveLabel, stats
     <PhotoCard
       src={photoSrc}
       alt={photoAlt}
+      width={photoWidth}
+      height={photoHeight}
       caption={photoCaption}
       liveLabel={liveLabel}
       class="h-[260px]"

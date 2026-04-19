@@ -5,13 +5,22 @@ interface Props {
   alt: string;
   caption?: string;
   liveLabel?: string;
+  width: number;
+  height: number;
   class?: string;
 }
-const { src, alt, caption, liveLabel, class: klass = '' } = Astro.props;
+const { src, alt, caption, liveLabel, width, height, class: klass = '' } = Astro.props;
 ---
 
 <figure class:list={['relative rounded-sm overflow-hidden border border-black/10', klass]}>
-  <img src={src} alt={alt} class="w-full h-full object-cover block" loading="lazy" />
+  <img
+    src={src}
+    alt={alt}
+    width={width}
+    height={height}
+    class="w-full h-full object-cover block"
+    loading="lazy"
+  />
   {
     caption && (
       <figcaption class="absolute bottom-2 left-2 bg-black/45 text-[var(--color-cream)] px-2 py-1 rounded-sm font-mono text-[10px] tracking-[0.12em] uppercase">

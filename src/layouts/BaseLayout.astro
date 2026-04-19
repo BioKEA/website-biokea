@@ -10,8 +10,13 @@ interface Props {
   description: string;
   ogImage?: string;
   canonical?: string;
+  preloadImage?: string;
+  preloadImageType?: string;
 }
-const { title, description, ogImage, canonical } = Astro.props;
+const { title, description, ogImage, canonical, preloadImage, preloadImageType } = Astro.props;
+
+const cfBeaconToken = 'REPLACE_WITH_CF_BEACON_TOKEN';
+const beaconEnabled = import.meta.env.PROD && !cfBeaconToken.startsWith('REPLACE_');
 ---
 
 <!doctype html>
@@ -20,14 +25,25 @@ const { title, description, ogImage, canonical } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/favicon.ico" />
+    {
+      preloadImage && (
+        <link
+          rel="preload"
+          as="image"
+          href={preloadImage}
+          type={preloadImageType}
+          fetchpriority="high"
+        />
+      )
+    }
     <Seo title={title} description={description} ogImage={ogImage} canonical={canonical} />
     {
-      import.meta.env.PROD && (
+      beaconEnabled && (
         <script
           is:inline
           defer
           src="https://static.cloudflareinsights.com/beacon.min.js"
-          data-cf-beacon='{"token":"REPLACE_WITH_CF_BEACON_TOKEN"}'
+          data-cf-beacon={`{"token":"${cfBeaconToken}"}`}
         />
       )
     }
