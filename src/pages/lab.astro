@@ -58,30 +58,44 @@ import { equipmentByStage } from '@/data/equipment';
   <section class="max-w-6xl mx-auto px-6 pb-16">
     <Eyebrow>HARDWARE</Eyebrow>
     <h2 class="mt-3 text-2xl font-semibold max-w-[30ch]">
-      A full extraction-to-sequencing pipeline, component by component.
+      A full extraction-to-sequencing pipeline, stage by stage.
     </h2>
     <p class="mt-3 text-slate-600 max-w-[62ch] leading-relaxed">
-      Acquired across 2025–2026 through auction and partner transfer. Roughly one-tenth retail cost
-      on average, positioned to run serious throughput on public-interest projects.
+      Built across 2025–2026 through auction and partner transfer — roughly one-tenth retail cost on
+      average, positioned to run serious throughput on public-interest projects.
     </p>
 
-    <div class="mt-10 space-y-8">
+    <div class="mt-12 grid md:grid-cols-2 gap-6">
       {
-        equipmentByStage.map((stage, idx) => (
-          <article class="grid md:grid-cols-[160px_1fr] gap-6 border-t border-slate-900/10 pt-6">
-            <div>
-              <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-teal)]">
-                {String(idx + 1).padStart(2, '0')} · Stage
-              </div>
-              <div class="mt-1 font-semibold text-[var(--color-ink)]">{stage.label}</div>
+        equipmentByStage.map((stage) => (
+          <article class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden flex flex-col">
+            <div class="bg-white aspect-[4/3] overflow-hidden flex items-center justify-center border-b border-slate-900/10">
+              <img
+                src={stage.image}
+                alt={stage.imageAlt}
+                width={stage.imageWidth}
+                height={stage.imageHeight}
+                class="w-full h-full object-contain"
+                loading="lazy"
+              />
             </div>
-            <div>
-              <p class="font-semibold text-[var(--color-ink)]">{stage.title}</p>
-              <ul class="mt-3 space-y-1.5 text-sm text-slate-600 leading-relaxed">
-                {stage.items.map((item) => (
-                  <li>· {item}</li>
-                ))}
-              </ul>
+            <div class="p-6 flex-1 flex flex-col">
+              <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-teal)]">
+                {stage.eyebrow}
+              </div>
+              <h3 class="mt-1 text-xl font-semibold text-[var(--color-ink)]">{stage.label}</h3>
+              <p class="mt-4 font-semibold text-[var(--color-ink)]">{stage.hero.name}</p>
+              <p class="mt-2 text-sm text-slate-600 leading-relaxed">{stage.hero.why}</p>
+              <div class="mt-4 pt-4 border-t border-slate-900/10">
+                <div class="font-mono text-[10px] tracking-[0.1em] uppercase text-slate-500 mb-2">
+                  Also on bench
+                </div>
+                <ul class="space-y-1 text-sm text-slate-600 leading-relaxed">
+                  {stage.secondary.map((item) => (
+                    <li>· {item}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </article>
         ))
@@ -91,20 +105,6 @@ import { equipmentByStage } from '@/data/equipment';
     <p class="mt-10 text-xs text-slate-500 font-mono">
       Full inventory (~80 items) available on request.
     </p>
-
-    <figure class="mt-12">
-      <img
-        src="/assets/images/lab-equipment-pipeline.jpg"
-        alt="Pipeline overview — extraction, prep and amplification, quantification, sequencing"
-        width="1600"
-        height="712"
-        class="w-full rounded-md border border-slate-900/10"
-        loading="lazy"
-      />
-      <figcaption class="mt-3 font-mono text-[11px] text-slate-500 tracking-[0.08em]">
-        FIG · PIPELINE OVERVIEW
-      </figcaption>
-    </figure>
 
     <figure class="mt-14 grid md:grid-cols-[1.2fr_1fr] gap-8 items-start">
       <img
