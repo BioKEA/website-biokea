@@ -88,7 +88,7 @@ export const projects: Project[] = [
     tags: ['sequencing', 'microbial', 'long-read'],
     status: 'coming-soon',
     revealTarget: 'Q4 2026',
-    team: [{ name: 'Sean', lead: true }, { name: 'Greg' }],
+    team: [{ name: 'Sean', lead: true }],
   },
   {
     slug: 'colloquip',
@@ -100,6 +100,6 @@ export const projects: Project[] = [
     tags: ['AI', 'multi-agent', 'scientific reasoning', 'open source', 'deliberation'],
     status: 'live',
     link: 'https://github.com/sunitj/Colloquip',
-    team: [{ name: 'Sunit', lead: true }, { name: 'Sean' }],
+    team: [{ name: 'Sunit', lead: true }],
   },
 ];
