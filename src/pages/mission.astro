@@ -1,0 +1,92 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import Portrait from '@/components/ui/Portrait.astro';
+import PartnerMark from '@/components/ui/PartnerMark.astro';
+import CtaBand from '@/components/sections/CtaBand.astro';
+import { team } from '@/data/team';
+import { partners } from '@/data/partners';
+import { milestones } from '@/data/milestones';
+---
+
+<BaseLayout
+  title="Mission & team"
+  description="BioKEA — Biology Knowledge Exploration Assistant. Founded March 2025 in Berkeley to build public-interest biology infrastructure."
+>
+  <section class="max-w-6xl mx-auto px-6 pt-16 pb-10">
+    <Eyebrow>MISSION</Eyebrow>
+    <h1
+      class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[24ch]"
+    >
+      The bottleneck is storytelling. We're building the commons that fixes it.
+    </h1>
+    <div class="mt-6 max-w-[62ch] text-slate-600 leading-relaxed space-y-4">
+      <p>
+        Modern biology produces more data every month than it can credibly synthesize. The gap is
+        not instrumentation; it is the editorial, verification, and distribution layer that turns
+        raw data into trustworthy scientific claims.
+      </p>
+      <p>
+        BioKEA — <em>Biology Knowledge Exploration Assistant</em> — exists to build that layer as public
+        infrastructure: an open lab, an open pipeline, and an open publishing output.
+      </p>
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <Eyebrow>TEAM</Eyebrow>
+    <div class="grid md:grid-cols-3 gap-5 mt-6">
+      {
+        team.map((p) => (
+          <div>
+            <Portrait src={p.image} alt={p.alt} name={p.name} role={p.role} />
+            {p.bio && <p class="mt-3 text-xs text-slate-600 leading-relaxed">{p.bio}</p>}
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <Eyebrow>PARTNERS</Eyebrow>
+    <div class="mt-5 flex gap-2 flex-wrap">
+      {partners.map((p) => <PartnerMark name={p.name} note={p.note} />)}
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <Eyebrow>MILESTONES</Eyebrow>
+    <ol class="mt-6 space-y-4">
+      {
+        milestones.map((m) => (
+          <li class="grid md:grid-cols-[120px_1fr] gap-4 border-t border-slate-900/10 pt-4">
+            <div data-milestone-date class="font-mono text-sm text-[var(--color-teal)]">
+              {m.date}
+            </div>
+            <div>
+              <p class="font-semibold text-[var(--color-ink)]">{m.title}</p>
+              {m.body && <p class="mt-1 text-sm text-slate-600 leading-relaxed">{m.body}</p>}
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <Eyebrow>COMMITMENT</Eyebrow>
+    <h2 class="mt-3 text-2xl font-semibold max-w-[30ch]">
+      Public domain, FAIR, and on open protocols.
+    </h2>
+    <p class="mt-3 max-w-[62ch] text-slate-600 leading-relaxed">
+      Data packages land in GBIF, NCBI SRA, and Zenodo. Publication happens on AT Protocol with
+      verified identity and immutable review history. The infrastructure is as open as the science.
+    </p>
+  </section>
+
+  <CtaBand
+    title="Fund the work. Or build it with us."
+    subtitle="We're in active partnership and funding conversations."
+    cta={{ href: '/contact', label: 'Get in touch' }}
+  />
+</BaseLayout>
