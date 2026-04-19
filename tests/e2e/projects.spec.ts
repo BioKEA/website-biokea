@@ -26,3 +26,14 @@ test('revealing-soon and coming-soon badges render', async ({ page }) => {
   await expect(page.getByText('COMING SOON').first()).toBeVisible();
   await expect(page.getByText('LIVE').first()).toBeVisible();
 });
+
+test('Intertidal card shows Sean as lead and Michelle/Austin/Sunit as team', async ({ page }) => {
+  await page.goto('/projects');
+  const intertidal = page
+    .locator('article')
+    .filter({ hasText: /Intertidal Biodiversity DNA Barcode Library/ });
+  await expect(intertidal.getByText('★ Sean')).toBeVisible();
+  await expect(intertidal.getByText('Michelle', { exact: true })).toBeVisible();
+  await expect(intertidal.getByText('Austin', { exact: true })).toBeVisible();
+  await expect(intertidal.getByText('Sunit', { exact: true })).toBeVisible();
+});

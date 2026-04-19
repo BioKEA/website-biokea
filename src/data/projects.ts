@@ -2,6 +2,11 @@
 
 export type ProjectStatus = 'live' | 'revealing-soon' | 'coming-soon';
 
+export interface ProjectMember {
+  name: string;
+  lead?: boolean;
+}
+
 export interface Project {
   slug: string;
   title: string;
@@ -17,6 +22,7 @@ export interface Project {
   heroWidth?: number;
   heroHeight?: number;
   revealTarget?: string;
+  team?: ProjectMember[];
 }
 
 export const projects: Project[] = [
@@ -36,10 +42,17 @@ export const projects: Project[] = [
       'Screenshot of the Intertidal Biodiversity DNA Barcode Library statistics dashboard showing 4,384 species, 15 million records, and coverage breakdowns across BOLD, NCBI, and SRA databases.',
     heroWidth: 1200,
     heroHeight: 675,
+    team: [
+      { name: 'Sean', lead: true },
+      { name: 'Michelle' },
+      { name: 'Austin' },
+      { name: 'Sunit' },
+    ],
   },
 
   // VERIFY: placeholder stubs below. Replace with real upcoming projects
-  // (or prune) before shipping publicly.
+  // (or prune) before shipping publicly. Team assignments below are also
+  // placeholders — swap in real leads/contributors when confirmed.
   {
     slug: 'smm-soil-edna-atlas',
     title: 'Santa Monica Mountains soil eDNA atlas',
@@ -51,6 +64,7 @@ export const projects: Project[] = [
     tags: ['eDNA', 'soil', 'fungi', 'California'],
     status: 'revealing-soon',
     revealTarget: 'Q3 2026',
+    team: [{ name: 'Austin', lead: true }, { name: 'Sean' }, { name: 'Greg' }],
   },
   {
     slug: 'bay-estuary-metabarcoding-baseline',
@@ -63,6 +77,7 @@ export const projects: Project[] = [
     tags: ['metabarcoding', 'marine', 'estuary', 'Bay Area'],
     status: 'revealing-soon',
     revealTarget: 'Q4 2026',
+    team: [{ name: 'Michelle', lead: true }, { name: 'Austin' }, { name: 'Sunit' }],
   },
   {
     slug: 'long-read-microbial-resource',
@@ -74,6 +89,7 @@ export const projects: Project[] = [
     tags: ['sequencing', 'microbial', 'long-read'],
     status: 'coming-soon',
     revealTarget: 'Q4 2026',
+    team: [{ name: 'Greg', lead: true }, { name: 'Sean' }],
   },
   {
     slug: 'citizen-science-ingestion',
@@ -85,5 +101,6 @@ export const projects: Project[] = [
     tags: ['citizen science', 'community', 'sample intake'],
     status: 'coming-soon',
     revealTarget: '2027',
+    team: [{ name: 'Sunit', lead: true }, { name: 'Michelle' }, { name: 'Austin' }],
   },
 ];
