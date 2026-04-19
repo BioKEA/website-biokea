@@ -1,9 +1,0 @@
-name = "biokea"
-compatibility_date = "2025-04-19"
-main = "workers-site/index.js"
-
-[site]
-bucket = "./out"
-
-[build]
-command = "npm run build"

@@ -30,6 +30,9 @@
     "tailwindcss": "^4.2.0",
     "zod": "^4.0.0"
   },
+  "overrides": {
+    "vite": "^7.0.0"
+  },
   "devDependencies": {
     "@fontsource/inter": "^5.1.0",
     "@fontsource/jetbrains-mono": "^5.1.0",

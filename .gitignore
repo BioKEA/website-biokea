@@ -9,6 +9,8 @@
 # next.js
 /.next/
 /out/
+/dist/
+.astro/
 
 # production
 /build
@@ -48,7 +50,6 @@ old/
 # Cloudflare specific
 .cloudflare/
 .wrangler/
-wrangler.toml
 
 # OS specific
 Thumbs.db
