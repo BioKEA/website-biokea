@@ -23,3 +23,14 @@ test('mobile nav toggle opens menu', async ({ page }) => {
   await toggle.click();
   await expect(page.getByRole('link', { name: 'Lab', exact: true })).toBeVisible();
 });
+
+test('footer renders logo, copyright, and external links', async ({ page }) => {
+  await page.goto('/');
+  const footer = page.locator('footer');
+  await expect(footer).toBeVisible();
+  await expect(footer.getByText(/© \d{4} BioKEA · Berkeley, CA/)).toBeVisible();
+  await expect(footer.getByRole('link', { name: /agentis\.science/ })).toHaveAttribute(
+    'href',
+    'https://agentis.science',
+  );
+});

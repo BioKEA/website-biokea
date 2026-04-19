@@ -1,0 +1,23 @@
+---
+// src/components/layout/Footer.astro
+const year = new Date().getFullYear();
+---
+
+<footer class="bg-[var(--color-ink)] text-slate-400 mt-24">
+  <div class="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row justify-between gap-6 text-xs">
+    <div class="flex items-center gap-3">
+      <img src="/assets/images/logo2.png" alt="" class="h-5 w-auto invert brightness-110" />
+      <span>© {year} BioKEA · Berkeley, CA</span>
+    </div>
+    <ul class="flex gap-5">
+      <li><a href="https://bsky.app/profile/biokea.bsky.social" rel="noopener">Bluesky</a></li>
+      <li><a href="https://github.com/biokea" rel="noopener">GitHub</a></li>
+      <li><a href="/contact">Contact</a></li>
+      <li>
+        <a href="https://agentis.science" class="text-[var(--color-teal-bright)]" rel="noopener">
+          agentis.science ↗
+        </a>
+      </li>
+    </ul>
+  </div>
+</footer>

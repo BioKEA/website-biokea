@@ -1,0 +1,36 @@
+---
+// src/layouts/BaseLayout.astro
+import '@/styles/global.css';
+import Nav from '@/components/layout/Nav.astro';
+import Footer from '@/components/layout/Footer.astro';
+import Seo from '@/components/layout/Seo.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  ogImage?: string;
+  canonical?: string;
+}
+const { title, description, ogImage, canonical } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.ico" />
+    <Seo title={title} description={description} ogImage={ogImage} canonical={canonical} />
+  </head>
+  <body>
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:bg-[var(--color-ink)] focus:text-[var(--color-cream)] focus:p-2 focus:rounded"
+    >
+      Skip to content
+    </a>
+    <Nav />
+    <main id="main"><slot /></main>
+    <Footer />
+  </body>
+</html>

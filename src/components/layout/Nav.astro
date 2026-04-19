@@ -1,0 +1,92 @@
+---
+// src/components/layout/Nav.astro
+const links = [
+  { href: '/lab', label: 'Lab' },
+  { href: '/pipeline', label: 'Pipeline' },
+  { href: '/mission', label: 'Mission' },
+  { href: '/contact', label: 'Contact' },
+];
+---
+
+<nav aria-label="Primary" class="bg-[var(--color-ink)] text-[var(--color-cream)]">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="/" aria-label="BioKEA home" class="flex items-center gap-3">
+      <img src="/assets/images/logo2.png" alt="" class="h-7 w-auto invert brightness-110" />
+      <span class="sr-only">BioKEA</span>
+    </a>
+
+    <ul class="hidden md:flex gap-7 text-sm font-medium text-slate-300 tracking-wide">
+      {
+        links.map((l) => (
+          <li>
+            <a href={l.href} class="hover:text-[var(--color-teal-bright)] transition">
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+      <li>
+        <a href="https://agentis.science" class="text-[var(--color-teal-bright)]" rel="noopener">
+          agentis.science ↗
+        </a>
+      </li>
+    </ul>
+
+    <button
+      type="button"
+      id="nav-toggle"
+      aria-label="Open menu"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+      class="md:hidden text-[var(--color-cream)] p-2"
+    >
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        aria-hidden="true"
+      >
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+
+  <div id="mobile-menu" class="md:hidden hidden border-t border-slate-800">
+    <ul class="flex flex-col gap-1 px-6 py-4 text-sm">
+      {
+        links.map((l) => (
+          <li>
+            <a href={l.href} class="block py-2">
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+      <li>
+        <a
+          href="https://agentis.science"
+          class="block py-2 text-[var(--color-teal-bright)]"
+          rel="noopener"
+        >
+          agentis.science ↗
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<script>
+  const toggle = document.getElementById('nav-toggle');
+  const menu = document.getElementById('mobile-menu');
+  toggle?.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!expanded));
+    toggle.setAttribute('aria-label', expanded ? 'Open menu' : 'Close menu');
+    menu?.classList.toggle('hidden');
+  });
+</script>
