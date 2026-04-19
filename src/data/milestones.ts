@@ -19,7 +19,7 @@ export const milestones: Milestone[] = [
   {
     date: '2025-09',
     title: 'Berkeley lab planning begins',
-    body: 'Start planning the 5,000 sq ft Berkeley lab space.',
+    body: 'Start planning the 5,000+ sq ft Berkeley lab space.',
   },
   {
     date: '2025-11',
@@ -29,7 +29,7 @@ export const milestones: Milestone[] = [
   {
     date: '2026-03',
     title: 'Move into Berkeley space',
-    body: 'Team takes possession of the 5,000 sq ft Berkeley lab.',
+    body: 'Team takes possession of the 5,000+ sq ft Berkeley lab.',
   },
   {
     date: '2026-04',

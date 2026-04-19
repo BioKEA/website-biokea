@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('lab page renders hero, photos, stats, hardware stages', async ({ page }) => {
   await page.goto('/lab');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('5,000 sq ft');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('5,000+ sq ft');
   await expect(page.locator('img[alt="Warehouse interior before buildout"]')).toBeVisible();
   await expect(page.locator('img[alt="Lab interior, operational"]')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Current state' })).toBeVisible();

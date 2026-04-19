@@ -66,8 +66,8 @@ describe('stats data', () => {
   it('homepageStats exposes 3 pills', () => {
     expect(homepageStats).toHaveLength(3);
   });
-  it('homepage first stat is 5,000 sq ft (confirmed)', () => {
-    expect(homepageStats[0].value).toBe('5,000');
+  it('homepage first stat is 5,000+ sq ft (confirmed)', () => {
+    expect(homepageStats[0].value).toBe('5,000+');
     expect(homepageStats[0].label.toLowerCase()).toContain('sq ft');
   });
   it('labStats has entries', () => {

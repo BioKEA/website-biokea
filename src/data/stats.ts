@@ -7,14 +7,14 @@ export interface Stat {
 
 // Homepage: 3 pills. Inventory-first, with one dated live signal.
 export const homepageStats: Stat[] = [
-  { value: '5,000', label: 'sq ft · Berkeley' },
+  { value: '5,000+', label: 'sq ft · Berkeley' },
   { value: '~80', label: 'instruments on site' },
   { value: 'Nov 2025', label: 'sequencer live', live: true },
 ];
 
 // Lab page: 4 pills, inventory-scale story.
 export const labStats: Stat[] = [
-  { value: '5,000', label: 'sq ft · Berkeley' },
+  { value: '5,000+', label: 'sq ft · Berkeley' },
   { value: '~80', label: 'instruments on site' },
   { value: '4×', label: 'KingFisher fleet' },
   { value: '2×', label: 'Roche qPCR (LightCycler 480 II)' },
