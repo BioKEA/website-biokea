@@ -24,7 +24,7 @@ export const milestones: Milestone[] = [
   {
     date: '2025-11',
     title: 'Contracts begin; ONT Promethion 2 arrives',
-    body: 'First contracts signed and the Oxford Nanopore Promethion 2 sequencer lands on site.',
+    body: 'Major new contracts begin and the Oxford Nanopore Promethion 2 sequencer lands on site.',
   },
   {
     date: '2026-03',
