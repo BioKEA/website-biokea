@@ -54,17 +54,16 @@ export const projects: Project[] = [
   // (or prune) before shipping publicly. Team assignments below are also
   // placeholders — swap in real leads/contributors when confirmed.
   {
-    slug: 'smm-soil-edna-atlas',
-    title: 'Santa Monica Mountains soil eDNA atlas',
+    slug: 'california-insect-barcoding',
+    title: 'California Insect Barcoding Initiative',
     summary:
-      'A mapped catalog of soil fungal and microbial diversity across Santa Monica Mountains transects — drawing on the LDC pilot processing pipeline.',
-    type: 'Dataset + StoryMap',
-    partner: 'California Institute of Biodiversity',
+      'The first large-scale DNA-barcode survey of California insects — over 1 million specimens barcoded, estimating a conservative minimum of ~61,000 species statewide with roughly one third still undiscovered. Generates spatial richness interpolations constrained by ecoregion and vegetation type to guide targeted inventory and conservation.',
+    type: 'Research paper + dataset',
     year: '2026',
-    tags: ['eDNA', 'soil', 'fungi', 'California'],
+    tags: ['DNA barcoding', 'insects', 'biodiversity', 'California', 'conservation'],
     status: 'revealing-soon',
-    revealTarget: 'Q3 2026',
-    team: [{ name: 'Austin', lead: true }, { name: 'Sean' }, { name: 'Greg' }],
+    revealTarget: 'Pending Ecography publication',
+    team: [{ name: 'Austin', lead: true }, { name: 'Sean' }],
   },
   {
     slug: 'bay-estuary-metabarcoding-baseline',
@@ -89,18 +88,18 @@ export const projects: Project[] = [
     tags: ['sequencing', 'microbial', 'long-read'],
     status: 'coming-soon',
     revealTarget: 'Q4 2026',
-    team: [{ name: 'Greg', lead: true }, { name: 'Sean' }],
+    team: [{ name: 'Sean', lead: true }, { name: 'Greg' }],
   },
   {
-    slug: 'citizen-science-ingestion',
-    title: 'Citizen-science sample ingestion',
+    slug: 'colloquip',
+    title: 'Colloquip — multi-agent scientific deliberation',
     summary:
-      'A lightweight intake + tracking pathway for citizen-submitted environmental samples routed through the LDC.',
-    type: 'Tool + workflow',
-    year: '2026–2027',
-    tags: ['citizen science', 'community', 'sample intake'],
-    status: 'coming-soon',
-    revealTarget: '2027',
-    team: [{ name: 'Sunit', lead: true }, { name: 'Michelle' }, { name: 'Austin' }],
+      'An open-source multi-agent AI deliberation platform. Specialized scientific personas — Biology, Chemistry, ADMET, Clinical, Regulatory, Red Team — self-organize to debate hypotheses, with emergent discussion phases and energy-based conclusion instead of fixed turn orders.',
+    type: 'Open-source platform',
+    year: '2026',
+    tags: ['AI', 'multi-agent', 'scientific reasoning', 'open source', 'deliberation'],
+    status: 'live',
+    link: 'https://github.com/sunitj/Colloquip',
+    team: [{ name: 'Sunit', lead: true }, { name: 'Sean' }],
   },
 ];
