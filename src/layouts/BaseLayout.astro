@@ -21,6 +21,16 @@ const { title, description, ogImage, canonical } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/favicon.ico" />
     <Seo title={title} description={description} ogImage={ogImage} canonical={canonical} />
+    {
+      import.meta.env.PROD && (
+        <script
+          is:inline
+          defer
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon='{"token":"REPLACE_WITH_CF_BEACON_TOKEN"}'
+        />
+      )
+    }
   </head>
   <body>
     <a

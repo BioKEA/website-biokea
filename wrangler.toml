@@ -1,11 +1,8 @@
 name = "biokea"
 compatibility_date = "2026-04-18"
-main = "./dist/_worker.js/index.js"
 
-# Static assets from the Astro build
-[assets]
-directory = "./dist"
-binding = "ASSETS"
+# Astro's Cloudflare adapter emits the worker entry + static assets;
+# wrangler deploy picks them up from dist/ via `astro build`.
 
 [vars]
 CONTACT_FROM_EMAIL = "hello@biokea.ai"

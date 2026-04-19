@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://biokea.ai/sitemap.xml
+Sitemap: https://biokea.ai/sitemap-index.xml

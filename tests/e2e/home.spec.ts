@@ -21,3 +21,12 @@ test('ecosystem tile for Agentis links to agentis.science externally', async ({ 
   await expect(link).toHaveAttribute('href', 'https://agentis.science');
   await expect(link).toHaveAttribute('rel', /noopener/);
 });
+
+test('home exposes Organization structured data', async ({ page }) => {
+  await page.goto('/');
+  const ld = await page.locator('script[type="application/ld+json"]').first().textContent();
+  expect(ld).not.toBeNull();
+  const parsed = JSON.parse(ld!);
+  expect(parsed['@type']).toBe('Organization');
+  expect(parsed.name).toBe('BioKEA');
+});

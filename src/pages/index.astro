@@ -86,4 +86,26 @@ const ecosystemTiles = [
     subtitle="We're actively taking partnership and capabilities conversations."
     cta={{ href: '/contact', label: 'Schedule a call' }}
   />
+
+  <script
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'BioKEA',
+      alternateName: 'Biology Knowledge Exploration Assistant',
+      url: 'https://biokea.ai',
+      logo: 'https://biokea.ai/assets/images/logo2.png',
+      description:
+        'A 5,000 sq ft open lab and an AI pipeline from soil sample to published claim — built for the commons.',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Berkeley',
+        addressRegion: 'CA',
+        addressCountry: 'US',
+      },
+      sameAs: ['https://bsky.app/profile/biokea.bsky.social'],
+    })}
+  />
 </BaseLayout>
