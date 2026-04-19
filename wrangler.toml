@@ -1,0 +1,15 @@
+name = "biokea"
+compatibility_date = "2026-04-18"
+main = "./dist/_worker.js/index.js"
+
+# Static assets from the Astro build
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+[vars]
+CONTACT_FROM_EMAIL = "hello@biokea.ai"
+CONTACT_TO_EMAIL = "team@biokea.ai"
+
+# RESEND_API_KEY is a secret; set once with:
+#   wrangler secret put RESEND_API_KEY
