@@ -6,11 +6,13 @@
 # testing
 /coverage
 
-# next.js
+# Astro / Next.js build artifacts
 /.next/
 /out/
 /dist/
 .astro/
+/styles/
+/test-results/
 
 # production
 /build
