@@ -42,6 +42,9 @@ next-env.d.ts
 
 old/
 
+# Superpowers brainstorm artifacts
+.superpowers/
+
 # Cloudflare specific
 .cloudflare/
 .wrangler/
