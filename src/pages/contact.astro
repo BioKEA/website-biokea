@@ -1,0 +1,138 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+---
+
+<BaseLayout
+  title="Collaborate"
+  description="Partnership, capabilities, and funding conversations with BioKEA."
+>
+  <section class="max-w-3xl mx-auto px-6 pt-16 pb-10">
+    <Eyebrow>CONTACT</Eyebrow>
+    <h1
+      class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[22ch]"
+    >
+      We're taking partnership, capabilities, and funding conversations.
+    </h1>
+    <p class="mt-5 text-slate-600 leading-relaxed">
+      Tell us a bit about what you're working on and how you'd like to engage. We read every
+      message.
+    </p>
+
+    <form id="contact-form" method="POST" action="/api/contact" class="mt-10 grid gap-5" novalidate>
+      <label class="grid gap-1.5">
+        <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+          Name
+        </span>
+        <input
+          required
+          name="name"
+          type="text"
+          class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/70 text-[var(--color-ink)]"
+          autocomplete="name"
+        />
+      </label>
+      <label class="grid gap-1.5">
+        <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+          Email
+        </span>
+        <input
+          required
+          name="email"
+          type="email"
+          class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/70 text-[var(--color-ink)]"
+          autocomplete="email"
+        />
+      </label>
+      <label class="grid gap-1.5">
+        <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+          Organization (optional)
+        </span>
+        <input
+          name="organization"
+          type="text"
+          class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/70 text-[var(--color-ink)]"
+          autocomplete="organization"
+        />
+      </label>
+      <label class="grid gap-1.5">
+        <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+          Topic
+        </span>
+        <select
+          required
+          name="topic"
+          class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/70 text-[var(--color-ink)]"
+        >
+          <option value="">Choose one</option>
+          <option>Partnership / collaboration</option>
+          <option>Capabilities / lab work</option>
+          <option>Funding</option>
+          <option>Something else</option>
+        </select>
+      </label>
+      <label class="grid gap-1.5">
+        <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+          Message
+        </span>
+        <textarea
+          required
+          name="message"
+          rows="6"
+          class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/70 text-[var(--color-ink)]"
+        ></textarea>
+      </label>
+      <!-- Honeypot for simple bot filtering -->
+      <input
+        type="text"
+        name="website"
+        tabindex="-1"
+        autocomplete="off"
+        class="hidden"
+        aria-hidden="true"
+      />
+      <button
+        type="submit"
+        class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-3 rounded-sm font-semibold text-sm self-start"
+      >
+        Send →
+      </button>
+      <p id="form-status" role="status" aria-live="polite" class="text-sm text-slate-600"></p>
+    </form>
+
+    <p class="mt-8 text-sm text-slate-600">
+      Prefer email? Write to
+      <a href="mailto:contact@biokea.ai" class="text-[var(--color-teal)] underline">
+        contact@biokea.ai
+      </a>.
+    </p>
+  </section>
+
+  <script is:inline>
+    const form = document.getElementById('contact-form');
+    const status = document.getElementById('form-status');
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!status) return;
+      status.textContent = 'Sending…';
+      status.style.color = '';
+      const data = new FormData(form);
+      try {
+        const res = await fetch('/api/contact', { method: 'POST', body: data });
+        const body = await res.json();
+        if (res.ok && body.ok) {
+          status.textContent = "Thank you — we'll be in touch within a few days.";
+          status.style.color = 'var(--color-teal)';
+          form.reset();
+        } else {
+          status.textContent =
+            body.error ?? 'Something went wrong. Please email contact@biokea.ai.';
+          status.style.color = 'var(--color-pink)';
+        }
+      } catch {
+        status.textContent = 'Network error. Please email contact@biokea.ai.';
+        status.style.color = 'var(--color-pink)';
+      }
+    });
+  </script>
+</BaseLayout>
