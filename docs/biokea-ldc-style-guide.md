@@ -174,3 +174,25 @@ Requirements:
 - **Background:** transparent preferred; solid cream `#F3EFE6` acceptable
 - **Color space:** sRGB
 - **Bit depth:** 8-bit per channel
+
+---
+
+## 10. Same treatment for the 3 pillar illustrations
+
+The same palette, line-quality, and "no neon, no glow, no gradient" rules apply to the three surviving pillar illustrations:
+
+- `public/assets/images/Pillar1-BioinfoOS.webp`
+- `public/assets/images/Pillar2-Agentis.webp`
+- `public/assets/images/Pillar3-Droplet.webp`
+
+Each is a square badge representing one of the BioKEA product lines. Use this same brief as the template, substituting the motif:
+
+- **Droplet** — Droplet is an **aquatic eDNA and metabarcoding specialist**: field water sample collection through species-level taxonomic identification. Illustration: a water droplet containing a DNA helix and subtle sequence tick-marks, optionally with a fine wave or ripple line around the base to nod at the aquatic context. Teal line work on cream. Ochre highlight on the droplet rim. A single magenta spark inside the helix loop is optional. Optional secondary motif: a small silhouetted aquatic organism (e.g., a fish or daphnia) inside or beside the droplet, suggesting the taxonomic-identification deliverable.
+- **BioinfoOS** — a spiral or galaxy of taxonomic nodes with a small instrument icon at its heart. Teal dominant. The core is the "eye" of the spiral.
+- **Agentis** — a quill and an open book, with a subtle handshake motif (human + AI) between them. Teal and ochre. Understated scholarly tone.
+
+Deliver as:
+
+- `public/assets/images/Pillar1-BioinfoOS-cream.webp`
+- `public/assets/images/Pillar2-Agentis-cream.webp`
+- `public/assets/images/Pillar3-Droplet-cream.webp`
