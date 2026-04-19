@@ -12,6 +12,11 @@ export const milestones: Milestone[] = [
     body: 'Biology Knowledge Exploration Assistant — spin-out from biodiversity and environmental omics research, accelerated by revolutionary AI tooling.',
   },
   {
+    date: '2025-04',
+    title: 'Agentis started',
+    body: 'AI-reviewed science journal conceived.',
+  },
+  {
     date: '2025-09',
     title: 'Berkeley lab planning begins',
     body: 'Start planning the 5,000 sq ft Berkeley lab space.',
