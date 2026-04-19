@@ -42,12 +42,7 @@ export const projects: Project[] = [
       'Screenshot of the Intertidal Biodiversity DNA Barcode Library statistics dashboard showing 4,384 species, 15 million records, and coverage breakdowns across BOLD, NCBI, and SRA databases.',
     heroWidth: 1200,
     heroHeight: 675,
-    team: [
-      { name: 'Sean', lead: true },
-      { name: 'Michelle' },
-      { name: 'Austin' },
-      { name: 'Sunit' },
-    ],
+    team: [{ name: 'Sean', lead: true }],
   },
 
   // VERIFY: placeholder stubs below. Replace with real upcoming projects
@@ -63,7 +58,7 @@ export const projects: Project[] = [
     tags: ['DNA barcoding', 'insects', 'biodiversity', 'California', 'conservation'],
     status: 'revealing-soon',
     revealTarget: 'Pending Ecography publication',
-    team: [{ name: 'Austin', lead: true }, { name: 'Sean' }],
+    team: [{ name: 'Austin', lead: true }],
   },
   {
     slug: 'bay-estuary-metabarcoding-baseline',
@@ -76,7 +71,7 @@ export const projects: Project[] = [
     tags: ['metabarcoding', 'marine', 'estuary', 'Bay Area'],
     status: 'revealing-soon',
     revealTarget: 'Q4 2026',
-    team: [{ name: 'Michelle', lead: true }, { name: 'Austin' }, { name: 'Sunit' }],
+    team: [{ name: 'Michelle', lead: true }, { name: 'Sean' }],
   },
   {
     slug: 'long-read-microbial-resource',
