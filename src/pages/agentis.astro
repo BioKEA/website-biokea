@@ -1,0 +1,87 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import CtaBand from '@/components/sections/CtaBand.astro';
+
+const concepts = [
+  {
+    eyebrow: '01 · Review',
+    title: 'AI pre-screen + verified human review',
+    body: 'AI pre-screens manuscript structure and methodology in hours. Verified AT Protocol human experts evaluate contextual scientific nuance. Weighted, transparent scoring replaces opaque editorial gatekeeping.',
+  },
+  {
+    eyebrow: '02 · Publish',
+    title: 'StoryMaps, not dead PDFs',
+    body: 'Every publication is an explorable digital artifact, permanently tethered to its underlying FAIR data package. Sequences land in NCBI SRA, occurrences in GBIF, archives in Zenodo — cited inline, always reachable.',
+  },
+  {
+    eyebrow: '03 · Trust',
+    title: 'Built on open protocols',
+    body: 'Every publication is a signed AT Protocol record. Every peer review is verifiable. Data provenance is cryptographic. The infrastructure is as open as the science it carries.',
+  },
+];
+---
+
+<BaseLayout
+  title="Agentis — coming soon"
+  description="An AI-first scientific journal built on the AT Protocol. Fast, verifiable peer review and publications as interactive StoryMaps."
+>
+  <section class="max-w-6xl mx-auto px-6 pt-16 pb-10">
+    <Eyebrow>AGENTIS · COMING SOON</Eyebrow>
+    <h1
+      class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[24ch]"
+    >
+      An AI-first scientific journal, built on the AT Protocol.
+    </h1>
+    <p class="mt-5 max-w-[60ch] text-slate-600 leading-relaxed">
+      Fast, verifiable peer review. Publications as interactive StoryMaps. FAIR data packages that
+      never go stale. Launching at
+      <span class="font-mono text-sm text-[var(--color-teal)]">agentis.science</span>.
+    </p>
+    <div class="mt-6 flex items-center gap-4">
+      <a
+        href="/contact?topic=agentis"
+        class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium"
+      >
+        Get early access updates
+      </a>
+      <a href="/pipeline" class="text-[var(--color-teal)] text-sm font-medium">
+        See it in the pipeline →
+      </a>
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <div class="grid md:grid-cols-3 gap-6">
+      {
+        concepts.map((c) => (
+          <article class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-6">
+            <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-teal)]">
+              {c.eyebrow}
+            </div>
+            <h2 class="mt-2 text-lg font-semibold text-[var(--color-ink)]">{c.title}</h2>
+            <p class="mt-3 text-sm text-slate-600 leading-relaxed">{c.body}</p>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <Eyebrow>WHY NOW</Eyebrow>
+    <h2 class="mt-3 text-2xl font-semibold max-w-[30ch]">
+      The bottleneck was never data generation.
+    </h2>
+    <p class="mt-3 max-w-[62ch] text-slate-600 leading-relaxed">
+      It is the editorial, verification, and distribution layer that turns raw data into trustworthy
+      scientific claims. Agentis is the output end of the BioKEA pipeline — the layer where raw
+      FASTA becomes a verifiable, cite-able scientific artifact.
+    </p>
+  </section>
+
+  <CtaBand
+    title="Get notified when Agentis launches."
+    subtitle="We'll be in touch when the first issue goes live."
+    cta={{ href: '/contact?topic=agentis', label: 'Send us a line' }}
+  />
+</BaseLayout>

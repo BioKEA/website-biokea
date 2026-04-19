@@ -1,6 +1,9 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
+
+const requestedTopic = Astro.url.searchParams.get('topic');
+const presetTopic = requestedTopic === 'agentis' ? 'Agentis — early access' : '';
 ---
 
 <BaseLayout
@@ -65,10 +68,16 @@ import Eyebrow from '@/components/ui/Eyebrow.astro';
           class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/70 text-[var(--color-ink)]"
         >
           <option value="">Choose one</option>
-          <option>Partnership / collaboration</option>
-          <option>Capabilities / lab work</option>
-          <option>Funding</option>
-          <option>Something else</option>
+          <option selected={presetTopic === 'Partnership / collaboration'}>
+            Partnership / collaboration
+          </option>
+          <option selected={presetTopic === 'Capabilities / lab work'}
+            >Capabilities / lab work</option
+          >
+          <option selected={presetTopic === 'Funding'}>Funding</option>
+          <option selected={presetTopic === 'Agentis — early access'}>Agentis — early access</option
+          >
+          <option selected={presetTopic === 'Something else'}>Something else</option>
         </select>
       </label>
       <label class="grid gap-1.5">

@@ -15,11 +15,10 @@ test('home renders hero, thesis, evidence, ecosystem, origin, CTA band', async (
   );
 });
 
-test('ecosystem tile for Agentis links to agentis.science externally', async ({ page }) => {
+test('ecosystem tile for Agentis links to the internal coming-soon page', async ({ page }) => {
   await page.goto('/');
   const link = page.getByRole('link', { name: /agentis\.science/ }).first();
-  await expect(link).toHaveAttribute('href', 'https://agentis.science');
-  await expect(link).toHaveAttribute('rel', /noopener/);
+  await expect(link).toHaveAttribute('href', '/agentis');
 });
 
 test('home exposes Organization structured data', async ({ page }) => {

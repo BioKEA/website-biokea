@@ -167,14 +167,6 @@ CFG 4–6, 30–50 steps, SDXL base with Juggernaut / Flux-dev for editorial sty
 
 ## 9. Delivery
 
-Save the approved asset as:
-
-```
-public/assets/images/BioKEA-Large-Data-Collider-cream.webp
-```
-
-(Leave the original `BioKEA-Large-Data-Collider.webp` in place. `src/pages/index.astro` will be updated to point at the new filename once the revision is approved — this is noted in the Task 42 "swap in recolored artwork" step of `docs/superpowers/plans/2026-04-18-biokea-site-overhaul.md`.)
-
 Requirements:
 
 - **Format:** WebP, quality 82–85 (PNG acceptable if WebP export is not available)
@@ -182,25 +174,3 @@ Requirements:
 - **Background:** transparent preferred; solid cream `#F3EFE6` acceptable
 - **Color space:** sRGB
 - **Bit depth:** 8-bit per channel
-
----
-
-## 10. If the same treatment is wanted for the 3 pillar illustrations
-
-The same palette, line-quality, and "no neon, no glow, no gradient" rules apply to the three surviving pillar illustrations:
-
-- `public/assets/images/Pillar1-BioinfoOS.webp`
-- `public/assets/images/Pillar2-Agentis.webp`
-- `public/assets/images/Pillar3-Droplet.webp`
-
-Each is a square badge representing one of the BioKEA products. Use this same brief as the template, substituting the motif:
-
-- **Droplet** — water droplet containing a DNA helix and subtle sequence tick-marks. Teal line work on cream. Ochre highlight on the droplet tip. A single magenta spark inside the helix loop is optional.
-- **BioinfoOS** — a spiral or galaxy of taxonomic nodes with a small instrument icon at its heart. Teal dominant. The core is the "eye" of the spiral.
-- **Agentis** — a quill and an open book, with a subtle handshake motif (human + AI) between them. Teal and ochre. Understated scholarly tone.
-
-Deliver as:
-
-- `public/assets/images/Pillar1-BioinfoOS-cream.webp`
-- `public/assets/images/Pillar2-Agentis-cream.webp`
-- `public/assets/images/Pillar3-Droplet-cream.webp`

@@ -11,7 +11,7 @@ test('nav renders logo and all primary links', async ({ page }) => {
   await expect(nav.getByRole('link', { name: 'Contact', exact: true })).toBeVisible();
   await expect(nav.getByRole('link', { name: /agentis\.science/ })).toHaveAttribute(
     'href',
-    'https://agentis.science',
+    '/agentis',
   );
 });
 
@@ -31,6 +31,6 @@ test('footer renders logo, copyright, and external links', async ({ page }) => {
   await expect(footer.getByText(/© \d{4} BioKEA · Berkeley, CA/)).toBeVisible();
   await expect(footer.getByRole('link', { name: /agentis\.science/ })).toHaveAttribute(
     'href',
-    'https://agentis.science',
+    '/agentis',
   );
 });

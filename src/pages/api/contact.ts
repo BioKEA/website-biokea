@@ -12,6 +12,7 @@ const ContactSchema = z.object({
     'Partnership / collaboration',
     'Capabilities / lab work',
     'Funding',
+    'Agentis — early access',
     'Something else',
   ]),
   message: z.string().trim().min(1).max(5000),

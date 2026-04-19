@@ -10,6 +10,7 @@ interface Tile {
   description: string;
   href?: string;
   external?: boolean;
+  linkLabel?: string;
 }
 interface Props {
   eyebrow: string;
@@ -46,7 +47,8 @@ const { eyebrow, title, tiles } = Astro.props;
                 class="inline-block mt-2 font-mono text-[11px] text-[var(--color-pink)]"
                 rel={t.external ? 'noopener' : undefined}
               >
-                {t.external ? `${t.href.replace(/^https?:\/\//, '')} ↗` : 'Read more →'}
+                {t.linkLabel ??
+                  (t.external ? `${t.href.replace(/^https?:\/\//, '')} ↗` : 'Read more →')}
               </a>
             )}
           </div>

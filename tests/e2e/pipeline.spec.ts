@@ -12,6 +12,6 @@ test('pipeline page teases BioinfoOS and Agentis with external link', async ({ p
   await expect(page.getByRole('heading', { name: 'Agentis' })).toBeVisible();
   await expect(page.getByRole('link', { name: /agentis\.science/ }).last()).toHaveAttribute(
     'href',
-    'https://agentis.science',
+    '/agentis',
   );
 });
