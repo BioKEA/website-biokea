@@ -1,0 +1,60 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import ProjectCard from '@/components/ui/ProjectCard.astro';
+import CtaBand from '@/components/sections/CtaBand.astro';
+import { projects } from '@/data/projects';
+
+const live = projects.filter((p) => p.status === 'live');
+const revealing = projects.filter((p) => p.status === 'revealing-soon');
+const coming = projects.filter((p) => p.status === 'coming-soon');
+
+const tallies = {
+  live: live.length,
+  revealing: revealing.length,
+  coming: coming.length,
+};
+---
+
+<BaseLayout
+  title="Projects"
+  description="Active and forthcoming BioKEA projects — interactive tools, datasets, and collaborations."
+>
+  <section class="max-w-6xl mx-auto px-6 pt-16 pb-8">
+    <Eyebrow>PROJECTS</Eyebrow>
+    <h1
+      class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[24ch]"
+    >
+      What we're shipping.
+    </h1>
+    <p class="mt-5 max-w-[60ch] text-slate-600 leading-relaxed">
+      Live tools, datasets, and analyses produced by BioKEA — alongside the forthcoming work our
+      partners have asked us to keep under wraps a little longer.
+    </p>
+    <div class="mt-6 flex gap-3 flex-wrap font-mono text-[11px] tracking-[0.08em] uppercase">
+      <span class="text-[var(--color-teal)]">
+        {tallies.live} LIVE
+      </span>
+      <span class="text-slate-400">·</span>
+      <span class="text-[var(--color-ochre)]">
+        {tallies.revealing} REVEALING SOON
+      </span>
+      <span class="text-slate-400">·</span>
+      <span class="text-slate-500">
+        {tallies.coming} COMING SOON
+      </span>
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 pb-12">
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {projects.map((p) => <ProjectCard project={p} />)}
+    </div>
+  </section>
+
+  <CtaBand
+    title="Have a project that belongs here?"
+    subtitle="We're taking collaboration, contract, and funding conversations."
+    cta={{ href: '/contact', label: 'Start a conversation' }}
+  />
+</BaseLayout>

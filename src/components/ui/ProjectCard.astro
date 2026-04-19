@@ -1,0 +1,130 @@
+---
+// src/components/ui/ProjectCard.astro
+import type { Project } from '@/data/projects';
+
+interface Props {
+  project: Project;
+}
+const { project } = Astro.props;
+
+const badge = {
+  live: { label: 'LIVE', bg: 'bg-[rgba(15,118,110,0.12)]', fg: 'text-[var(--color-teal)]' },
+  'revealing-soon': {
+    label: 'REVEALING SOON',
+    bg: 'bg-[rgba(146,64,14,0.12)]',
+    fg: 'text-[var(--color-ochre)]',
+  },
+  'coming-soon': {
+    label: 'COMING SOON',
+    bg: 'bg-[rgba(71,85,105,0.12)]',
+    fg: 'text-slate-600',
+  },
+}[project.status];
+
+const isLive = project.status === 'live';
+---
+
+<article
+  class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden flex flex-col"
+>
+  <div
+    class="relative bg-white aspect-[16/9] overflow-hidden flex items-center justify-center border-b border-slate-900/10"
+  >
+    {
+      project.hero && isLive ? (
+        <img
+          src={project.hero}
+          alt={project.heroAlt ?? ''}
+          width={project.heroWidth ?? 1200}
+          height={project.heroHeight ?? 675}
+          class="w-full h-full object-cover object-top"
+          loading="lazy"
+        />
+      ) : (
+        <div
+          class="w-full h-full flex items-center justify-center"
+          style="background-image: linear-gradient(rgba(30,41,59,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(30,41,59,.04) 1px, transparent 1px); background-size: 22px 22px;"
+        >
+          <div class="text-center px-6">
+            {project.partner && (
+              <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500">
+                with {project.partner}
+              </div>
+            )}
+            <div class="mt-2 font-mono text-[11px] tracking-[0.14em] uppercase text-slate-600">
+              {project.type}
+            </div>
+            {project.revealTarget && (
+              <div class="mt-4 font-mono text-[12px] text-[var(--color-teal)]">
+                target · {project.revealTarget}
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    }
+    <span
+      class:list={[
+        'absolute top-3 right-3 font-mono text-[9.5px] font-semibold tracking-[0.14em] uppercase px-2 py-1 rounded-sm',
+        badge.bg,
+        badge.fg,
+      ]}
+    >
+      {badge.label}
+    </span>
+  </div>
+
+  <div class="p-6 flex-1 flex flex-col">
+    <div class="flex items-baseline justify-between gap-4">
+      <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-teal)]">
+        {project.type}
+      </div>
+      <div class="font-mono text-[10px] tracking-[0.08em] text-slate-500">{project.year}</div>
+    </div>
+
+    <h3 class="mt-2 text-lg font-semibold text-[var(--color-ink)] leading-tight">
+      {project.title}
+    </h3>
+
+    {
+      project.partner && (
+        <p class="mt-1 text-xs text-slate-600">
+          with <span class="font-medium">{project.partner}</span>
+        </p>
+      )
+    }
+
+    <p class="mt-3 text-sm text-slate-600 leading-relaxed">{project.summary}</p>
+
+    {
+      project.tags.length > 0 && (
+        <ul class="mt-4 flex gap-1.5 flex-wrap">
+          {project.tags.map((tag) => (
+            <li class="font-mono text-[9.5px] tracking-[0.06em] uppercase text-slate-500 bg-white/70 border border-slate-900/08 px-2 py-1 rounded-sm">
+              {tag}
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    <div class="mt-5 pt-4 border-t border-slate-900/10">
+      {
+        isLive && project.link ? (
+          <a
+            href={project.link}
+            rel="noopener"
+            target="_blank"
+            class="font-mono text-[12px] text-[var(--color-pink)]"
+          >
+            {project.link.replace(/^https?:\/\//, '').replace(/\/$/, '')} ↗
+          </a>
+        ) : (
+          <p class="font-mono text-[11px] tracking-[0.08em] text-slate-500">
+            {project.revealTarget ? `Target reveal · ${project.revealTarget}` : 'Revealing soon'}
+          </p>
+        )
+      }
+    </div>
+  </div>
+</article>
