@@ -10,15 +10,26 @@ const { title, subtitle, cta } = Astro.props;
 
 <section class="max-w-6xl mx-auto px-6">
   <div
-    class="bg-[var(--color-ink)] text-[var(--color-cream)] rounded-md px-8 py-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+    class="bg-[var(--color-ink)] text-[var(--color-cream)] rounded-md px-8 py-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
   >
-    <div>
-      <h2 class="text-xl font-semibold tracking-tight">{title}</h2>
-      <p class="text-sm text-slate-300 mt-1">{subtitle}</p>
+    <div class="flex items-center gap-5">
+      <img
+        src="/assets/images/cta-seal.webp"
+        alt=""
+        width="200"
+        height="200"
+        class="hidden md:block h-14 w-14 invert brightness-110 opacity-90 shrink-0"
+        loading="lazy"
+        aria-hidden="true"
+      />
+      <div>
+        <h2 class="text-xl font-semibold tracking-tight">{title}</h2>
+        <p class="text-sm text-slate-300 mt-1">{subtitle}</p>
+      </div>
     </div>
     <a
       href={cta.href}
-      class="bg-[var(--color-cream)] text-[var(--color-ink)] px-4 py-2.5 rounded-sm font-semibold text-sm"
+      class="bg-[var(--color-cream)] text-[var(--color-ink)] px-4 py-2.5 rounded-sm font-semibold text-sm shrink-0"
     >
       {cta.label} →
     </a>

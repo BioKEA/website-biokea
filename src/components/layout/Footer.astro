@@ -1,27 +1,57 @@
 ---
 // src/components/layout/Footer.astro
 const year = new Date().getFullYear();
+
+const marginalia = [
+  { src: '/assets/images/marg-fish.webp', alt: '' },
+  { src: '/assets/images/marg-daphnia.webp', alt: '' },
+  { src: '/assets/images/marg-leaf.webp', alt: '' },
+  { src: '/assets/images/marg-diatom.webp', alt: '' },
+];
 ---
 
 <footer class="bg-[var(--color-ink)] text-slate-400 mt-24">
-  <div class="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row justify-between gap-6 text-xs">
-    <div class="flex items-center gap-3">
-      <img
-        src="/assets/images/logo2-white.png"
-        alt=""
-        width="256"
-        height="136"
-        class="h-6 w-auto"
-      />
-      <span>© {year} BioKEA · Berkeley, CA</span>
+  <div class="max-w-6xl mx-auto px-6 pt-10 pb-6">
+    <div class="flex items-center gap-4">
+      {
+        marginalia.map((m) => (
+          <img
+            src={m.src}
+            alt={m.alt}
+            width="200"
+            height="200"
+            class="h-7 w-7 invert brightness-125 opacity-50"
+            loading="lazy"
+            aria-hidden="true"
+          />
+        ))
+      }
+      <span class="font-mono text-[11px] tracking-[0.16em] uppercase text-slate-300">
+        · soil · water · specimen ·
+      </span>
     </div>
-    <ul class="flex gap-5">
-      <li><a href="https://bsky.app/profile/biokea.bsky.social" rel="noopener">Bluesky</a></li>
-      <li><a href="https://github.com/biokea" rel="noopener">GitHub</a></li>
-      <li><a href="/contact">Contact</a></li>
-      <li>
-        <a href="/agentis" class="text-[var(--color-teal-bright)]">agentis.science</a>
-      </li>
-    </ul>
+    <div
+      class="mt-6 border-t border-slate-800 pt-6 flex flex-col md:flex-row justify-between gap-6 text-xs"
+    >
+      <div class="flex items-center gap-3">
+        <img
+          src="/assets/images/logo2-white.png"
+          alt=""
+          width="256"
+          height="136"
+          class="h-6 w-auto"
+        />
+        <span>© {year} BioKEA · Berkeley, CA</span>
+      </div>
+      <ul class="flex gap-5 flex-wrap">
+        <li><a href="https://bsky.app/profile/biokea.bsky.social" rel="noopener">Bluesky</a></li>
+        <li><a href="https://github.com/biokea" rel="noopener">GitHub</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/press-kit.png">Press kit</a></li>
+        <li>
+          <a href="/agentis" class="text-[var(--color-teal-bright)]">agentis.science</a>
+        </li>
+      </ul>
+    </div>
   </div>
 </footer>

@@ -105,13 +105,28 @@ import { milestones } from '@/data/milestones';
 
   <section class="max-w-6xl mx-auto px-6 py-12">
     <Eyebrow>COMMITMENT</Eyebrow>
-    <h2 class="mt-3 text-2xl font-semibold max-w-[30ch]">
-      Public domain, FAIR, and on open protocols.
-    </h2>
-    <p class="mt-3 max-w-[62ch] text-slate-600 leading-relaxed">
-      Data packages land in GBIF, NCBI SRA, and Zenodo. Publication happens on AT Protocol with
-      verified identity and immutable review history. The infrastructure is as open as the science.
-    </p>
+    <div class="mt-3 grid md:grid-cols-[1fr_180px] gap-10 items-start">
+      <div>
+        <h2 class="text-2xl font-semibold max-w-[30ch]">
+          Public domain, FAIR, and on open protocols.
+        </h2>
+        <p class="mt-3 max-w-[62ch] text-slate-600 leading-relaxed">
+          Data packages land in GBIF, NCBI SRA, and Zenodo. Publication happens on AT Protocol with
+          verified identity and immutable review history. The infrastructure is as open as the
+          science.
+        </p>
+      </div>
+      <figure class="hidden md:block">
+        <img
+          src="/assets/images/taxonomic-tree.webp"
+          alt="A small phylogenetic tree illustration in editorial teal line-art."
+          width="400"
+          height="800"
+          class="w-full max-w-[160px] ml-auto block opacity-80"
+          loading="lazy"
+        />
+      </figure>
+    </div>
   </section>
 
   <CtaBand

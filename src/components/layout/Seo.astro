@@ -6,7 +6,7 @@ interface Props {
   ogImage?: string;
   canonical?: string;
 }
-const { title, description, ogImage = '/assets/images/logo2.png', canonical } = Astro.props;
+const { title, description, ogImage = '/assets/images/og-home.jpg', canonical } = Astro.props;
 const fullTitle = title.startsWith('BioKEA') ? title : `${title} — BioKEA`;
 const canonicalUrl = canonical ?? new URL(Astro.url.pathname, Astro.site).toString();
 const ogUrl = new URL(ogImage, Astro.site).toString();

@@ -11,6 +11,7 @@ import { equipmentByStage } from '@/data/equipment';
 <BaseLayout
   title="The Lab & LDC"
   description="The Berkeley lab, the Large Data Collider hardware, and collaboration with partner institutions."
+  ogImage="/assets/images/og-lab.jpg"
   preloadImage="/assets/images/lab-warehouse-before.jpg"
   preloadImageType="image/jpeg"
 >
@@ -45,6 +46,23 @@ import { equipmentByStage } from '@/data/equipment';
       caption="OPERATIONAL"
       class="aspect-[4/3]"
     />
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-14">
+    <Eyebrow>WHERE WE ARE · BAY AREA</Eyebrow>
+    <figure class="mt-5">
+      <img
+        src="/assets/images/bay-area-map.webp"
+        alt="A hand-drawn editorial map of the San Francisco Bay Area showing BioKEA's Berkeley lab and partner institutions at CIB, SFEI, and Coastal Quest."
+        width="1200"
+        height="900"
+        class="w-full rounded-md block"
+        loading="lazy"
+      />
+      <figcaption class="mt-3 font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500">
+        Fig · Berkeley lab + partner institutions + the Bay Area biotech auction circuit
+      </figcaption>
+    </figure>
   </section>
 
   <section class="max-w-6xl mx-auto px-6 py-16">
@@ -96,7 +114,7 @@ import { equipmentByStage } from '@/data/equipment';
               <p class="mt-4 font-semibold text-[var(--color-ink)]">{stage.hero.name}</p>
               <p class="mt-2 text-sm text-slate-600 leading-relaxed">{stage.hero.why}</p>
               <div class="mt-4 pt-4 border-t border-slate-900/10">
-                <div class="font-mono text-[10px] tracking-[0.1em] uppercase text-slate-500 mb-2">
+                <div class="font-mono text-[10px] tracking-[0.1em] uppercase text-slate-600 mb-2">
                   Also on bench
                 </div>
                 <ul class="space-y-1 text-sm text-slate-600 leading-relaxed">
@@ -114,6 +132,20 @@ import { equipmentByStage } from '@/data/equipment';
     <p class="mt-10 text-xs text-slate-500 font-mono">
       Full inventory (~80 items) available on request.
     </p>
+
+    <figure class="mt-14">
+      <img
+        src="/assets/images/ldc-interior-iso.webp"
+        alt="An isometric cutaway illustration of the BioKEA Berkeley lab, showing extraction, prep, quantification, and sequencing equipment arranged along the pipeline flow."
+        width="1800"
+        height="1200"
+        class="w-full rounded-md block"
+        loading="lazy"
+      />
+      <figcaption class="mt-3 font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500">
+        Fig · LDC interior, stage-by-stage
+      </figcaption>
+    </figure>
 
     <figure class="mt-14 grid md:grid-cols-[1.2fr_1fr] gap-8 items-start">
       <img
@@ -133,10 +165,10 @@ import { equipmentByStage } from '@/data/equipment';
           drive each identification.
         </p>
         <img
-          src="/assets/images/lab-diversityscanner-heatmaps.jpg"
-          alt="Attention heatmaps over four insect specimens showing model focus regions"
-          width="440"
-          height="325"
+          src="/assets/images/diversityscanner-heatmaps-cream.webp"
+          alt="Four specimen panels overlaid with topographic-style attention contours in the BioKEA cream palette."
+          width="800"
+          height="600"
           class="mt-4 w-full rounded-sm border border-slate-900/10"
           loading="lazy"
         />

@@ -25,29 +25,45 @@ const concepts = [
 <BaseLayout
   title="Agentis — coming soon"
   description="An AI-first scientific journal built on the AT Protocol. Fast, verifiable peer review and publications as interactive StoryMaps."
+  ogImage="/assets/images/og-agentis.jpg"
 >
   <section class="max-w-6xl mx-auto px-6 pt-16 pb-10">
-    <Eyebrow>AGENTIS · COMING SOON</Eyebrow>
-    <h1
-      class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[24ch]"
-    >
-      An AI-first scientific journal, built on the AT Protocol.
-    </h1>
-    <p class="mt-5 max-w-[60ch] text-slate-600 leading-relaxed">
-      Fast, verifiable peer review. Publications as interactive StoryMaps. FAIR data packages that
-      never go stale. Launching at
-      <span class="font-mono text-sm text-[var(--color-teal)]">agentis.science</span>.
-    </p>
-    <div class="mt-6 flex items-center gap-4">
-      <a
-        href="/contact?topic=agentis"
-        class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium"
-      >
-        Get early access updates
-      </a>
-      <a href="/pipeline" class="text-[var(--color-teal)] text-sm font-medium">
-        See it in the pipeline →
-      </a>
+    <div class="grid md:grid-cols-[1.4fr_1fr] gap-10 items-center">
+      <div>
+        <Eyebrow>AGENTIS · COMING SOON</Eyebrow>
+        <h1
+          class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[24ch]"
+        >
+          An AI-first scientific journal, built on the AT Protocol.
+        </h1>
+        <p class="mt-5 max-w-[60ch] text-slate-600 leading-relaxed">
+          Fast, verifiable peer review. Publications as interactive StoryMaps. FAIR data packages
+          that never go stale. Launching at
+          <span class="font-mono text-sm text-[var(--color-teal)]">agentis.science</span>.
+        </p>
+        <div class="mt-6 flex items-center gap-4">
+          <a
+            href="/contact?topic=agentis"
+            class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium"
+          >
+            Get early access updates
+          </a>
+          <a href="/pipeline" class="text-[var(--color-teal)] text-sm font-medium">
+            See it in the pipeline →
+          </a>
+        </div>
+      </div>
+      <figure class="relative">
+        <img
+          src="/assets/images/agentis-discourse-graph.webp"
+          alt="A lattice of interconnected signed publication nodes illustrating verifiable peer review and transparent scientific discourse."
+          width="1200"
+          height="1200"
+          class="w-full max-w-[420px] ml-auto block"
+          loading="eager"
+          fetchpriority="high"
+        />
+      </figure>
     </div>
   </section>
 
@@ -65,6 +81,24 @@ const concepts = [
         ))
       }
     </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <figure>
+      <img
+        src="/assets/images/agentis-storymap-mockup.webp"
+        alt="A mockup of an Agentis StoryMap: an interactive scientific publication with map, data, FAIR package badges, and inline citations."
+        width="1600"
+        height="1100"
+        class="w-full block rounded-md"
+        loading="lazy"
+      />
+      <figcaption
+        class="mt-3 text-center font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500"
+      >
+        Fig · not a dead PDF
+      </figcaption>
+    </figure>
   </section>
 
   <section class="max-w-6xl mx-auto px-6 py-12">
