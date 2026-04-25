@@ -52,7 +52,9 @@ const seanCredentials = credentialsFor('Sean Jungbluth');
                 name={p.name}
                 role={p.role}
                 postNominal={p.postNominal}
-                credentials={credentialsFor(p.name).map((c) => c.label)}
+                credentials={credentialsFor(p.name)
+                  .filter((c) => !c.hideOnPortrait)
+                  .map((c) => c.label)}
               />
               {p.bio && <p class="mt-3 text-xs text-slate-600 leading-relaxed">{p.bio}</p>}
             </div>
@@ -67,15 +69,20 @@ const seanCredentials = credentialsFor('Sean Jungbluth');
           team
             .filter((p) => p.tier === 'advisor')
             .map((p) => (
-              <Portrait
-                src={p.image}
-                alt={p.alt}
-                name={p.name}
-                role={p.role}
-                postNominal={p.postNominal}
-                credentials={credentialsFor(p.name).map((c) => c.label)}
-                size="sm"
-              />
+              <div>
+                <Portrait
+                  src={p.image}
+                  alt={p.alt}
+                  name={p.name}
+                  role={p.role}
+                  postNominal={p.postNominal}
+                  credentials={credentialsFor(p.name)
+                    .filter((c) => !c.hideOnPortrait)
+                    .map((c) => c.label)}
+                  size="sm"
+                />
+                {p.bio && <p class="mt-2 text-[10px] text-slate-600 leading-snug">{p.bio}</p>}
+              </div>
             ))
         }
       </div>

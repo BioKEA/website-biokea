@@ -65,15 +65,13 @@ test('mission page shows the new Anthropic milestones', async ({ page }) => {
   await expect(page.locator('[data-milestone-date][datetime="2026-02"]')).toBeVisible();
 });
 
-test('Sean portrait shows both ambassador and challenge winner credential lines', async ({
-  page,
-}) => {
+test('Sean portrait shows the Ambassador line but hides the Challenge line', async ({ page }) => {
   await page.goto('/mission');
   const seanPortrait = page.locator('article', { hasText: 'Sean Jungbluth' }).first();
   await expect(seanPortrait.getByText('Anthropic Claude Community Ambassador')).toBeVisible();
   await expect(
     seanPortrait.getByText('Built with Claude Sonnet 4.5 Challenge — Winner'),
-  ).toBeVisible();
+  ).toHaveCount(0);
 });
 
 test('mission Person JSON-LD reflects both Sean credentials', async ({ page }) => {
@@ -90,4 +88,10 @@ test('mission Person JSON-LD reflects both Sean credentials', async ({ page }) =
   expect(sean.affiliation?.name).toBe('Anthropic');
   expect(Array.isArray(sean.sameAs)).toBe(true);
   expect(sean.sameAs).toContain('https://x.com/alexalbert__/status/1978220407716245581');
+});
+
+test('mission page shows team and advisor bios', async ({ page }) => {
+  await page.goto('/mission');
+  await expect(page.getByText(/Microbial genomicist/i)).toBeVisible();
+  await expect(page.getByText(/Author of Colloquip/i)).toBeVisible();
 });

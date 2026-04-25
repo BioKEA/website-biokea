@@ -28,6 +28,12 @@ describe('team data', () => {
     expect(names).toContain('Sunit Jain');
     expect(names).toContain('Greg Fedewa');
   });
+  it('every entry has a non-empty bio', () => {
+    for (const p of team) {
+      expect(p.bio).toBeTruthy();
+      expect(p.bio!.length).toBeGreaterThan(20);
+    }
+  });
 });
 
 describe('partners data', () => {

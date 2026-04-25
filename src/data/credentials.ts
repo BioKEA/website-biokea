@@ -12,6 +12,7 @@ export interface PersonalCredential {
   url?: string; // optional public directory URL for the holder's credential
   issuer: string; // for JSON-LD affiliation.name
   issuerUrl: string; // for JSON-LD affiliation.url
+  hideOnPortrait?: boolean; // opt out of the ochre portrait line; still surfaces in JSON-LD / llms.txt
 }
 
 export const programs: Program[] = [
@@ -33,6 +34,7 @@ export const personalCredentials: PersonalCredential[] = [
     issuer: 'Anthropic',
     issuerUrl: 'https://www.anthropic.com/',
     url: 'https://x.com/alexalbert__/status/1978220407716245581',
+    hideOnPortrait: true,
   },
 ];
 
