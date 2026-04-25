@@ -64,3 +64,20 @@ test('DaKineDiving card does not show "Revealing soon" fallback in its footer', 
   const card = page.locator('article').filter({ hasText: 'DaKineDiving' });
   await expect(card.getByText(/Revealing soon/i)).toHaveCount(0);
 });
+
+test('projects JSON-LD has DaKineDiving WebApplication node with award and videos', async ({
+  page,
+}) => {
+  await page.goto('/projects');
+  const ld = await page.locator('script[type="application/ld+json"]').first().textContent();
+  const parsed = JSON.parse(ld!);
+  const node = parsed['@graph'].find(
+    (n: { '@id'?: string }) => n['@id'] === 'https://biokea.ai/projects#dakinediving',
+  );
+  expect(node).toBeDefined();
+  expect(node['@type']).toBe('WebApplication');
+  expect(node.award).toContain('Built with Claude');
+  expect(node.sameAs).toContain('https://x.com/alexalbert__/status/1978220407716245581');
+  expect(Array.isArray(node.video)).toBe(true);
+  expect(node.video).toHaveLength(2);
+});

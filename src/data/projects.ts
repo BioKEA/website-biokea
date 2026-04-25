@@ -93,6 +93,11 @@ export const projects: Project[] = [
     originIndependent: true,
     originNote:
       "Built by Sean as a solo entry to Anthropic's Built with Claude Sonnet 4.5 Challenge (October 2025); winner of the contest. Surfaced under BioKEA because of the GBIF biodiversity layer; not part of the BioKEA wet-lab pipeline.",
+    hero: '/assets/images/DaKine-Divers-Screen1.png',
+    heroAlt:
+      "DaKineDiving interactive map of O'ahu showing dive sites, real-time conditions, and marine biodiversity overlays",
+    heroWidth: 1200,
+    heroHeight: 675,
     award: {
       label: 'Built with Claude Sonnet 4.5 Challenge — Winner',
       url: 'https://x.com/alexalbert__/status/1978220407716245581',

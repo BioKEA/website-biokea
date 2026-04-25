@@ -10,6 +10,8 @@ const live = projects.filter((p) => p.status === 'live');
 const revealing = projects.filter((p) => p.status === 'revealing-soon');
 const coming = projects.filter((p) => p.status === 'coming-soon');
 
+const dakinediving = projects.find((p) => p.slug === 'dakinediving');
+
 const tallies = {
   live: live.length,
   revealing: revealing.length,
@@ -146,6 +148,39 @@ const tallies = {
             { '@type': 'DefinedTerm', name: 'Scientific reasoning' },
           ],
         },
+        ...(dakinediving
+          ? [
+              {
+                '@type': 'WebApplication',
+                '@id': 'https://biokea.ai/projects#dakinediving',
+                name: 'DaKineDiving',
+                description: dakinediving.summary,
+                applicationCategory: 'EnvironmentalInformaticsApplication',
+                operatingSystem: 'Web',
+                creator: { '@id': 'https://biokea.ai/mission#sean' },
+                ...(dakinediving.award
+                  ? {
+                      award: dakinediving.award.label,
+                      sameAs: [dakinediving.award.url],
+                    }
+                  : {}),
+                ...(dakinediving.videos && dakinediving.videos.length > 0
+                  ? {
+                      video: dakinediving.videos.map((v) => ({
+                        '@type': 'VideoObject',
+                        name: v.label,
+                        contentUrl: v.url,
+                      })),
+                    }
+                  : {}),
+                about: [
+                  { '@type': 'DefinedTerm', name: 'eDNA' },
+                  { '@type': 'DefinedTerm', name: 'Marine biodiversity' },
+                  { '@type': 'DefinedTerm', name: 'Hawaiian marine ecosystems' },
+                ],
+              },
+            ]
+          : []),
       ],
     })}
   />

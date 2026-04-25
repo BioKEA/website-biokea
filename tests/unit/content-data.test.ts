@@ -34,6 +34,12 @@ describe('team data', () => {
       expect(p.bio!.length).toBeGreaterThan(20);
     }
   });
+  it('every entry has a knowsAbout array of length >= 1', () => {
+    for (const p of team) {
+      expect(Array.isArray(p.knowsAbout)).toBe(true);
+      expect(p.knowsAbout!.length).toBeGreaterThanOrEqual(1);
+    }
+  });
 });
 
 describe('partners data', () => {

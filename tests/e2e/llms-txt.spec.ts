@@ -23,3 +23,15 @@ test('llms.txt is served as markdown with agent-first sections', async ({ page }
   expect(body).toContain('NVIDIA Inception');
   expect(body).toContain('Anthropic Claude Community Ambassador');
 });
+
+test('llms-full.txt is served and contains long-form sections', async ({ page }) => {
+  const response = await page.goto('/llms-full.txt');
+  expect(response?.status()).toBe(200);
+  const body = (await response?.text()) ?? '';
+  expect(body).toContain('## Team');
+  expect(body).toContain('Microbial genomicist');
+  expect(body).toContain('## Projects');
+  expect(body).toContain('DaKineDiving');
+  expect(body).toContain('## Milestones');
+  expect(body).toContain('https://x.com/alexalbert__/status/1978220407716245581');
+});

@@ -183,4 +183,64 @@ const ecosystemTiles = [
       ],
     })}
   />
+
+  <script
+    type="application/ld+json"
+    is:inline
+    set:html={stringifyJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      '@id': 'https://biokea.ai/#faq',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'What is BioKEA?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'An independent biology company in Berkeley, California — Biology Knowledge Exploration Assistant. AI company with a wet-lab moat: a 5,000+ sq ft Berkeley lab plus an AI pipeline from field sample to verifiable scientific claim, built for the commons.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What services does BioKEA offer?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Molecular sequencing as a service for environmental-DNA and biodiversity-omics customers: eDNA and metabarcoding (primary), DNA barcoding surveys, long-read microbial genomics, specimen screening (DiversityScanner, summer 2026), and bespoke sample-to-claim pipeline integration.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: "Where is BioKEA's lab?",
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'The Large Data Collider (LDC) is a 5,000+ sq ft facility in Berkeley, California, operational from March 2026, housing an Oxford Nanopore Promethion 2 and ~80 instruments across extraction, prep, quantification, and sequencing stages.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How do I engage BioKEA for a sequencing project?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Reach out via the contact form at biokea.ai/contact. Engagement routes include partnership/collaboration, capabilities/lab work, funding, and Agentis early access.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What is Agentis?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: "Agentis is BioKEA's forthcoming AI-first open-access scientific journal on the AT Protocol, launching at agentis.science. Publication is structured as interactive StoryMaps tied to FAIR data packages, not dead PDFs.",
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Who supports BioKEA?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'BioKEA is supported by the cloud and AI infrastructure programs AWS for Startups, Google Cloud for Startups, and NVIDIA Inception. Major partner: California Institute for Biodiversity. Collaborations with the San Francisco Estuary Institute and Coastal Quest.',
+          },
+        },
+      ],
+    })}
+  />
 </BaseLayout>

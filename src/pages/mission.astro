@@ -10,8 +10,6 @@ import { partners } from '@/data/partners';
 import { milestones } from '@/data/milestones';
 import { stringifyJsonLd } from '@/lib/json-ld';
 import { credentialsFor } from '@/data/credentials';
-
-const seanCredentials = credentialsFor('Sean Jungbluth');
 ---
 
 <BaseLayout
@@ -201,79 +199,35 @@ const seanCredentials = credentialsFor('Sean Jungbluth');
     is:inline
     set:html={stringifyJsonLd({
       '@context': 'https://schema.org',
-      '@graph': [
-        {
+      '@graph': team.map((p) => {
+        const creds = credentialsFor(p.name);
+        const slug = p.name.split(' ')[0].toLowerCase();
+        const credentialUrls = creds.filter((c) => c.url).map((c) => c.url!);
+        const allSameAs = [...(p.sameAs ?? []), ...credentialUrls];
+        const isPlaceholderImage = p.image.endsWith('.svg');
+        return {
           '@type': 'Person',
-          '@id': 'https://biokea.ai/mission#sean',
-          name: 'Sean Jungbluth',
-          honorificSuffix: 'PhD',
-          jobTitle: 'CEO / CTO, Founder',
+          '@id': `https://biokea.ai/mission#${slug}`,
+          name: p.name,
+          ...(p.postNominal ? { honorificSuffix: p.postNominal } : {}),
+          jobTitle: p.role,
           worksFor: { '@id': 'https://biokea.ai/#org' },
-          image: 'https://biokea.ai/assets/images/portrait-sean.webp',
-          knowsAbout: [
-            'Environmental DNA',
-            'Metabarcoding',
-            'Biodiversity informatics',
-            'Long-read sequencing',
-            'FAIR data',
-            'AT Protocol',
-          ],
-          ...(seanCredentials.length > 0
+          ...(isPlaceholderImage ? {} : { image: `https://biokea.ai${p.image}` }),
+          ...(p.bio ? { description: p.bio } : {}),
+          ...(p.knowsAbout && p.knowsAbout.length > 0 ? { knowsAbout: p.knowsAbout } : {}),
+          ...(allSameAs.length > 0 ? { sameAs: allSameAs } : {}),
+          ...(creds.length > 0
             ? {
-                award: seanCredentials.map((c) => c.label),
+                award: creds.map((c) => c.label),
                 affiliation: {
                   '@type': 'Organization',
-                  name: seanCredentials[0].issuer,
-                  url: seanCredentials[0].issuerUrl,
+                  name: creds[0].issuer,
+                  url: creds[0].issuerUrl,
                 },
-                sameAs: seanCredentials.filter((c) => c.url).map((c) => c.url!),
               }
             : {}),
-        },
-        {
-          '@type': 'Person',
-          '@id': 'https://biokea.ai/mission#michelle',
-          name: 'Michelle Jungbluth',
-          honorificSuffix: 'PhD',
-          jobTitle: 'CSO, Co-Founder',
-          worksFor: { '@id': 'https://biokea.ai/#org' },
-          image: 'https://biokea.ai/assets/images/portrait-michelle.webp',
-          knowsAbout: ['Marine biology', 'Estuarine ecology', 'Zooplankton', 'Metabarcoding'],
-        },
-        {
-          '@type': 'Person',
-          '@id': 'https://biokea.ai/mission#austin',
-          name: 'Austin Baker',
-          honorificSuffix: 'PhD',
-          jobTitle: 'Founding Research Scientist',
-          worksFor: { '@id': 'https://biokea.ai/#org' },
-          image: 'https://biokea.ai/assets/images/portrait-austin.webp',
-          knowsAbout: [
-            'DNA barcoding',
-            'Entomology',
-            'California insect biodiversity',
-            'Conservation biology',
-          ],
-        },
-        {
-          '@type': 'Person',
-          '@id': 'https://biokea.ai/mission#sunit',
-          name: 'Sunit Jain',
-          honorificSuffix: 'MS',
-          jobTitle: 'Advisor',
-          worksFor: { '@id': 'https://biokea.ai/#org' },
-          knowsAbout: ['Multi-agent AI', 'Scientific deliberation', 'Bioinformatics'],
-          sameAs: ['https://github.com/sunitj'],
-        },
-        {
-          '@type': 'Person',
-          '@id': 'https://biokea.ai/mission#greg',
-          name: 'Greg Fedewa',
-          honorificSuffix: 'PhD',
-          jobTitle: 'Advisor',
-          worksFor: { '@id': 'https://biokea.ai/#org' },
-        },
-      ],
+        };
+      }),
     })}
   />
 </BaseLayout>

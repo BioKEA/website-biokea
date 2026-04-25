@@ -52,6 +52,12 @@ const beaconEnabled = import.meta.env.PROD && !cfBeaconToken.startsWith('REPLACE
       )
     }
     <Seo title={title} description={description} ogImage={ogImage} canonical={canonical} />
+    <link
+      rel="alternate"
+      type="text/markdown"
+      href="/llms-full.txt"
+      title="BioKEA — long-form summary for LLM agents"
+    />
     {
       beaconEnabled && (
         <script

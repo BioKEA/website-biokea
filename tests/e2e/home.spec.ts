@@ -64,3 +64,31 @@ test('footer renders Programs & support strip with all three programs', async ({
   await expect(footer.getByRole('link', { name: 'Google Cloud for Startups' })).toBeVisible();
   await expect(footer.getByRole('link', { name: 'NVIDIA Inception' })).toBeVisible();
 });
+
+test('home FAQPage JSON-LD includes all 6 expected questions', async ({ page }) => {
+  await page.goto('/');
+  const scripts = await page.locator('script[type="application/ld+json"]').allTextContents();
+  const faq = scripts
+    .map((s) => {
+      try {
+        return JSON.parse(s);
+      } catch {
+        return null;
+      }
+    })
+    .find((j) => j && j['@type'] === 'FAQPage');
+  expect(faq).toBeDefined();
+  const questions = faq.mainEntity.map((q: { name: string }) => q.name);
+  expect(questions).toContain('What is BioKEA?');
+  expect(questions).toContain('What services does BioKEA offer?');
+  expect(questions).toContain("Where is BioKEA's lab?");
+  expect(questions).toContain('How do I engage BioKEA for a sequencing project?');
+  expect(questions).toContain('What is Agentis?');
+  expect(questions).toContain('Who supports BioKEA?');
+});
+
+test('home <head> advertises llms-full.txt as alternate', async ({ page }) => {
+  await page.goto('/');
+  const link = page.locator('link[rel="alternate"][type="text/markdown"]');
+  await expect(link).toHaveAttribute('href', '/llms-full.txt');
+});

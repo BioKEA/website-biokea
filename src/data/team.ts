@@ -9,6 +9,8 @@ export interface TeamMember {
   bio?: string;
   tier?: TeamTier;
   postNominal?: string;
+  knowsAbout?: string[]; // Schema.org Person.knowsAbout source
+  sameAs?: string[]; // Schema.org Person.sameAs source (canonical profile URLs)
 }
 
 export const team: TeamMember[] = [
@@ -20,6 +22,15 @@ export const team: TeamMember[] = [
     alt: 'Headshot of Sean Jungbluth',
     tier: 'team',
     bio: 'Microbial genomicist building computational and AI tooling for environmental biology. Lectures sometimes at Stanford on microbial genomics; previously studied deep-sea and subsurface microbial diversity across three submersible expeditions to ~2,650 m. Author of open-source pipelines and a contributor to FAIR data standards (MIxS, MIEM).',
+    knowsAbout: [
+      'Environmental DNA',
+      'Metabarcoding',
+      'Biodiversity informatics',
+      'Long-read sequencing',
+      'FAIR data',
+      'AT Protocol',
+    ],
+    sameAs: ['https://seanjungbluth.me/'],
   },
   {
     name: 'Michelle Jungbluth',
@@ -29,6 +40,8 @@ export const team: TeamMember[] = [
     alt: 'Headshot of Michelle Jungbluth',
     tier: 'team',
     bio: "Marine and estuarine ecologist focused on zooplankton communities and food-web dynamics. Combines field sampling with DNA barcoding, eDNA, qPCR, and metabarcoding to track threatened estuarine fishes — including longfin smelt — and identify indicator species in human-impacted wetlands. Lead investigator on BioKEA's San Francisco Bay metabarcoding baseline.",
+    knowsAbout: ['Marine biology', 'Estuarine ecology', 'Zooplankton', 'Metabarcoding'],
+    sameAs: ['https://jungbluthlab.org/'],
   },
   {
     name: 'Austin Baker',
@@ -37,7 +50,13 @@ export const team: TeamMember[] = [
     image: '/assets/images/portrait-austin.webp',
     alt: 'Headshot of Austin Baker',
     tier: 'team',
-    bio: "Entomologist and biodiversity scientist leading the California Insect Barcoding Initiative — over 1 million specimens barcoded, with recent work estimating that at least one third of the state's insect biodiversity remains undiscovered. Previously a postdoctoral scholar at the Natural History Museum of Los Angeles County. PhD on parasitoid-wasp systematics.",
+    bio: "Entomologist and biodiversity scientist managing the California Insect Barcoding Initiative — over 1 million specimens barcoded, with recent work estimating that at least one third of the state's insect biodiversity remains undiscovered. Previously a postdoctoral scholar at the Natural History Museum of Los Angeles County. PhD on parasitoid-wasp systematics.",
+    knowsAbout: [
+      'DNA barcoding',
+      'Entomology',
+      'California insect biodiversity',
+      'Conservation biology',
+    ],
   },
   {
     name: 'Sunit Jain',
@@ -47,6 +66,8 @@ export const team: TeamMember[] = [
     alt: 'Placeholder portrait of Sunit Jain',
     tier: 'advisor',
     bio: 'Bioinformatics scientist with 13+ years building agentic, multi-agent systems for microbial-community analysis. Author of Colloquip.',
+    knowsAbout: ['Multi-agent AI', 'Scientific deliberation', 'Bioinformatics'],
+    sameAs: ['https://github.com/sunitj'],
   },
   {
     name: 'Greg Fedewa',
@@ -56,5 +77,6 @@ export const team: TeamMember[] = [
     alt: 'Placeholder portrait of Greg Fedewa',
     tier: 'advisor',
     bio: 'Bioinformatics scientist (Caltech, Centre for Pathogen Evolution) developing computational methods for immunological and antigenic data analysis.',
+    knowsAbout: ['Bioinformatics', 'Immunology', 'Pathogen evolution'],
   },
 ];

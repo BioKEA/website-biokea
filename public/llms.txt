@@ -48,10 +48,14 @@ Engagement routes: partnership / collaboration, capabilities / lab work, funding
 - **Michelle Jungbluth, PhD** — CSO, Co-Founder
 - **Austin Baker, PhD** — Founding Research Scientist
 
+**About the team in brief:** Sean — microbial genomicist building computational and AI tooling for environmental biology; lectures sometimes at Stanford; previously studied deep-sea and subsurface microbial diversity. Michelle — marine and estuarine ecologist focused on zooplankton communities and food-web dynamics, lead investigator on the SF Bay metabarcoding baseline. Austin — entomologist managing the California Insect Barcoding Initiative; previously at NHMLAC; PhD on parasitoid-wasp systematics.
+
 ## Advisors
 
 - **Sunit Jain, MS** — Advisor (author of Colloquip, a multi-agent AI deliberation platform: https://github.com/sunitj/Colloquip)
 - **Greg Fedewa, PhD** — Advisor
+
+**About the advisors:** Sunit Jain — bioinformatics scientist with 13+ years building agentic, multi-agent systems for microbial-community analysis; author of Colloquip. Greg Fedewa — bioinformatics scientist (Caltech, Centre for Pathogen Evolution) developing computational methods for immunological and antigenic data analysis.
 
 ## Programs & support
 
@@ -97,10 +101,11 @@ Arriving early summer 2026: **DiversityScanner** — a roboticized imaging platf
 ## Active & forthcoming projects
 
 - **Intertidal Biodiversity DNA Barcode Library** (LIVE · Coastal Quest partnership) — Reference barcode taxonomic coverage gap analysis tool covering 4,384 intertidal species along the California coast, cross-referenced against BOLD, NCBI GenBank, NCBI SRA, and GBIF. Interactive Shiny app: https://biokea.shinyapps.io/california_intertidal_gap_analysis/ · Lead: Sean
-- **California Insect Barcoding Initiative** (REVEALING SOON · pending Ecography publication · _independent origin_) — First large-scale DNA-barcode survey of California insects: 1M+ specimens barcoded, ~61,000 species estimated statewide with roughly one-third still undiscovered. Spatial richness interpolations constrained by ecoregion + vegetation type. Originated independently of BioKEA as Austin Baker's prior research program; continued under the BioKEA umbrella. Lead: Austin
+- **California Insect Barcoding Initiative** (REVEALING SOON · pending Ecography publication · _independent origin_) — First large-scale DNA-barcode survey of California insects: 1M+ specimens barcoded, ~61,000 species estimated statewide with roughly one-third still undiscovered. Spatial richness interpolations constrained by ecoregion + vegetation type. Originated independently of BioKEA as Austin Baker's prior research program; continued under the BioKEA umbrella. Manager: Austin
 - **Bay Estuary Metabarcoding Baseline** (REVEALING Q4 2026 · SFEI partnership) — Longitudinal metabarcoding baseline for the San Francisco Bay estuary. Lead: Michelle; contributor: Sean
 - **Long-read Microbial Genome Resource** (COMING Q4 2026) — Growing library of high-quality long-read microbial assemblies produced on the ONT Promethion 2, published as a public resource. Lead: Sean
 - **Colloquip** (LIVE open-source · _independent origin_) — Multi-agent AI deliberation platform with specialized scientific personas (Biology, Chemistry, ADMET, Clinical, Regulatory, Red Team) self-organizing to debate hypotheses. Originated and maintained independently by Sunit Jain on GitHub; surfaced here through Sunit's BioKEA advisor role, not authored by BioKEA. https://github.com/sunitj/Colloquip · Lead: Sunit
+- **DaKineDiving** (LIVE · _independent origin_) — Real-time dive intelligence platform for O'ahu, Hawai'i; combines NOAA tide data, PacIOOS wave buoys, and GBIF biodiversity records to surface conditions, species encounter probabilities, and Marine Life Conservation District boundaries. Built by Sean as a solo entry to Anthropic's Built with Claude Sonnet 4.5 Challenge (October 2025); winner of the contest. Lead: Sean. Award reference: https://x.com/alexalbert__/status/1978220407716245581
 
 ## Milestones
 
