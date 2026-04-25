@@ -41,5 +41,5 @@ test('/api/capabilities.json returns lab, services, equipment, and partners', as
   expect(Array.isArray(payload.equipmentByStage)).toBe(true);
   expect(Array.isArray(payload.partners)).toBe(true);
   const partnerNames = payload.partners.map((p: { name: string }) => p.name);
-  expect(partnerNames).toContain('California Institute of Biodiversity');
+  expect(partnerNames).toContain('California Institute for Biodiversity');
 });

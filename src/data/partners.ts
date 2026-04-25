@@ -12,10 +12,10 @@ export interface Partner {
 // with each partner before publishing at scale.
 export const partners: Partner[] = [
   {
-    name: 'California Institute of Biodiversity',
+    name: 'California Institute for Biodiversity',
     note: 'major partner',
     major: true,
-    url: 'https://www.cabiodiversity.org/',
+    url: 'https://www.calalive.org/',
     description:
       'Bay Area nonprofit coordinating biodiversity research, specimen curation, and field inventories across California.',
   },

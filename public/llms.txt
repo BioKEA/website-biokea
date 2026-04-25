@@ -65,7 +65,7 @@ Sean Jungbluth is an **Anthropic Claude Community Ambassador** (joined February 
 
 ## Partners
 
-- **California Institute of Biodiversity (CIB)** — major partner; biodiversity research and specimen curation across California
+- **California Institute for Biodiversity (CIB)** — major partner; biodiversity research and specimen curation across California
 - **San Francisco Estuary Institute (SFEI)** — collaboration; ecology and water quality of the SF Bay-Delta estuary
 - **Coastal Quest** — collaboration; California coastal stewardship and conservation
 
@@ -126,7 +126,7 @@ Arriving early summer 2026: **DiversityScanner** — a roboticized imaging platf
 - **GBIF** = Global Biodiversity Information Facility
 - **NCBI SRA** = NCBI Sequence Read Archive
 - **BOLD** = Barcode of Life Data System
-- **CIB** = California Institute of Biodiversity
+- **CIB** = California Institute for Biodiversity
 - **SFEI** = San Francisco Estuary Institute
 
 ## Positioning

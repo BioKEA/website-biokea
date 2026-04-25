@@ -12,7 +12,7 @@ test('llms.txt is served as markdown with agent-first sections', async ({ page }
   expect(body).toContain('## Team');
   expect(body).toContain('Sean Jungbluth');
   expect(body).toContain('## Partners');
-  expect(body).toContain('California Institute of Biodiversity');
+  expect(body).toContain('California Institute for Biodiversity');
   expect(body).toContain('## Vocabulary');
   expect(body).toContain('LDC');
   expect(body).toContain('Built with Claude Sonnet 4.5 Challenge winner');

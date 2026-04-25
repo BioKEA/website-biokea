@@ -42,7 +42,7 @@ describe('partners data', () => {
   });
   it('includes CIB, SFEI, and Coastal Quest', () => {
     const names = partners.map((p) => p.name);
-    expect(names.some((n) => /California Institute of Biodiversity/i.test(n))).toBe(true);
+    expect(names.some((n) => /California Institute for Biodiversity/i.test(n))).toBe(true);
     expect(names.some((n) => /San Francisco Estuary Institute/i.test(n))).toBe(true);
     expect(names.some((n) => /Coastal Quest/i.test(n))).toBe(true);
   });

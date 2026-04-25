@@ -37,7 +37,7 @@ export const team: TeamMember[] = [
     image: '/assets/images/portrait-austin.webp',
     alt: 'Headshot of Austin Baker',
     tier: 'team',
-    bio: "Entomologist and biodiversity scientist at the Natural History Museum of Los Angeles County. Spearheads the California Insect Barcoding Initiative — over 1 million specimens barcoded, with recent work estimating that at least one third of the state's insect biodiversity remains undiscovered. PhD on parasitoid-wasp systematics.",
+    bio: "Entomologist and biodiversity scientist leading the California Insect Barcoding Initiative — over 1 million specimens barcoded, with recent work estimating that at least one third of the state's insect biodiversity remains undiscovered. Previously a postdoctoral scholar at the Natural History Museum of Los Angeles County. PhD on parasitoid-wasp systematics.",
   },
   {
     name: 'Sunit Jain',
