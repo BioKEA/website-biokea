@@ -4,6 +4,7 @@ import { partners } from '@/data/partners';
 import { pipelineStages } from '@/data/pipeline';
 import { milestones } from '@/data/milestones';
 import { homepageStats, labStats } from '@/data/stats';
+import { programs, personalCredentials } from '@/data/credentials';
 
 describe('team data', () => {
   it('has three core team members and two advisors', () => {
@@ -75,5 +76,40 @@ describe('stats data', () => {
   });
   it('labStats has entries', () => {
     expect(labStats.length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('credentials data', () => {
+  it('has at least three programs', () => {
+    expect(programs.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('every program has a non-empty name and an https URL', () => {
+    for (const p of programs) {
+      expect(p.name).toBeTruthy();
+      expect(p.url).toMatch(/^https:\/\//);
+    }
+  });
+
+  it('includes AWS, Google Cloud, and NVIDIA programs', () => {
+    const names = programs.map((p) => p.name);
+    expect(names.some((n) => /AWS for Startups/i.test(n))).toBe(true);
+    expect(names.some((n) => /Google Cloud for Startups/i.test(n))).toBe(true);
+    expect(names.some((n) => /NVIDIA Inception/i.test(n))).toBe(true);
+  });
+
+  it('every personalCredential.memberName matches a real team member', () => {
+    const teamNames = team.map((m) => m.name);
+    for (const c of personalCredentials) {
+      expect(teamNames).toContain(c.memberName);
+    }
+  });
+
+  it('Sean has the Anthropic Claude Community Ambassador credential', () => {
+    const sean = personalCredentials.find((c) => c.memberName === 'Sean Jungbluth');
+    expect(sean).toBeDefined();
+    expect(sean!.label).toBe('Anthropic Claude Community Ambassador');
+    expect(sean!.issuer).toBe('Anthropic');
+    expect(sean!.issuerUrl).toMatch(/^https:\/\//);
   });
 });

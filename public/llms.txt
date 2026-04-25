@@ -44,14 +44,24 @@ Engagement routes: partnership / collaboration, capabilities / lab work, funding
 
 ## Team
 
-- **Sean Jungbluth** — CEO / CTO, Founder
-- **Michelle Jungbluth** — Advisor and Head of Science and Operations
-- **Austin Baker** — Biodiversity Research Scientist
+- **Sean Jungbluth, PhD** — CEO / CTO, Founder · Anthropic Claude Community Ambassador
+- **Michelle Jungbluth, PhD** — CSO, Co-Founder
+- **Austin Baker, PhD** — Founding Research Scientist
 
 ## Advisors
 
-- **Sunit Jain** — Advisor (author of Colloquip, a multi-agent AI deliberation platform: https://github.com/sunitj/Colloquip)
-- **Greg Fedewa** — Advisor
+- **Sunit Jain, MS** — Advisor (author of Colloquip, a multi-agent AI deliberation platform: https://github.com/sunitj/Colloquip)
+- **Greg Fedewa, PhD** — Advisor
+
+## Programs & support
+
+BioKEA participates in major cloud and AI infrastructure programs that supply the compute, credits, and engineering support behind the LDC and BioinfoOS:
+
+- **AWS for Startups** — https://aws.amazon.com/startups/
+- **Google Cloud for Startups** — https://cloud.google.com/startup
+- **NVIDIA Inception** — https://www.nvidia.com/en-us/startups/
+
+Sean Jungbluth is an **Anthropic Claude Community Ambassador**, recognized for contributions to the Claude developer community (https://www.anthropic.com/).
 
 ## Partners
 

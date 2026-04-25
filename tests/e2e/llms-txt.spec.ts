@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test('llms.txt is served as markdown with agent-first sections', async ({ page }) => {
   const response = await page.goto('/llms.txt');
   expect(response?.status()).toBe(200);
-  const body = await page.content();
+  const body = (await response?.text()) ?? '';
   expect(body).toContain('BioKEA');
   expect(body).toContain('## What BioKEA operates');
   expect(body).toContain('## Services');
@@ -15,4 +15,9 @@ test('llms.txt is served as markdown with agent-first sections', async ({ page }
   expect(body).toContain('California Institute of Biodiversity');
   expect(body).toContain('## Vocabulary');
   expect(body).toContain('LDC');
+  expect(body).toContain('## Programs & support');
+  expect(body).toContain('AWS for Startups');
+  expect(body).toContain('Google Cloud for Startups');
+  expect(body).toContain('NVIDIA Inception');
+  expect(body).toContain('Anthropic Claude Community Ambassador');
 });

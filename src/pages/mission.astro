@@ -4,10 +4,16 @@ import Eyebrow from '@/components/ui/Eyebrow.astro';
 import Portrait from '@/components/ui/Portrait.astro';
 import PartnerMark from '@/components/ui/PartnerMark.astro';
 import CtaBand from '@/components/sections/CtaBand.astro';
+import ProgramsStrip from '@/components/sections/ProgramsStrip.astro';
 import { team } from '@/data/team';
 import { partners } from '@/data/partners';
 import { milestones } from '@/data/milestones';
 import { stringifyJsonLd } from '@/lib/json-ld';
+import { personalCredentials } from '@/data/credentials';
+
+const credentialFor = (name: string) => personalCredentials.find((c) => c.memberName === name);
+
+const seanCredential = credentialFor('Sean Jungbluth');
 ---
 
 <BaseLayout
@@ -42,7 +48,14 @@ import { stringifyJsonLd } from '@/lib/json-ld';
           .filter((p) => p.tier !== 'advisor')
           .map((p) => (
             <div>
-              <Portrait src={p.image} alt={p.alt} name={p.name} role={p.role} />
+              <Portrait
+                src={p.image}
+                alt={p.alt}
+                name={p.name}
+                role={p.role}
+                postNominal={p.postNominal}
+                credential={credentialFor(p.name)?.label}
+              />
               {p.bio && <p class="mt-3 text-xs text-slate-600 leading-relaxed">{p.bio}</p>}
             </div>
           ))
@@ -56,7 +69,15 @@ import { stringifyJsonLd } from '@/lib/json-ld';
           team
             .filter((p) => p.tier === 'advisor')
             .map((p) => (
-              <Portrait src={p.image} alt={p.alt} name={p.name} role={p.role} size="sm" />
+              <Portrait
+                src={p.image}
+                alt={p.alt}
+                name={p.name}
+                role={p.role}
+                postNominal={p.postNominal}
+                credential={credentialFor(p.name)?.label}
+                size="sm"
+              />
             ))
         }
       </div>
@@ -77,6 +98,8 @@ import { stringifyJsonLd } from '@/lib/json-ld';
       </figcaption>
     </figure>
   </section>
+
+  <ProgramsStrip variant="expanded" />
 
   <section class="max-w-6xl mx-auto px-6 py-12">
     <Eyebrow>PARTNERS</Eyebrow>
@@ -178,6 +201,7 @@ import { stringifyJsonLd } from '@/lib/json-ld';
           '@type': 'Person',
           '@id': 'https://biokea.ai/mission#sean',
           name: 'Sean Jungbluth',
+          honorificSuffix: 'PhD',
           jobTitle: 'CEO / CTO, Founder',
           worksFor: { '@id': 'https://biokea.ai/#org' },
           image: 'https://biokea.ai/assets/images/portrait-sean.webp',
@@ -189,12 +213,23 @@ import { stringifyJsonLd } from '@/lib/json-ld';
             'FAIR data',
             'AT Protocol',
           ],
+          ...(seanCredential
+            ? {
+                award: seanCredential.label,
+                affiliation: {
+                  '@type': 'Organization',
+                  name: seanCredential.issuer,
+                  url: seanCredential.issuerUrl,
+                },
+              }
+            : {}),
         },
         {
           '@type': 'Person',
           '@id': 'https://biokea.ai/mission#michelle',
           name: 'Michelle Jungbluth',
-          jobTitle: 'Advisor and Head of Science and Operations',
+          honorificSuffix: 'PhD',
+          jobTitle: 'CSO, Co-Founder',
           worksFor: { '@id': 'https://biokea.ai/#org' },
           image: 'https://biokea.ai/assets/images/portrait-michelle.webp',
           knowsAbout: ['Marine biology', 'Estuarine ecology', 'Zooplankton', 'Metabarcoding'],
@@ -203,7 +238,8 @@ import { stringifyJsonLd } from '@/lib/json-ld';
           '@type': 'Person',
           '@id': 'https://biokea.ai/mission#austin',
           name: 'Austin Baker',
-          jobTitle: 'Biodiversity Research Scientist',
+          honorificSuffix: 'PhD',
+          jobTitle: 'Founding Research Scientist',
           worksFor: { '@id': 'https://biokea.ai/#org' },
           image: 'https://biokea.ai/assets/images/portrait-austin.webp',
           knowsAbout: [
@@ -217,6 +253,7 @@ import { stringifyJsonLd } from '@/lib/json-ld';
           '@type': 'Person',
           '@id': 'https://biokea.ai/mission#sunit',
           name: 'Sunit Jain',
+          honorificSuffix: 'MS',
           jobTitle: 'Advisor',
           worksFor: { '@id': 'https://biokea.ai/#org' },
           knowsAbout: ['Multi-agent AI', 'Scientific deliberation', 'Bioinformatics'],
@@ -226,6 +263,7 @@ import { stringifyJsonLd } from '@/lib/json-ld';
           '@type': 'Person',
           '@id': 'https://biokea.ai/mission#greg',
           name: 'Greg Fedewa',
+          honorificSuffix: 'PhD',
           jobTitle: 'Advisor',
           worksFor: { '@id': 'https://biokea.ai/#org' },
         },

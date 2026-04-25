@@ -5,13 +5,16 @@ interface Props {
   alt: string;
   name: string;
   role: string;
+  credential?: string;
+  postNominal?: string;
   size?: 'md' | 'sm';
 }
-const { src, alt, name, role, size = 'md' } = Astro.props;
+const { src, alt, name, role, credential, postNominal, size = 'md' } = Astro.props;
 
 const padding = size === 'sm' ? 'p-2' : 'p-3';
 const nameSize = size === 'sm' ? 'text-xs' : 'text-sm';
 const roleSize = size === 'sm' ? 'text-[9px]' : 'text-[10px]';
+const credSize = size === 'sm' ? 'text-[8px]' : 'text-[9px]';
 ---
 
 <article
@@ -25,8 +28,22 @@ const roleSize = size === 'sm' ? 'text-[9px]' : 'text-[10px]';
     class="w-full rounded-[2px] block aspect-[10/11] object-cover"
     loading="lazy"
   />
-  <p class:list={['font-semibold mt-2 text-[var(--color-ink)]', nameSize]}>{name}</p>
+  <p class:list={['font-semibold mt-2 text-[var(--color-ink)]', nameSize]}>
+    {name}{postNominal && `, ${postNominal}`}
+  </p>
   <p class:list={['font-mono tracking-[0.1em] uppercase text-[var(--color-teal)] mt-1', roleSize]}>
     {role}
   </p>
+  {
+    credential && (
+      <p
+        class:list={[
+          'font-mono tracking-[0.1em] uppercase text-[var(--color-ochre)] mt-1',
+          credSize,
+        ]}
+      >
+        {credential}
+      </p>
+    )
+  }
 </article>

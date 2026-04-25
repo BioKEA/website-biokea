@@ -8,26 +8,30 @@ export interface TeamMember {
   alt: string;
   bio?: string;
   tier?: TeamTier;
+  postNominal?: string;
 }
 
 export const team: TeamMember[] = [
   {
     name: 'Sean Jungbluth',
     role: 'CEO / CTO, Founder',
+    postNominal: 'PhD',
     image: '/assets/images/portrait-sean.webp',
     alt: 'Headshot of Sean Jungbluth',
     tier: 'team',
   },
   {
     name: 'Michelle Jungbluth',
-    role: 'Advisor and Head of Science and Operations',
+    role: 'CSO, Co-Founder',
+    postNominal: 'PhD',
     image: '/assets/images/portrait-michelle.webp',
     alt: 'Headshot of Michelle Jungbluth',
     tier: 'team',
   },
   {
     name: 'Austin Baker',
-    role: 'Biodiversity Research Scientist',
+    role: 'Founding Research Scientist',
+    postNominal: 'PhD',
     image: '/assets/images/portrait-austin.webp',
     alt: 'Headshot of Austin Baker',
     tier: 'team',
@@ -35,6 +39,7 @@ export const team: TeamMember[] = [
   {
     name: 'Sunit Jain',
     role: 'Advisor',
+    postNominal: 'MS',
     image: '/assets/images/portrait-placeholder.svg', // VERIFY: replace with real portrait
     alt: 'Placeholder portrait of Sunit Jain',
     tier: 'advisor',
@@ -42,6 +47,7 @@ export const team: TeamMember[] = [
   {
     name: 'Greg Fedewa',
     role: 'Advisor',
+    postNominal: 'PhD',
     image: '/assets/images/portrait-placeholder.svg', // VERIFY: replace with real portrait
     alt: 'Placeholder portrait of Greg Fedewa',
     tier: 'advisor',

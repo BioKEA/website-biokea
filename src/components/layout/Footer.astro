@@ -1,5 +1,7 @@
 ---
 // src/components/layout/Footer.astro
+import ProgramsStrip from '@/components/sections/ProgramsStrip.astro';
+
 const year = new Date().getFullYear();
 
 const marginalia = [
@@ -30,6 +32,11 @@ const marginalia = [
         · soil · water · specimen ·
       </span>
     </div>
+
+    <div class="mt-6 border-t border-slate-800 pt-6">
+      <ProgramsStrip variant="compact" />
+    </div>
+
     <div
       class="mt-6 border-t border-slate-800 pt-6 flex flex-col md:flex-row justify-between gap-6 text-xs"
     >

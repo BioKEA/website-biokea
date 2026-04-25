@@ -1,0 +1,67 @@
+---
+// src/components/sections/ProgramsStrip.astro
+import { programs } from '@/data/credentials';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+
+interface Props {
+  variant: 'compact' | 'expanded';
+}
+const { variant } = Astro.props;
+---
+
+{
+  variant === 'compact' && (
+    <div class="text-xs">
+      <Eyebrow class="text-[var(--color-teal-bright)]">Programs & support</Eyebrow>
+      <p class="mt-2 text-slate-400 leading-relaxed">
+        Supported by{' '}
+        {programs.map((p, i) => (
+          <>
+            {i > 0 && i < programs.length - 1 && ', '}
+            {i > 0 && i === programs.length - 1 && (programs.length > 2 ? ', and ' : ' and ')}
+            <a
+              href={p.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="underline decoration-slate-500 hover:text-slate-200 underline-offset-2"
+            >
+              {p.name}
+            </a>
+          </>
+        ))}
+        .
+      </p>
+    </div>
+  )
+}
+
+{
+  variant === 'expanded' && (
+    <section class="max-w-6xl mx-auto px-6 py-12">
+      <Eyebrow>Programs & support</Eyebrow>
+      <p class="mt-3 max-w-[62ch] text-slate-600 leading-relaxed">
+        BioKEA is supported by leading cloud and AI infrastructure programs that supply the compute
+        and credits behind the LDC and BioinfoOS.
+      </p>
+      <p class="mt-4 text-[var(--color-ink)]">
+        {programs.map((p, i) => (
+          <>
+            <a
+              href={p.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="underline decoration-slate-400 hover:text-[var(--color-teal)]"
+            >
+              {p.name}
+            </a>
+            {i < programs.length - 1 && (
+              <span class="text-slate-400 mx-2" aria-hidden="true">
+                ·
+              </span>
+            )}
+          </>
+        ))}
+      </p>
+    </section>
+  )
+}

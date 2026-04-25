@@ -8,6 +8,7 @@ import Origin from '@/components/sections/Origin.astro';
 import CtaBand from '@/components/sections/CtaBand.astro';
 import { partners } from '@/data/partners';
 import { homepageStats } from '@/data/stats';
+import { programs } from '@/data/credentials';
 import { stringifyJsonLd } from '@/lib/json-ld';
 
 const ecosystemTiles = [
@@ -129,6 +130,11 @@ const ecosystemTiles = [
             'AT Protocol',
             'Open-access publishing',
           ],
+          memberOf: programs.map((p) => ({
+            '@type': 'Organization',
+            name: p.name,
+            url: p.url,
+          })),
           location: { '@id': 'https://biokea.ai/lab#place' },
           address: {
             '@type': 'PostalAddress',

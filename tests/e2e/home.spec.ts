@@ -40,3 +40,27 @@ test('home hero uses a semantic <h1> element', async ({ page }) => {
   expect(h1s).toBeGreaterThan(0);
   await expect(page.locator('h1').first()).toHaveText('Biology, decoded in the public interest.');
 });
+
+test('home Organization JSON-LD includes program memberships', async ({ page }) => {
+  await page.goto('/');
+  const ld = await page.locator('script[type="application/ld+json"]').first().textContent();
+  const parsed = JSON.parse(ld!);
+  const org = parsed['@graph']?.find(
+    (node: { '@type': string }) => node['@type'] === 'Organization',
+  );
+  expect(org).toBeDefined();
+  expect(Array.isArray(org.memberOf)).toBe(true);
+  const memberNames = org.memberOf.map((m: { name: string }) => m.name);
+  expect(memberNames).toContain('AWS for Startups');
+  expect(memberNames).toContain('Google Cloud for Startups');
+  expect(memberNames).toContain('NVIDIA Inception');
+});
+
+test('footer renders Programs & support strip with all three programs', async ({ page }) => {
+  await page.goto('/');
+  const footer = page.locator('footer');
+  await expect(footer.getByText('Programs & support')).toBeVisible();
+  await expect(footer.getByRole('link', { name: 'AWS for Startups' })).toBeVisible();
+  await expect(footer.getByRole('link', { name: 'Google Cloud for Startups' })).toBeVisible();
+  await expect(footer.getByRole('link', { name: 'NVIDIA Inception' })).toBeVisible();
+});
