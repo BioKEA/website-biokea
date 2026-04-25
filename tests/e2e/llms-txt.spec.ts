@@ -15,6 +15,8 @@ test('llms.txt is served as markdown with agent-first sections', async ({ page }
   expect(body).toContain('California Institute of Biodiversity');
   expect(body).toContain('## Vocabulary');
   expect(body).toContain('LDC');
+  expect(body).toContain('Built with Claude Sonnet 4.5 Challenge winner');
+  expect(body).toContain('https://x.com/alexalbert__/status/1978220407716245581');
   expect(body).toContain('## Programs & support');
   expect(body).toContain('AWS for Startups');
   expect(body).toContain('Google Cloud for Startups');

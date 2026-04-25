@@ -22,6 +22,7 @@ test('/api/projects.json returns valid projects payload', async ({ request }) =>
   const slugs = payload.projects.map((p: { slug: string }) => p.slug);
   expect(slugs).toContain('california-intertidal-gap-analysis');
   expect(slugs).toContain('colloquip');
+  expect(slugs).toContain('dakinediving');
 });
 
 test('/api/capabilities.json returns lab, services, equipment, and partners', async ({

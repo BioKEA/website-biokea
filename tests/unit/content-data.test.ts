@@ -4,7 +4,8 @@ import { partners } from '@/data/partners';
 import { pipelineStages } from '@/data/pipeline';
 import { milestones } from '@/data/milestones';
 import { homepageStats, labStats } from '@/data/stats';
-import { programs, personalCredentials } from '@/data/credentials';
+import { programs, personalCredentials, credentialsFor } from '@/data/credentials';
+import { projects } from '@/data/projects';
 
 describe('team data', () => {
   it('has three core team members and two advisors', () => {
@@ -66,6 +67,26 @@ describe('milestones data', () => {
   });
 });
 
+describe('milestones data — Anthropic events', () => {
+  it('includes the 2025-10 Challenge winner milestone', () => {
+    const m = milestones.find((m) => m.date === '2025-10');
+    expect(m).toBeDefined();
+    expect(m!.title).toMatch(/Built with Claude Sonnet 4\.5 Challenge/i);
+  });
+
+  it('includes the 2026-02 Ambassador milestone', () => {
+    const m = milestones.find((m) => m.date === '2026-02');
+    expect(m).toBeDefined();
+    expect(m!.title).toMatch(/Ambassador/i);
+  });
+
+  it('milestones remain in chronological order', () => {
+    const dates = milestones.map((m) => m.date);
+    const sorted = [...dates].sort();
+    expect(dates).toEqual(sorted);
+  });
+});
+
 describe('stats data', () => {
   it('homepageStats exposes 3 pills', () => {
     expect(homepageStats).toHaveLength(3);
@@ -111,5 +132,54 @@ describe('credentials data', () => {
     expect(sean!.label).toBe('Anthropic Claude Community Ambassador');
     expect(sean!.issuer).toBe('Anthropic');
     expect(sean!.issuerUrl).toMatch(/^https:\/\//);
+  });
+});
+
+describe('projects data — DaKineDiving', () => {
+  it('includes a dakinediving slug', () => {
+    const slugs = projects.map((p) => p.slug);
+    expect(slugs).toContain('dakinediving');
+  });
+
+  it('DaKineDiving entry has an award with https url', () => {
+    const dk = projects.find((p) => p.slug === 'dakinediving');
+    expect(dk).toBeDefined();
+    expect(dk!.award).toBeDefined();
+    expect(dk!.award!.label).toMatch(/Built with Claude Sonnet 4\.5/);
+    expect(dk!.award!.url).toMatch(/^https:\/\//);
+  });
+
+  it('DaKineDiving entry has two videos with https urls', () => {
+    const dk = projects.find((p) => p.slug === 'dakinediving');
+    expect(dk!.videos).toBeDefined();
+    expect(dk!.videos!).toHaveLength(2);
+    for (const v of dk!.videos!) {
+      expect(v.label).toBeTruthy();
+      expect(v.url).toMatch(/^https:\/\//);
+    }
+  });
+
+  it('DaKineDiving is originIndependent and live', () => {
+    const dk = projects.find((p) => p.slug === 'dakinediving');
+    expect(dk!.originIndependent).toBe(true);
+    expect(dk!.status).toBe('live');
+  });
+});
+
+describe('credentials data — Sean has two credentials', () => {
+  it('credentialsFor returns 2 entries for Sean Jungbluth', () => {
+    const found = credentialsFor('Sean Jungbluth');
+    expect(found).toHaveLength(2);
+  });
+
+  it('Sean credential labels include Ambassador and Challenge Winner', () => {
+    const labels = credentialsFor('Sean Jungbluth').map((c) => c.label);
+    expect(labels).toContain('Anthropic Claude Community Ambassador');
+    expect(labels).toContain('Built with Claude Sonnet 4.5 Challenge — Winner');
+  });
+
+  it('Challenge credential has a public url', () => {
+    const challenge = credentialsFor('Sean Jungbluth').find((c) => c.label.includes('Challenge'));
+    expect(challenge?.url).toMatch(/^https:\/\/x\.com\//);
   });
 });

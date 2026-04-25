@@ -5,11 +5,11 @@ interface Props {
   alt: string;
   name: string;
   role: string;
-  credential?: string;
+  credentials?: string[];
   postNominal?: string;
   size?: 'md' | 'sm';
 }
-const { src, alt, name, role, credential, postNominal, size = 'md' } = Astro.props;
+const { src, alt, name, role, credentials = [], postNominal, size = 'md' } = Astro.props;
 
 const padding = size === 'sm' ? 'p-2' : 'p-3';
 const nameSize = size === 'sm' ? 'text-xs' : 'text-sm';
@@ -35,15 +35,15 @@ const credSize = size === 'sm' ? 'text-[8px]' : 'text-[9px]';
     {role}
   </p>
   {
-    credential && (
+    credentials.map((c) => (
       <p
         class:list={[
           'font-mono tracking-[0.1em] uppercase text-[var(--color-ochre)] mt-1',
           credSize,
         ]}
       >
-        {credential}
+        {c}
       </p>
-    )
+    ))
   }
 </article>

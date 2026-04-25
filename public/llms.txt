@@ -44,7 +44,7 @@ Engagement routes: partnership / collaboration, capabilities / lab work, funding
 
 ## Team
 
-- **Sean Jungbluth, PhD** — CEO / CTO, Founder · Anthropic Claude Community Ambassador
+- **Sean Jungbluth, PhD** — CEO / CTO, Founder · Anthropic Claude Community Ambassador · Built with Claude Sonnet 4.5 Challenge winner
 - **Michelle Jungbluth, PhD** — CSO, Co-Founder
 - **Austin Baker, PhD** — Founding Research Scientist
 
@@ -61,7 +61,7 @@ BioKEA participates in major cloud and AI infrastructure programs that supply th
 - **Google Cloud for Startups** — https://cloud.google.com/startup
 - **NVIDIA Inception** — https://www.nvidia.com/en-us/startups/
 
-Sean Jungbluth is an **Anthropic Claude Community Ambassador**, recognized for contributions to the Claude developer community (https://www.anthropic.com/).
+Sean Jungbluth is an **Anthropic Claude Community Ambassador** (joined February 2026) and winner of Anthropic's **Built with Claude Sonnet 4.5 Challenge** (October 2025) — recognized for contributions to the Claude developer community (https://www.anthropic.com/, https://x.com/alexalbert__/status/1978220407716245581).
 
 ## Partners
 

@@ -7,6 +7,16 @@ export interface ProjectMember {
   lead?: boolean;
 }
 
+export interface ProjectAward {
+  label: string;
+  url: string;
+}
+
+export interface ProjectVideo {
+  label: string;
+  url: string;
+}
+
 export interface Project {
   slug: string;
   title: string;
@@ -28,6 +38,8 @@ export interface Project {
   // so partners/LLMs can't mistake provenance.
   originIndependent?: boolean;
   originNote?: string;
+  award?: ProjectAward;
+  videos?: ProjectVideo[];
 }
 
 export const projects: Project[] = [
@@ -67,6 +79,34 @@ export const projects: Project[] = [
     originIndependent: true,
     originNote:
       "Originated independently of BioKEA as Austin's prior research program; now continued under the BioKEA umbrella.",
+  },
+  {
+    slug: 'dakinediving',
+    title: "DaKineDiving — real-time dive intelligence for O'ahu",
+    summary:
+      "A real-time dive intelligence platform for O'ahu, Hawai'i. Combines NOAA tide data, PacIOOS wave buoys, and GBIF biodiversity records to surface conditions, encounter probabilities for 100+ marine species, and Marine Life Conservation District boundaries on an interactive map. Built with Claude Sonnet 4.5.",
+    type: 'Web application',
+    year: '2025',
+    tags: ['marine', 'biodiversity', 'GBIF', 'eDNA-adjacent', 'Hawaii', 'AI-assisted build'],
+    status: 'live',
+    team: [{ name: 'Sean', lead: true }],
+    originIndependent: true,
+    originNote:
+      "Built by Sean as a solo entry to Anthropic's Built with Claude Sonnet 4.5 Challenge (October 2025); winner of the contest. Surfaced under BioKEA because of the GBIF biodiversity layer; not part of the BioKEA wet-lab pipeline.",
+    award: {
+      label: 'Built with Claude Sonnet 4.5 Challenge — Winner',
+      url: 'https://x.com/alexalbert__/status/1978220407716245581',
+    },
+    videos: [
+      {
+        label: 'Walkthrough',
+        url: 'https://drive.google.com/file/d/1eYVxautzXZERbk1Oez_VfE5xeEnx85dR/view?usp=drive_link',
+      },
+      {
+        label: 'Walkthrough · biology features',
+        url: 'https://drive.google.com/file/d/1artFfslcNR90__Jx9xeEAYPUDBjUkeAL/view?usp=sharing',
+      },
+    ],
   },
   {
     slug: 'bay-estuary-metabarcoding-baseline',

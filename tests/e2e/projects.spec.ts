@@ -34,3 +34,33 @@ test('Intertidal card shows Sean as sole lead', async ({ page }) => {
     .filter({ hasText: /Intertidal Biodiversity DNA Barcode Library/ });
   await expect(intertidal.getByText('★ Sean')).toBeVisible();
 });
+
+test('DaKineDiving card renders with award badge and video links', async ({ page }) => {
+  await page.goto('/projects');
+  const card = page.locator('article').filter({ hasText: 'DaKineDiving' });
+  await expect(card).toBeVisible();
+
+  const awardLink = card.getByRole('link', { name: /Built with Claude Sonnet 4\.5 Challenge/ });
+  await expect(awardLink).toBeVisible();
+  await expect(awardLink).toHaveAttribute(
+    'href',
+    'https://x.com/alexalbert__/status/1978220407716245581',
+  );
+  await expect(awardLink).toHaveAttribute('target', '_blank');
+  await expect(awardLink).toHaveAttribute('rel', /noopener/);
+
+  const videoOne = card.getByRole('link', { name: 'Walkthrough', exact: true });
+  await expect(videoOne).toBeVisible();
+  await expect(videoOne).toHaveAttribute('target', '_blank');
+
+  const videoTwo = card.getByRole('link', { name: 'Walkthrough · biology features' });
+  await expect(videoTwo).toBeVisible();
+});
+
+test('DaKineDiving card does not show "Revealing soon" fallback in its footer', async ({
+  page,
+}) => {
+  await page.goto('/projects');
+  const card = page.locator('article').filter({ hasText: 'DaKineDiving' });
+  await expect(card.getByText(/Revealing soon/i)).toHaveCount(0);
+});

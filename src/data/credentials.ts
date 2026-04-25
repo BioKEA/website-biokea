@@ -27,4 +27,14 @@ export const personalCredentials: PersonalCredential[] = [
     issuer: 'Anthropic',
     issuerUrl: 'https://www.anthropic.com/',
   },
+  {
+    memberName: 'Sean Jungbluth',
+    label: 'Built with Claude Sonnet 4.5 Challenge — Winner',
+    issuer: 'Anthropic',
+    issuerUrl: 'https://www.anthropic.com/',
+    url: 'https://x.com/alexalbert__/status/1978220407716245581',
+  },
 ];
+
+export const credentialsFor = (name: string): PersonalCredential[] =>
+  personalCredentials.filter((c) => c.memberName === name);

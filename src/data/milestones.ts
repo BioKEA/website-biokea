@@ -22,9 +22,19 @@ export const milestones: Milestone[] = [
     body: 'Start planning the 5,000+ sq ft Berkeley lab space.',
   },
   {
+    date: '2025-10',
+    title: 'Built with Claude Sonnet 4.5 Challenge — winner',
+    body: "Sean wins Anthropic's Built with Claude Sonnet 4.5 Challenge with DaKineDiving, a real-time dive intelligence platform for O'ahu.",
+  },
+  {
     date: '2025-11',
     title: 'Contracts begin; ONT Promethion 2 arrives',
     body: 'Major new contracts begin and the Oxford Nanopore Promethion 2 sequencer lands on site.',
+  },
+  {
+    date: '2026-02',
+    title: 'Sean becomes Anthropic Claude Community Ambassador',
+    body: "Sean joins the Claude Community Ambassador program, deepening BioKEA's ties to the Anthropic developer community.",
   },
   {
     date: '2026-03',

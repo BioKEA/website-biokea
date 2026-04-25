@@ -9,11 +9,9 @@ import { team } from '@/data/team';
 import { partners } from '@/data/partners';
 import { milestones } from '@/data/milestones';
 import { stringifyJsonLd } from '@/lib/json-ld';
-import { personalCredentials } from '@/data/credentials';
+import { credentialsFor } from '@/data/credentials';
 
-const credentialFor = (name: string) => personalCredentials.find((c) => c.memberName === name);
-
-const seanCredential = credentialFor('Sean Jungbluth');
+const seanCredentials = credentialsFor('Sean Jungbluth');
 ---
 
 <BaseLayout
@@ -54,7 +52,7 @@ const seanCredential = credentialFor('Sean Jungbluth');
                 name={p.name}
                 role={p.role}
                 postNominal={p.postNominal}
-                credential={credentialFor(p.name)?.label}
+                credentials={credentialsFor(p.name).map((c) => c.label)}
               />
               {p.bio && <p class="mt-3 text-xs text-slate-600 leading-relaxed">{p.bio}</p>}
             </div>
@@ -75,7 +73,7 @@ const seanCredential = credentialFor('Sean Jungbluth');
                 name={p.name}
                 role={p.role}
                 postNominal={p.postNominal}
-                credential={credentialFor(p.name)?.label}
+                credentials={credentialsFor(p.name).map((c) => c.label)}
                 size="sm"
               />
             ))
@@ -213,14 +211,15 @@ const seanCredential = credentialFor('Sean Jungbluth');
             'FAIR data',
             'AT Protocol',
           ],
-          ...(seanCredential
+          ...(seanCredentials.length > 0
             ? {
-                award: seanCredential.label,
+                award: seanCredentials.map((c) => c.label),
                 affiliation: {
                   '@type': 'Organization',
-                  name: seanCredential.issuer,
-                  url: seanCredential.issuerUrl,
+                  name: seanCredentials[0].issuer,
+                  url: seanCredentials[0].issuerUrl,
                 },
+                sameAs: seanCredentials.filter((c) => c.url).map((c) => c.url!),
               }
             : {}),
         },
