@@ -194,7 +194,7 @@ const isLive = project.status === 'live';
               target="_blank"
               class="font-mono text-[12px] text-[var(--color-pink)]"
             >
-              {project.link.replace(/^https?:\/\//, '').replace(/\/$/, '')} ↗
+              {project.link.replace(/^https?:\/\//, '').replace(/\/.*$/, '')} ↗
             </a>
           ) : (
             <p class="font-mono text-[11px] tracking-[0.08em] text-slate-500">
