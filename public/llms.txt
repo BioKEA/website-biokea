@@ -151,7 +151,7 @@ Data packages land in GBIF, NCBI SRA, and Zenodo. Publications use AT Protocol D
 ## Contact
 
 - Email: contact@biokea.ai
-- Bluesky: @biokea.bsky.social
+- Bluesky: @biokeaai.bsky.social
 - Location: Berkeley, California
 
 Contact topics accepted via the site form: partnership / collaboration, capabilities / lab work, funding, Agentis — early access.
