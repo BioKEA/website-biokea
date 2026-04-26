@@ -14,6 +14,6 @@ test('lab page renders hero, photos, stats, hardware stages', async ({ page }) =
 
 test('lab page CTA routes to contact', async ({ page }) => {
   await page.goto('/lab');
-  const cta = page.getByRole('link', { name: /Get in touch/ });
+  const cta = page.getByRole('link', { name: /Get in touch/ }).first();
   await expect(cta).toHaveAttribute('href', '/contact');
 });

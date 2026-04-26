@@ -21,18 +21,23 @@ const ecosystemTiles = [
       'An aquatic eDNA specialist — sample collection, metabarcoding, and taxonomic identification.',
   },
   {
-    image: '/assets/images/Pillar1-BioinfoOS.webp',
-    imageAlt: 'BioinfoOS — compute layer',
-    label: 'Compute layer',
-    name: 'BioinfoOS',
-    description: 'Software on the LDC. AI-assisted pipelines, developed in-house.',
+    image: '/assets/images/ldc-interior-iso2.png',
+    imageAlt: 'The LDC — Berkeley wet-lab and compute infrastructure',
+    label: 'The infrastructure',
+    name: 'The LDC',
+    description:
+      '5,000+ sq ft Berkeley wet-lab. ONT Promethion 2 plus ~80 instruments, sourced through Bay Area biotech auctions at roughly one-tenth retail.',
+    href: '/lab',
+    external: false,
+    linkLabel: 'See the lab →',
   },
   {
     image: '/assets/images/Pillar2-Agentis.webp',
     imageAlt: 'Agentis — publishing',
-    label: 'Publish',
+    label: 'Publish (later)',
     name: 'Agentis',
-    description: 'Open-access publishing on AT Protocol. Coming soon.',
+    description:
+      'AI-first open-access publishing on AT Protocol. Early-access list open; full launch later in development.',
     href: '/agentis',
     external: false,
     linkLabel: 'agentis.science',
@@ -42,14 +47,14 @@ const ecosystemTiles = [
 
 <BaseLayout
   title="BioKEA — Biology, decoded in the public interest"
-  description="A 5,000+ sq ft open lab and an AI pipeline from soil sample to published claim — built for the commons."
+  description="DNA barcoding, environmental DNA, and long-read genomics from a 5,000+ sq ft Berkeley wet-lab — sample to verifiable, FAIR-compliant published claim, built for the commons."
   preloadImage="/assets/images/BioKEA-Large-Data-Collider.webp"
   preloadImageType="image/webp"
 >
   <Hero
     eyebrow="BIOKEA // BERKELEY, CA"
     headline="Biology, decoded in the public interest."
-    subheadline="A 5,000+ sq ft open lab in Berkeley and an AI pipeline from soil sample to published claim — built for the commons. BioKEA operates the Large Data Collider, a compute + wet-lab platform for biodiversity and environmental omics, and runs molecular sequencing as a service for eDNA and related customers."
+    subheadline="DNA barcoding, environmental DNA, and long-read genomics — from soil, water, or specimen to a verifiable, FAIR-compliant published claim. Run out of a 5,000+ sq ft Berkeley wet-lab. Built for the commons."
     ctaPrimary={{ href: '/lab', label: "See what we're building" }}
     ctaSecondary={{ href: '/contact', label: 'Schedule a call' }}
     badgeImage="/assets/images/BioKEA-Large-Data-Collider.webp"

@@ -22,17 +22,31 @@ BioKEA offers molecular sequencing as a service out of the Berkeley LDC, targete
 - **Pipeline integration** — bespoke sample-to-claim workflows for partner organizations that need more than a raw FASTQ drop
 - **Data-package delivery** — every service output lands as a DwC-A archive plus NCBI SRA / GBIF / Zenodo deposits, not a PDF
 
-Engagement routes: partnership / collaboration, capabilities / lab work, funding, Agentis — early access (see Contact).
+Published service fees (starting rates; volume + project-rate engagements available on request):
+
+- **Study design** — $150/hour
+- **Bioinformatic data analysis and interpretation** — $150/hour
+- **DNA-based identification of organisms (barcoding)** — $25/sample
+- **qPCR / eDNA assay (single species)** — $100/sample · additional species in same assay $50/sample
+- **Custom eDNA / qPCR assay design + validation** — quote
+- **Metabarcoding, metagenomics, and other custom analyses** — quote
+- **Field collection assistance** — quote
+
+Full catalog and FAQ: https://biokea.ai/services
+
+Engagement routes (Contact-form topics): Sequencing service inquiry, Partnership / collaboration, Funding, Press / media, Hiring, Agentis — early access, Something else.
 
 ## Key pages
 
 - [Home](https://biokea.ai/): positioning, hero, thesis, ecosystem, origin
-- [Mission & team](https://biokea.ai/mission): mission, team, advisors, partners, milestones, commitment
+- [Services](https://biokea.ai/services): sequencing-as-a-service catalog + pricing (barcoding, eDNA, qPCR, custom assays)
 - [The Lab & LDC](https://biokea.ai/lab): Berkeley facility, hardware inventory, capabilities, DiversityScanner
 - [Pipeline](https://biokea.ai/pipeline): the six-stage sample-to-claim workflow
 - [Projects](https://biokea.ai/projects): live and forthcoming work
-- [Agentis](https://biokea.ai/agentis): the forthcoming publishing platform
-- [Contact](https://biokea.ai/contact): partnership / capabilities / funding / Agentis-access intake
+- [Mission & team](https://biokea.ai/mission): mission, team, advisors, partners, milestones, commitment, recognition
+- [Agentis](https://biokea.ai/agentis): forthcoming publishing platform (early-access list open; full launch later in development)
+- [Press](https://biokea.ai/press): press kit, key facts, founder bios, logos, recent coverage
+- [Contact](https://biokea.ai/contact): sequencing inquiry / partnership / funding / press / hiring / Agentis-access intake
 
 ## Machine-readable data
 
@@ -40,7 +54,7 @@ Engagement routes: partnership / collaboration, capabilities / lab work, funding
 - [Projects JSON](https://biokea.ai/api/projects.json) — live / revealing-soon / coming-soon work
 - [Capabilities JSON](https://biokea.ai/api/capabilities.json) — equipment inventory + partners + services
 - [Sitemap](https://biokea.ai/sitemap-index.xml)
-- [Press kit composite](https://biokea.ai/press-kit.png)
+- [Long-form llms.txt](https://biokea.ai/llms-full.txt) — comprehensive build-time-generated summary
 
 ## Team
 

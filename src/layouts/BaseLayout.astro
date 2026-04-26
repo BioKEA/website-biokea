@@ -23,9 +23,6 @@ const {
   preloadImageType,
   noindex = false,
 } = Astro.props;
-
-const cfBeaconToken = 'REPLACE_WITH_CF_BEACON_TOKEN';
-const beaconEnabled = import.meta.env.PROD && !cfBeaconToken.startsWith('REPLACE_');
 ---
 
 <!doctype html>
@@ -58,16 +55,6 @@ const beaconEnabled = import.meta.env.PROD && !cfBeaconToken.startsWith('REPLACE
       href="/llms-full.txt"
       title="BioKEA — long-form summary for LLM agents"
     />
-    {
-      beaconEnabled && (
-        <script
-          is:inline
-          defer
-          src="https://static.cloudflareinsights.com/beacon.min.js"
-          data-cf-beacon={`{"token":"${cfBeaconToken}"}`}
-        />
-      )
-    }
   </head>
   <body>
     <a

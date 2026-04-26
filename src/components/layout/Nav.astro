@@ -1,10 +1,12 @@
 ---
 // src/components/layout/Nav.astro
 const links = [
+  { href: '/services', label: 'Services' },
   { href: '/lab', label: 'Lab' },
   { href: '/pipeline', label: 'Pipeline' },
   { href: '/projects', label: 'Projects' },
   { href: '/mission', label: 'Mission' },
+  { href: '/agentis', label: 'Agentis' },
   { href: '/contact', label: 'Contact' },
 ];
 ---
@@ -32,9 +34,6 @@ const links = [
           </li>
         ))
       }
-      <li>
-        <a href="/agentis" class="text-[var(--color-teal-bright)]">agentis.science</a>
-      </li>
     </ul>
 
     <button
@@ -72,9 +71,6 @@ const links = [
           </li>
         ))
       }
-      <li>
-        <a href="/agentis" class="block py-2 text-[var(--color-teal-bright)]">agentis.science</a>
-      </li>
     </ul>
   </div>
 </nav>

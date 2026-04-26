@@ -1,0 +1,224 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import { team } from '@/data/team';
+
+const coreTeam = team.filter((p) => p.tier !== 'advisor');
+
+const oneSentence =
+  'BioKEA is an AI company with a wet-lab moat — a 5,000+ sq ft Berkeley lab and an AI pipeline from sample to verifiable, FAIR-compliant scientific claim.';
+
+const oneParagraph = `BioKEA — Biology Knowledge Exploration Assistant — is an independent biology company in Berkeley, California, founded in March 2025. The company operates the Large Data Collider (LDC), a combined wet-lab and compute platform built around an Oxford Nanopore Promethion 2 long-read sequencer and ~80 instruments sourced through Bay Area biotech auctions. BioKEA runs molecular sequencing as a service (DNA barcoding, environmental DNA, and long-read genomics) for environmental-DNA and biodiversity-omics customers, and is building Agentis, a forthcoming AI-first open-access publishing platform on the AT Protocol.`;
+
+const keyFacts = [
+  { label: 'Founded', value: 'March 2025' },
+  { label: 'Headquarters', value: 'Berkeley, California' },
+  { label: 'Lab footprint', value: '5,000+ sq ft' },
+  { label: 'Sequencer', value: 'Oxford Nanopore Promethion 2 (live November 2025)' },
+  { label: 'Instruments on site', value: '~80, sourced via Bay Area biotech auctions' },
+  {
+    label: 'Services',
+    value: 'DNA barcoding, environmental DNA, long-read microbial genomics',
+  },
+  {
+    label: 'Major partner',
+    value: 'California Institute for Biodiversity (CIB)',
+  },
+  {
+    label: 'Programs',
+    value: 'AWS for Startups, Google Cloud for Startups, NVIDIA Inception',
+  },
+  {
+    label: 'Recognition',
+    value:
+      'Sean Jungbluth — winner, Anthropic Built with Claude Sonnet 4.5 Challenge (October 2025)',
+  },
+];
+
+const coverage = [
+  {
+    outlet: 'Anthropic',
+    headline: 'Built with Claude Sonnet 4.5 Challenge — winners announced',
+    note: "Sean Jungbluth's DaKineDiving named a challenge winner.",
+    url: 'https://x.com/alexalbert__/status/1978220407716245581',
+    date: '2025-10',
+  },
+];
+
+const logoAssets = [
+  {
+    label: 'Primary logo (light background)',
+    src: '/assets/images/logo2.png',
+    alt: 'BioKEA primary logo on light backgrounds',
+  },
+  {
+    label: 'Reverse logo (dark background)',
+    src: '/assets/images/logo2-white.png',
+    alt: 'BioKEA reverse logo on dark backgrounds',
+  },
+];
+---
+
+<BaseLayout
+  title="Press kit — BioKEA"
+  description="Press kit, key facts, founder bios, logos, and recent coverage of BioKEA."
+>
+  <section class="max-w-6xl mx-auto px-6 pt-16 pb-10">
+    <Eyebrow>PRESS · KIT &amp; COVERAGE</Eyebrow>
+    <h1
+      class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[24ch]"
+    >
+      Press kit.
+    </h1>
+    <p class="mt-5 max-w-[62ch] text-slate-600 leading-relaxed">
+      For journalists and writers covering biology, AI, environmental DNA, biodiversity informatics,
+      and open science. Direct press inquiries to
+      <a href="mailto:contact@biokea.ai" class="text-[var(--color-teal)] underline">
+        contact@biokea.ai
+      </a>.
+    </p>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-10">
+    <Eyebrow>ONE-SENTENCE</Eyebrow>
+    <p class="mt-3 max-w-[64ch] text-lg text-[var(--color-ink)] leading-relaxed">
+      {oneSentence}
+    </p>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-10">
+    <Eyebrow>ONE-PARAGRAPH</Eyebrow>
+    <p class="mt-3 max-w-[64ch] text-slate-700 leading-relaxed">
+      {oneParagraph}
+    </p>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-10">
+    <Eyebrow>KEY FACTS</Eyebrow>
+    <dl class="mt-5 grid sm:grid-cols-2 gap-x-10 gap-y-3 max-w-[68ch]">
+      {
+        keyFacts.map((f) => (
+          <div class="grid grid-cols-[140px_1fr] gap-3 border-t border-slate-900/10 pt-3">
+            <dt class="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-teal)]">
+              {f.label}
+            </dt>
+            <dd class="text-sm text-slate-700 leading-snug">{f.value}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-10">
+    <Eyebrow>FOUNDERS &amp; CORE TEAM</Eyebrow>
+    <div class="mt-6 grid md:grid-cols-3 gap-5">
+      {
+        coreTeam.map((p) => (
+          <article class="border border-slate-900/10 rounded-md overflow-hidden bg-[var(--color-cream-warm)]">
+            <img
+              src={p.image}
+              alt={p.alt}
+              width="500"
+              height="550"
+              class="w-full aspect-[10/11] object-cover block"
+              loading="lazy"
+            />
+            <div class="p-4">
+              <p class="font-semibold text-[var(--color-ink)]">
+                {p.name}
+                {p.postNominal && `, ${p.postNominal}`}
+              </p>
+              <p class="mt-1 font-mono text-[10px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+                {p.role}
+              </p>
+              {p.bio && <p class="mt-3 text-xs text-slate-600 leading-relaxed">{p.bio}</p>}
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-10">
+    <Eyebrow>LOGOS</Eyebrow>
+    <p class="mt-3 max-w-[62ch] text-sm text-slate-600 leading-relaxed">
+      Right-click + Save As to download. Please do not modify aspect ratio or recolor.
+    </p>
+    <div class="mt-6 grid sm:grid-cols-2 gap-4">
+      {
+        logoAssets.map((l) => (
+          <figure class="border border-slate-900/10 rounded-md overflow-hidden">
+            <div
+              class:list={[
+                'flex items-center justify-center p-10',
+                l.label.includes('Reverse')
+                  ? 'bg-[var(--color-ink)]'
+                  : 'bg-[var(--color-cream-warm)]',
+              ]}
+            >
+              <img
+                src={l.src}
+                alt={l.alt}
+                width="256"
+                height="136"
+                class="h-16 w-auto"
+                loading="lazy"
+              />
+            </div>
+            <figcaption class="p-3 font-mono text-[11px] tracking-[0.1em] uppercase text-slate-600 flex justify-between items-center">
+              <span>{l.label}</span>
+              <a
+                href={l.src}
+                download
+                class="text-[var(--color-pink)] underline decoration-slate-400"
+              >
+                Download
+              </a>
+            </figcaption>
+          </figure>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-10">
+    <Eyebrow>RECENT COVERAGE</Eyebrow>
+    <ul class="mt-5 space-y-4 max-w-[68ch]">
+      {
+        coverage.map((c) => (
+          <li class="border-t border-slate-900/10 pt-4">
+            <div class="flex items-baseline justify-between gap-4">
+              <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-teal)]">
+                {c.outlet}
+              </div>
+              <div class="font-mono text-[10px] text-slate-500">
+                <time datetime={c.date}>{c.date}</time>
+              </div>
+            </div>
+            <a
+              href={c.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="mt-2 block font-semibold text-[var(--color-ink)] underline decoration-slate-400 hover:text-[var(--color-teal)]"
+            >
+              {c.headline}
+            </a>
+            <p class="mt-1 text-sm text-slate-600 leading-relaxed">{c.note}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <Eyebrow>PRESS CONTACT</Eyebrow>
+    <p class="mt-3 max-w-[62ch] text-slate-600 leading-relaxed">
+      Press, media, and editorial inquiries:
+      <a href="mailto:contact@biokea.ai" class="text-[var(--color-teal)] underline">
+        contact@biokea.ai
+      </a>. Or use the
+      <a href="/contact?topic=press" class="text-[var(--color-teal)] underline">contact form</a> with
+      topic <em>Press / media</em>.
+    </p>
+  </section>
+</BaseLayout>

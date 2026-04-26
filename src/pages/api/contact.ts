@@ -21,9 +21,11 @@ const ContactSchema = z.object({
     .or(z.literal(''))
     .default(''),
   topic: z.enum([
+    'Sequencing service inquiry',
     'Partnership / collaboration',
-    'Capabilities / lab work',
     'Funding',
+    'Press / media',
+    'Hiring',
     'Agentis — early access',
     'Something else',
   ]),

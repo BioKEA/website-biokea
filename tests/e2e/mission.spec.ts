@@ -3,9 +3,9 @@ import { test, expect } from '@playwright/test';
 test('mission page includes BioKEA expansion, team, partners, milestones', async ({ page }) => {
   await page.goto('/mission');
   await expect(page.getByText(/Biology Knowledge Exploration Assistant/).first()).toBeVisible();
-  await expect(page.getByText('Sean Jungbluth')).toBeVisible();
-  await expect(page.getByText('Michelle Jungbluth')).toBeVisible();
-  await expect(page.getByText('Austin Baker')).toBeVisible();
+  await expect(page.getByText('Sean Jungbluth').first()).toBeVisible();
+  await expect(page.getByText('Michelle Jungbluth').first()).toBeVisible();
+  await expect(page.getByText('Austin Baker').first()).toBeVisible();
   await expect(page.getByText(/California Institute for Biodiversity/).first()).toBeVisible();
   await expect(page.getByText(/San Francisco Estuary Institute/).first()).toBeVisible();
   await expect(page.getByText(/Coastal Quest/).first()).toBeVisible();
@@ -14,7 +14,7 @@ test('mission page includes BioKEA expansion, team, partners, milestones', async
 
 test('mission page CTA routes to contact', async ({ page }) => {
   await page.goto('/mission');
-  await expect(page.getByRole('link', { name: /Get in touch/ })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: /Get in touch/ }).first()).toHaveAttribute(
     'href',
     '/contact',
   );

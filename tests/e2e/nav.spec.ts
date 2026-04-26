@@ -9,7 +9,7 @@ test('nav renders logo and all primary links', async ({ page }) => {
   await expect(nav.getByRole('link', { name: 'Pipeline', exact: true })).toBeVisible();
   await expect(nav.getByRole('link', { name: 'Mission', exact: true })).toBeVisible();
   await expect(nav.getByRole('link', { name: 'Contact', exact: true })).toBeVisible();
-  await expect(nav.getByRole('link', { name: /agentis\.science/ })).toHaveAttribute(
+  await expect(nav.getByRole('link', { name: 'Agentis', exact: true })).toHaveAttribute(
     'href',
     '/agentis',
   );
@@ -29,8 +29,12 @@ test('footer renders logo, copyright, and external links', async ({ page }) => {
   const footer = page.locator('footer');
   await expect(footer).toBeVisible();
   await expect(footer.getByText(/© \d{4} BioKEA · Berkeley, CA/)).toBeVisible();
-  await expect(footer.getByRole('link', { name: /agentis\.science/ })).toHaveAttribute(
+  await expect(footer.getByRole('link', { name: 'Agentis', exact: true })).toHaveAttribute(
     'href',
     '/agentis',
+  );
+  await expect(footer.getByRole('link', { name: /Hiring/i })).toHaveAttribute(
+    'href',
+    '/contact?topic=hiring',
   );
 });

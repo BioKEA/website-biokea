@@ -6,6 +6,7 @@ import { milestones } from '@/data/milestones';
 import { pipelineStages } from '@/data/pipeline';
 import { equipmentByStage } from '@/data/equipment';
 import { programs, credentialsFor } from '@/data/credentials';
+import { serviceFees } from '@/data/services';
 
 export const prerender = true;
 
@@ -86,6 +87,16 @@ const renderProjects = () =>
 const renderMilestones = () =>
   milestones.map((m) => `- **${m.date}** — ${m.title}${m.body ? `\n  ${m.body}` : ''}`).join('\n');
 
+const renderServiceFees = () =>
+  serviceFees
+    .map((s) => {
+      const fee = s.quote ? 'Contact for quote' : (s.price ?? '');
+      const note = s.priceNote ? ` (${s.priceNote})` : '';
+      const desc = s.description ? `\n  ${s.description}` : '';
+      return `- **${s.name}** — ${fee}${note}${desc}`;
+    })
+    .join('\n');
+
 const body = `# BioKEA — long-form summary for LLM agents
 
 > BioKEA is an AI company with a wet-lab moat. A 5,000+ sq ft Berkeley lab plus an AI pipeline from field sample to verifiable scientific claim, built for the commons.
@@ -113,6 +124,12 @@ BioKEA offers molecular sequencing as a service out of the Berkeley LDC, targete
 - **Long-read microbial genomics** — whole-genome, metagenomic, and hybrid assemblies on the ONT Promethion 2.
 - **Specimen screening (arriving early summer 2026)** — high-throughput morphological imaging on DiversityScanner, pipelined into the LDC molecular workflow.
 - **Pipeline integration** — bespoke sample-to-claim workflows for partner organizations that need more than a raw FASTQ drop.
+
+### Service fees (starting rates; volume + project-rate engagements available on request)
+
+${renderServiceFees()}
+
+Full catalog, FAQ, and quote intake: ${SITE}/services
 
 ## Team
 

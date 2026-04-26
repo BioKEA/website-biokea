@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('projects page renders hero, counts, and the Intertidal live project', async ({ page }) => {
   await page.goto('/projects');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText("What we're shipping");
+  await expect(page.getByRole('heading', { level: 1 })).toContainText("What we're working on");
   await expect(
     page.getByRole('heading', { name: /Intertidal Biodiversity DNA Barcode Library/ }),
   ).toBeVisible();
