@@ -28,6 +28,7 @@ export interface Project {
   status: ProjectStatus;
   link?: string;
   hero?: string;
+  heroes?: string[]; // optional multi-image variant; renders side-by-side
   heroAlt?: string;
   heroWidth?: number;
   heroHeight?: number;
@@ -75,6 +76,11 @@ export const projects: Project[] = [
     tags: ['DNA barcoding', 'insects', 'biodiversity', 'California', 'conservation'],
     status: 'revealing-soon',
     revealTarget: 'Pending Ecography publication',
+    hero: '/assets/images/Cal-Sampling-Map.png',
+    heroAlt:
+      'Sampling-effort map of California showing geographic spread of insect specimens barcoded under the California Insect Barcoding Initiative.',
+    heroWidth: 1122,
+    heroHeight: 1402,
     team: [{ name: 'Austin', lead: true }],
     originIndependent: true,
     originNote:
@@ -93,11 +99,12 @@ export const projects: Project[] = [
     originIndependent: true,
     originNote:
       "Built by Sean as a solo entry to Anthropic's Built with Claude Sonnet 4.5 Challenge (October 2025); winner of the contest. Surfaced under BioKEA because of the GBIF biodiversity layer; not part of the BioKEA wet-lab pipeline.",
-    hero: '/assets/images/DaKine-Divers-Screen1.png',
+    heroes: [
+      '/assets/images/DaKine-Divers-Screen1.png',
+      '/assets/images/DaKine-Divers-Screen2.png',
+    ],
     heroAlt:
       "DaKineDiving interactive map of O'ahu showing dive sites, real-time conditions, and marine biodiversity overlays",
-    heroWidth: 1200,
-    heroHeight: 675,
     award: {
       label: 'Built with Claude Sonnet 4.5 Challenge — Winner',
       url: 'https://x.com/alexalbert__/status/1978220407716245581',
@@ -108,7 +115,7 @@ export const projects: Project[] = [
         url: 'https://drive.google.com/file/d/1eYVxautzXZERbk1Oez_VfE5xeEnx85dR/view?usp=drive_link',
       },
       {
-        label: 'Walkthrough · biology features',
+        label: 'Walkthrough · additional biology features',
         url: 'https://drive.google.com/file/d/1artFfslcNR90__Jx9xeEAYPUDBjUkeAL/view?usp=sharing',
       },
     ],
@@ -124,6 +131,11 @@ export const projects: Project[] = [
     tags: ['metabarcoding', 'marine', 'estuary', 'Bay Area'],
     status: 'revealing-soon',
     revealTarget: 'Q4 2026',
+    hero: '/assets/images/eDNA-SF.png',
+    heroAlt:
+      'Map of the San Francisco Bay-Delta estuary showing eDNA sampling stations for the metabarcoding baseline.',
+    heroWidth: 1448,
+    heroHeight: 1086,
     team: [{ name: 'Michelle', lead: true }, { name: 'Sean' }],
   },
   {
@@ -136,6 +148,11 @@ export const projects: Project[] = [
     tags: ['sequencing', 'microbial', 'long-read'],
     status: 'coming-soon',
     revealTarget: 'Q4 2026',
+    hero: '/assets/images/Long-Read-Resource.png',
+    heroAlt:
+      'Visualization of a long-read microbial genome assembly produced on the ONT Promethion 2.',
+    heroWidth: 1672,
+    heroHeight: 941,
     team: [{ name: 'Sean', lead: true }],
   },
   {
@@ -148,6 +165,11 @@ export const projects: Project[] = [
     tags: ['AI', 'multi-agent', 'scientific reasoning', 'open source', 'deliberation'],
     status: 'live',
     link: 'https://github.com/sunitj/Colloquip',
+    hero: '/assets/images/Colloquip.png',
+    heroAlt:
+      'Colloquip multi-agent deliberation interface showing specialized scientific personas debating a hypothesis.',
+    heroWidth: 758,
+    heroHeight: 562,
     team: [{ name: 'Sunit', lead: true }],
     originIndependent: true,
     originNote:

@@ -53,7 +53,7 @@ test('DaKineDiving card renders with award badge and video links', async ({ page
   await expect(videoOne).toBeVisible();
   await expect(videoOne).toHaveAttribute('target', '_blank');
 
-  const videoTwo = card.getByRole('link', { name: 'Walkthrough · biology features' });
+  const videoTwo = card.getByRole('link', { name: 'Walkthrough · additional biology features' });
   await expect(videoTwo).toBeVisible();
 });
 

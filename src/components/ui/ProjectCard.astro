@@ -31,7 +31,18 @@ const isLive = project.status === 'live';
     class="relative bg-white aspect-[16/9] overflow-hidden flex items-center justify-center border-b border-slate-900/10"
   >
     {
-      project.hero && isLive ? (
+      project.heroes && project.heroes.length > 0 ? (
+        <div class="w-full h-full grid grid-cols-2 gap-1 bg-slate-900/5">
+          {project.heroes.map((src) => (
+            <img
+              src={src}
+              alt={project.heroAlt ?? ''}
+              class="w-full h-full object-cover object-top"
+              loading="lazy"
+            />
+          ))}
+        </div>
+      ) : project.hero ? (
         <img
           src={project.hero}
           alt={project.heroAlt ?? ''}
