@@ -1,19 +1,45 @@
 ---
 // src/components/layout/Nav.astro
-const links = [
-  { href: '/services', label: 'Services' },
-  { href: '/lab', label: 'Lab' },
-  { href: '/pipeline', label: 'Pipeline' },
-  { href: '/projects', label: 'Projects' },
-  { href: '/mission', label: 'Mission' },
-  { href: '/agentis', label: 'Agentis' },
-  { href: '/contact', label: 'Contact' },
+// Editorial-style top nav: 2 grouped dropdowns + 1 standalone link +
+// a right-aligned CTA button. Native <details>/<summary> for the
+// dropdowns — keyboard-accessible, zero JS overhead. Mobile renders
+// the same structure as a flat accordion inside the hamburger.
+
+interface NavLink {
+  href: string;
+  label: string;
+}
+
+interface NavGroup {
+  label: string;
+  items: NavLink[];
+}
+
+const navGroups: NavGroup[] = [
+  {
+    label: 'What we do',
+    items: [
+      { href: '/services', label: 'Services' },
+      { href: '/lab', label: 'Lab' },
+    ],
+  },
+  {
+    label: 'Our work',
+    items: [
+      { href: '/projects', label: 'Projects' },
+      { href: '/press', label: 'Press' },
+    ],
+  },
 ];
+
+const standaloneLinks: NavLink[] = [{ href: '/mission', label: 'Mission' }];
+
+const cta: NavLink = { href: '/contact', label: 'Get in touch' };
 ---
 
 <nav aria-label="Primary" class="bg-[var(--color-ink)] text-[var(--color-cream)]">
-  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-    <a href="/" aria-label="BioKEA home" class="flex items-center gap-3">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-6">
+    <a href="/" aria-label="BioKEA home" class="flex items-center gap-3 shrink-0">
       <img
         src="/assets/images/logo2-white.png"
         alt=""
@@ -24,17 +50,60 @@ const links = [
       <span class="sr-only">BioKEA</span>
     </a>
 
-    <ul class="hidden md:flex gap-7 text-sm font-medium text-slate-300 tracking-wide">
-      {
-        links.map((l) => (
-          <li>
-            <a href={l.href} class="hover:text-[var(--color-teal-bright)] transition">
-              {l.label}
-            </a>
-          </li>
-        ))
-      }
-    </ul>
+    <div class="hidden md:flex items-center gap-7">
+      <ul class="flex items-center gap-7 text-base font-medium text-slate-300 tracking-wide">
+        {
+          navGroups.map((group) => (
+            <li class="relative">
+              <details class="group">
+                <summary class="list-none cursor-pointer flex items-center gap-1.5 hover:text-[var(--color-teal-bright)] transition select-none">
+                  {group.label}
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    class="transition-transform group-open:rotate-180"
+                    aria-hidden="true"
+                  >
+                    <path d="M3 4.5l3 3 3-3" />
+                  </svg>
+                </summary>
+                <ul class="absolute top-full left-0 mt-3 bg-[var(--color-ink)] border border-slate-800 rounded-sm py-2 min-w-[180px] shadow-lg z-30">
+                  {group.items.map((item) => (
+                    <li>
+                      <a
+                        href={item.href}
+                        class="block px-4 py-2 text-sm text-slate-300 hover:text-[var(--color-teal-bright)] hover:bg-slate-900 transition"
+                      >
+                        {item.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            </li>
+          ))
+        }
+        {
+          standaloneLinks.map((link) => (
+            <li>
+              <a href={link.href} class="hover:text-[var(--color-teal-bright)] transition">
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <a
+        href={cta.href}
+        class="bg-[var(--color-cream)] text-[var(--color-ink)] px-4 py-2 rounded-sm text-base font-semibold hover:bg-[var(--color-teal-bright)] transition"
+      >
+        {cta.label} →
+      </a>
+    </div>
 
     <button
       type="button"
@@ -61,16 +130,56 @@ const links = [
   </div>
 
   <div id="mobile-menu" class="md:hidden hidden border-t border-slate-800">
-    <ul class="flex flex-col gap-1 px-6 py-4 text-sm">
+    <ul class="flex flex-col gap-1 px-6 py-4 text-base">
       {
-        links.map((l) => (
+        navGroups.map((group) => (
           <li>
-            <a href={l.href} class="block py-2">
-              {l.label}
+            <details class="group border-b border-slate-800 last:border-b-0">
+              <summary class="list-none cursor-pointer flex items-center justify-between py-2 select-none">
+                <span>{group.label}</span>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  class="transition-transform group-open:rotate-180"
+                  aria-hidden="true"
+                >
+                  <path d="M3 4.5l3 3 3-3" />
+                </svg>
+              </summary>
+              <ul class="pb-2 pl-3">
+                {group.items.map((item) => (
+                  <li>
+                    <a href={item.href} class="block py-1.5 text-slate-300">
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </li>
+        ))
+      }
+      {
+        standaloneLinks.map((link) => (
+          <li>
+            <a href={link.href} class="block py-2 border-b border-slate-800">
+              {link.label}
             </a>
           </li>
         ))
       }
+      <li class="pt-3">
+        <a
+          href={cta.href}
+          class="block bg-[var(--color-cream)] text-[var(--color-ink)] text-center px-4 py-2.5 rounded-sm text-base font-semibold"
+        >
+          {cta.label} →
+        </a>
+      </li>
     </ul>
   </div>
 </nav>
@@ -83,5 +192,24 @@ const links = [
     toggle.setAttribute('aria-expanded', String(!expanded));
     toggle.setAttribute('aria-label', expanded ? 'Open menu' : 'Close menu');
     menu?.classList.toggle('hidden');
+  });
+
+  // Dropdowns: only one open at a time, close on outside click.
+  const navEl = document.querySelector('nav[aria-label="Primary"]');
+  const dropdowns = Array.from(navEl?.querySelectorAll<HTMLDetailsElement>('details') ?? []);
+  dropdowns.forEach((d) => {
+    d.addEventListener('toggle', () => {
+      if (!d.open) return;
+      dropdowns.forEach((other) => {
+        if (other !== d && other.open) other.open = false;
+      });
+    });
+  });
+  document.addEventListener('click', (e) => {
+    const target = e.target;
+    if (!(target instanceof Node)) return;
+    dropdowns.forEach((d) => {
+      if (d.open && !d.contains(target)) d.open = false;
+    });
   });
 </script>
