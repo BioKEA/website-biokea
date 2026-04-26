@@ -10,14 +10,37 @@ test('services page renders hero, catalog, and FAQ', async ({ page }) => {
   ).toBeVisible();
 });
 
-test('services catalog lists barcoding $25/sample and qPCR $100/sample', async ({ page }) => {
+test('services catalog lists barcoding and qPCR offerings without prices', async ({ page }) => {
   await page.goto('/services');
   await expect(
     page.getByText(/DNA-based identification of organisms \(barcoding\)/i),
   ).toBeVisible();
-  await expect(page.getByText('$25 / sample')).toBeVisible();
-  await expect(page.getByText('$100 / sample (single species)')).toBeVisible();
-  await expect(page.getByText(/\$50 \/ sample for each additional species/i)).toBeVisible();
+  await expect(page.getByText(/qPCR \/ eDNA assay/i).first()).toBeVisible();
+  await expect(page.getByText(/Field collection assistance/i)).toBeVisible();
+});
+
+test('services page has no dollar-sign prices anywhere', async ({ page }) => {
+  await page.goto('/services');
+  const bodyText = (await page.locator('body').innerText()) ?? '';
+  expect(bodyText).not.toContain('$');
+});
+
+test('services Service JSON-LD nodes carry no priceSpecification', async ({ page }) => {
+  await page.goto('/services');
+  const scripts = await page.locator('script[type="application/ld+json"]').allTextContents();
+  const graph = scripts
+    .map((s) => {
+      try {
+        return JSON.parse(s);
+      } catch {
+        return null;
+      }
+    })
+    .find((j) => j && Array.isArray(j['@graph']) && j['@graph'][0]?.['@type'] === 'Service');
+  expect(graph).toBeDefined();
+  for (const node of graph['@graph']) {
+    expect(node.offers).toBeUndefined();
+  }
 });
 
 test('services CTA routes to contact with sequencing topic', async ({ page }) => {

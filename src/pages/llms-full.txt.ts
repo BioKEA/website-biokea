@@ -6,7 +6,7 @@ import { milestones } from '@/data/milestones';
 import { pipelineStages } from '@/data/pipeline';
 import { equipmentByStage } from '@/data/equipment';
 import { programs, credentialsFor } from '@/data/credentials';
-import { serviceFees } from '@/data/services';
+import { serviceOfferings } from '@/data/services';
 
 export const prerender = true;
 
@@ -87,13 +87,11 @@ const renderProjects = () =>
 const renderMilestones = () =>
   milestones.map((m) => `- **${m.date}** — ${m.title}${m.body ? `\n  ${m.body}` : ''}`).join('\n');
 
-const renderServiceFees = () =>
-  serviceFees
+const renderServiceOfferings = () =>
+  serviceOfferings
     .map((s) => {
-      const fee = s.quote ? 'Contact for quote' : (s.price ?? '');
-      const note = s.priceNote ? ` (${s.priceNote})` : '';
       const desc = s.description ? `\n  ${s.description}` : '';
-      return `- **${s.name}** — ${fee}${note}${desc}`;
+      return `- **${s.name}**${desc}`;
     })
     .join('\n');
 
@@ -125,9 +123,9 @@ BioKEA offers molecular sequencing as a service out of the Berkeley LDC, targete
 - **Specimen screening (arriving early summer 2026)** — high-throughput morphological imaging on DiversityScanner, pipelined into the LDC molecular workflow.
 - **Pipeline integration** — bespoke sample-to-claim workflows for partner organizations that need more than a raw FASTQ drop.
 
-### Service fees (starting rates; volume + project-rate engagements available on request)
+### Service offerings (project-rate engagements; see /services to request a quote)
 
-${renderServiceFees()}
+${renderServiceOfferings()}
 
 Full catalog, FAQ, and quote intake: ${SITE}/services
 

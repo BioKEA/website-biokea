@@ -22,24 +22,14 @@ BioKEA offers molecular sequencing as a service out of the Berkeley LDC, targete
 - **Pipeline integration** — bespoke sample-to-claim workflows for partner organizations that need more than a raw FASTQ drop
 - **Data-package delivery** — every service output lands as a DwC-A archive plus NCBI SRA / GBIF / Zenodo deposits, not a PDF
 
-Published service fees (starting rates; volume + project-rate engagements available on request):
-
-- **Study design** — $150/hour
-- **Bioinformatic data analysis and interpretation** — $150/hour
-- **DNA-based identification of organisms (barcoding)** — $25/sample
-- **qPCR / eDNA assay (single species)** — $100/sample · additional species in same assay $50/sample
-- **Custom eDNA / qPCR assay design + validation** — quote
-- **Metabarcoding, metagenomics, and other custom analyses** — quote
-- **Field collection assistance** — quote
-
-Full catalog and FAQ: https://biokea.ai/services
+Engagements are project-rate and scoped per request. See https://biokea.ai/services for the offerings catalog and to request a quote.
 
 Engagement routes (Contact-form topics): Sequencing service inquiry, Partnership / collaboration, Funding, Press / media, Hiring, Agentis — early access, Something else.
 
 ## Key pages
 
 - [Home](https://biokea.ai/): positioning, hero, thesis, ecosystem, origin
-- [Services](https://biokea.ai/services): sequencing-as-a-service catalog + pricing (barcoding, eDNA, qPCR, custom assays)
+- [Services](https://biokea.ai/services): sequencing-as-a-service offerings (barcoding, eDNA, qPCR, custom assays); project-rate, request-a-quote
 - [The Lab & LDC](https://biokea.ai/lab): Berkeley facility, hardware inventory, capabilities, DiversityScanner
 - [Pipeline](https://biokea.ai/pipeline): the six-stage sample-to-claim workflow
 - [Projects](https://biokea.ai/projects): live and forthcoming work

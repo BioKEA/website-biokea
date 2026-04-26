@@ -2,11 +2,8 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
 import CtaBand from '@/components/sections/CtaBand.astro';
-import { serviceFees } from '@/data/services';
+import { serviceOfferings } from '@/data/services';
 import { stringifyJsonLd } from '@/lib/json-ld';
-
-const fixedPriceFees = serviceFees.filter((s) => s.price && !s.quote);
-const quoteFees = serviceFees.filter((s) => s.quote);
 
 const audiences = [
   'Conservation nonprofits',
@@ -75,28 +72,16 @@ const faqs = [
   },
 ];
 
-// Schema.org Service JSON-LD nodes — one per fee row, attached to the
-// BioKEA Organization. Fixed-price entries get an Offer node; quote-only
-// services get the Service node without an Offer.
-const serviceJsonLd = serviceFees.map((s) => {
-  const node: Record<string, unknown> = {
-    '@type': 'Service',
-    name: s.name,
-    description: s.description,
-    provider: { '@id': 'https://biokea.ai/#org' },
-  };
-  if (s.price && !s.quote) {
-    node.offers = {
-      '@type': 'Offer',
-      priceSpecification: {
-        '@type': 'PriceSpecification',
-        priceCurrency: 'USD',
-        price: s.price,
-      },
-    };
-  }
-  return node;
-});
+// Schema.org Service JSON-LD nodes — one per offering, attached to the
+// BioKEA Organization. No `offers` / priceSpecification: BioKEA is in
+// early commercial operation and engagements are project-rate, scoped
+// per request. Pricing intentionally not surfaced.
+const serviceJsonLd = serviceOfferings.map((s) => ({
+  '@type': 'Service',
+  name: s.name,
+  description: s.description,
+  provider: { '@id': 'https://biokea.ai/#org' },
+}));
 ---
 
 <BaseLayout
@@ -144,56 +129,44 @@ const serviceJsonLd = serviceFees.map((s) => {
   <section class="max-w-6xl mx-auto px-6 py-12">
     <Eyebrow>CATALOG</Eyebrow>
     <h2 class="mt-3 text-2xl font-semibold tracking-tight text-[var(--color-ink)]">
-      Services and consultation fees
+      What we offer
     </h2>
     <p class="mt-3 max-w-[62ch] text-sm text-slate-600 leading-relaxed">
-      Listed prices are starting rates. Volume discounts and project-rate engagements available on
-      request.
+      Project-rate engagements scoped per request. Tell us about your project and we'll come back
+      with a quote — typically within a few days.
     </p>
 
-    <div class="mt-8 border-t border-slate-900/10">
+    <div class="mt-6">
+      <a
+        href="/contact?topic=sequencing"
+        class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium inline-block"
+      >
+        Request a quote
+      </a>
+    </div>
+
+    <ul class="mt-8 border-t border-slate-900/10">
       {
-        fixedPriceFees.map((s) => (
-          <div class="grid md:grid-cols-[1fr_auto] gap-4 md:gap-10 border-b border-slate-900/10 py-5">
-            <div>
-              <div class="font-semibold text-[var(--color-ink)]">{s.name}</div>
-              {s.description && (
-                <p class="mt-1 text-sm text-slate-600 leading-relaxed">{s.description}</p>
-              )}
-            </div>
-            <div class="md:text-right md:min-w-[16ch]">
-              <div class="font-mono text-sm text-[var(--color-pink)] whitespace-nowrap">
-                {s.price}
-              </div>
-              {s.priceNote && (
-                <div class="mt-1 font-mono text-[11px] text-slate-500 leading-snug">
-                  {s.priceNote}
-                </div>
-              )}
-            </div>
-          </div>
+        serviceOfferings.map((s) => (
+          <li class="border-b border-slate-900/10 py-5">
+            <div class="font-semibold text-[var(--color-ink)]">{s.name}</div>
+            {s.description && (
+              <p class="mt-1 text-sm text-slate-600 leading-relaxed max-w-[68ch]">
+                {s.description}
+              </p>
+            )}
+          </li>
         ))
       }
-      {
-        quoteFees.map((s) => (
-          <div class="grid md:grid-cols-[1fr_auto] gap-4 md:gap-10 border-b border-slate-900/10 py-5">
-            <div>
-              <div class="font-semibold text-[var(--color-ink)]">{s.name}</div>
-              {s.description && (
-                <p class="mt-1 text-sm text-slate-600 leading-relaxed">{s.description}</p>
-              )}
-            </div>
-            <div class="md:text-right md:min-w-[16ch]">
-              <a
-                href="/contact?topic=sequencing"
-                class="font-mono text-sm text-[var(--color-pink)] underline decoration-slate-400 hover:text-[var(--color-teal)]"
-              >
-                Contact for quote →
-              </a>
-            </div>
-          </div>
-        ))
-      }
+    </ul>
+
+    <div class="mt-8">
+      <a
+        href="/contact?topic=sequencing"
+        class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium inline-block"
+      >
+        Request a quote
+      </a>
     </div>
   </section>
 
