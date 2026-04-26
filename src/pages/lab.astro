@@ -41,85 +41,100 @@ import { stringifyJsonLd } from '@/lib/json-ld';
       caption="BEFORE BUILDOUT"
       class="aspect-[4/3]"
     />
-    <PhotoCard
-      src="/assets/images/lab-warehouse-after.jpg"
-      alt="Lab interior, operational"
-      width={800}
-      height={767}
-      caption="OPERATIONAL"
-      class="aspect-[4/3]"
-    />
-  </section>
 
-  <section class="max-w-6xl mx-auto px-6 py-14">
-    <Eyebrow>FROM THE FLOOR</Eyebrow>
-    <h2 class="mt-3 text-2xl font-semibold tracking-tight text-[var(--color-ink)]">
-      The space, today.
-    </h2>
-    <p class="mt-3 max-w-[62ch] text-sm text-slate-600 leading-relaxed">
-      Recent photos from the LDC as it comes online. The wet-lab floor is operational; the lounge
-      and maker-space corner are still coming together.
-    </p>
-
-    <figure class="mt-6">
+    <figure
+      class="relative rounded-sm overflow-hidden border border-black/10 aspect-[4/3] bg-black/5"
+      data-lab-slider
+      role="region"
+      aria-label="Lab interior — rotating photos of the operational LDC space"
+      aria-roledescription="carousel"
+    >
       <img
         src="/assets/images/Lab-Photo2.jpeg"
-        alt="The BioKEA Berkeley LDC wet-lab floor, current state"
+        alt="Lab interior, operational"
         width="2856"
         height="2142"
-        class="w-full rounded-md block border border-slate-900/10 aspect-[4/3] object-cover"
+        class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-100"
+        data-slide="0"
+        data-caption="Wet-lab floor — current state"
+      />
+      <img
+        src="/assets/images/Lab-Photo1.jpeg"
+        alt="LDC interior viewed from the ground floor"
+        width="2856"
+        height="2142"
+        class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0"
+        data-slide="1"
+        data-caption="Ground floor view"
         loading="lazy"
       />
-      <figcaption
-        class="mt-3 font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500 text-center"
-      >
-        Fig · LDC wet-lab floor, current state
-      </figcaption>
-    </figure>
-
-    <div class="mt-8 grid md:grid-cols-2 gap-5">
-      <figure>
-        <img
-          src="/assets/images/Lab-Photo1.jpeg"
-          alt="LDC interior viewed from the ground floor"
-          width="2856"
-          height="2142"
-          class="w-full rounded-md block border border-slate-900/10 aspect-[4/3] object-cover"
-          loading="lazy"
-        />
-        <figcaption class="mt-2 font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500">
-          Fig · ground floor
-        </figcaption>
-      </figure>
-      <figure>
-        <img
-          src="/assets/images/Lab-Photo4.jpeg"
-          alt="LDC interior viewed from above, side angle"
-          width="2856"
-          height="2142"
-          class="w-full rounded-md block border border-slate-900/10 aspect-[4/3] object-cover"
-          loading="lazy"
-        />
-        <figcaption class="mt-2 font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500">
-          Fig · from above, side angle
-        </figcaption>
-      </figure>
-    </div>
-
-    <figure class="mt-8 max-w-3xl mx-auto">
+      <img
+        src="/assets/images/Lab-Photo4.jpeg"
+        alt="LDC interior viewed from above, side angle"
+        width="2856"
+        height="2142"
+        class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0"
+        data-slide="2"
+        data-caption="From above, side angle"
+        loading="lazy"
+      />
       <img
         src="/assets/images/Lab-Photo3.jpeg"
         alt="The BioKEA lounge and maker-space corner, in progress"
         width="2856"
         height="2142"
-        class="w-full rounded-md block border border-slate-900/10 aspect-[4/3] object-cover"
+        class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0"
+        data-slide="3"
+        data-caption="Lounge + maker space — coming together"
         loading="lazy"
       />
-      <figcaption
-        class="mt-2 font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500 text-center"
+
+      <span
+        class="absolute top-2 right-2 bg-[var(--color-pink)] text-[var(--color-pink-soft)] px-2 py-1 rounded-sm font-mono text-[9px] font-semibold tracking-[0.16em] uppercase z-10"
       >
-        Fig · lounge + maker space (3D printers arriving) · still coming together
+        OPERATIONAL
+      </span>
+
+      <figcaption
+        class="absolute bottom-2 left-2 right-16 bg-black/45 text-[var(--color-cream)] px-2 py-1 rounded-sm font-mono text-[10px] tracking-[0.12em] uppercase z-10 transition-opacity duration-300"
+        data-slider-caption
+      >
+        Wet-lab floor — current state
       </figcaption>
+
+      <div
+        class="absolute bottom-2 right-2 flex gap-1.5 z-10"
+        role="tablist"
+        aria-label="Choose lab photo"
+      >
+        <button
+          type="button"
+          data-slider-dot="0"
+          aria-label="Show photo 1 of 4"
+          aria-selected="true"
+          class="w-2 h-2 rounded-full bg-[var(--color-cream)] transition-opacity"></button>
+        <button
+          type="button"
+          data-slider-dot="1"
+          aria-label="Show photo 2 of 4"
+          aria-selected="false"
+          class="w-2 h-2 rounded-full bg-[var(--color-cream)] opacity-50 transition-opacity"
+        ></button>
+        <button
+          type="button"
+          data-slider-dot="2"
+          aria-label="Show photo 3 of 4"
+          aria-selected="false"
+          class="w-2 h-2 rounded-full bg-[var(--color-cream)] opacity-50 transition-opacity"
+        ></button>
+        <button
+          type="button"
+          data-slider-dot="3"
+          aria-label="Show photo 4 of 4"
+          aria-selected="false"
+          class="w-2 h-2 rounded-full bg-[var(--color-cream)] opacity-50 transition-opacity"
+        ></button>
+      </div>
     </figure>
   </section>
 
@@ -366,4 +381,78 @@ import { stringifyJsonLd } from '@/lib/json-ld';
       ],
     })}
   />
+
+  <script is:inline>
+    (() => {
+      const slider = document.querySelector('[data-lab-slider]');
+      if (!slider) return;
+      const slides = Array.from(slider.querySelectorAll('[data-slide]'));
+      const dots = Array.from(slider.querySelectorAll('[data-slider-dot]'));
+      const caption = slider.querySelector('[data-slider-caption]');
+      if (slides.length === 0) return;
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const INTERVAL_MS = 4500;
+      let current = 0;
+      let timer = null;
+      let paused = false;
+
+      const show = (index) => {
+        slides.forEach((img, i) => {
+          img.style.opacity = i === index ? '1' : '0';
+        });
+        dots.forEach((dot, i) => {
+          dot.setAttribute('aria-selected', i === index ? 'true' : 'false');
+          dot.style.opacity = i === index ? '1' : '0.5';
+        });
+        const next = slides[index];
+        if (caption && next) {
+          const text = next.getAttribute('data-caption') || '';
+          caption.textContent = text;
+        }
+        current = index;
+      };
+
+      const advance = () => show((current + 1) % slides.length);
+
+      const start = () => {
+        if (reduceMotion || paused || timer) return;
+        timer = window.setInterval(advance, INTERVAL_MS);
+      };
+      const stop = () => {
+        if (timer) {
+          window.clearInterval(timer);
+          timer = null;
+        }
+      };
+
+      dots.forEach((dot) => {
+        dot.addEventListener('click', () => {
+          const target = Number(dot.getAttribute('data-slider-dot'));
+          if (Number.isFinite(target)) show(target);
+          stop();
+          start();
+        });
+      });
+
+      slider.addEventListener('mouseenter', () => {
+        paused = true;
+        stop();
+      });
+      slider.addEventListener('mouseleave', () => {
+        paused = false;
+        start();
+      });
+      slider.addEventListener('focusin', () => {
+        paused = true;
+        stop();
+      });
+      slider.addEventListener('focusout', () => {
+        paused = false;
+        start();
+      });
+
+      start();
+    })();
+  </script>
 </BaseLayout>
