@@ -11,6 +11,10 @@ export interface Game {
   tagline: string;
   thumb: string;
   playUrl: string;
+  // GitHub repo in `owner/name` form. When set, CI clones + rebuilds the
+  // game from this repo on each deploy (see scripts/build-games.mjs);
+  // when unset, the pre-bundled artifact under public/games/<slug>/ ships.
+  repo?: string;
 }
 
 export const games: Game[] = [
@@ -20,6 +24,7 @@ export const games: Game[] = [
     tagline: 'A daily DNA-merge puzzle. Build life from a single base to a complete ecosystem.',
     thumb: '/assets/games/codon2048-thumb.png',
     playUrl: '/games/codon2048/',
+    repo: 'BioKEA/game-codon2048',
   },
   {
     slug: 'pipette-rush',
