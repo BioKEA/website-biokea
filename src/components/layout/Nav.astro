@@ -31,20 +31,23 @@ const navGroups: NavGroup[] = [
       { href: '/press', label: 'Press' },
     ],
   },
-  {
-    label: 'Mission',
-    items: [
-      { href: '/mission', label: 'Overview' },
-      { href: '/mission/games', label: 'Game-based Storytelling' },
-    ],
-  },
+  // Mission is currently a flat standaloneLinks entry below. Restore the
+  // dropdown when /mission/games (Game-based Storytelling) is meant to be
+  // surfaced from the menu again, by re-adding:
+  //   {
+  //     label: 'Mission',
+  //     items: [
+  //       { href: '/mission', label: 'Overview' },
+  //       { href: '/mission/games', label: 'Game-based Storytelling' },
+  //     ],
+  //   },
 ];
 
-// Promo link slot — currently empty. The Golden Sample Hunt page stays
-// reachable at /golden-sample-26 (QR + direct links), it just isn't in
-// the nav. Restore by adding back:
+// Both Mission and Golden Sample pages stay reachable (sitemap, direct
+// links, JSON-LD, llms-full); only their menu entries are managed here.
+// Restore Golden Sample by adding:
 //   { href: '/golden-sample-26', label: 'Golden Sample', accent: 'gold' }
-const standaloneLinks: NavLink[] = [];
+const standaloneLinks: NavLink[] = [{ href: '/mission', label: 'Mission' }];
 
 const cta: NavLink = { href: '/contact', label: 'Get in touch' };
 ---
