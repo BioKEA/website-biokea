@@ -4,7 +4,9 @@ import { test, expect } from '@playwright/test';
 // same <nav>. Locators below scope to the desktop sub-list (a md:flex
 // container) or the mobile menu (#mobile-menu) explicitly.
 
-test('nav renders logo, dropdown groups, Mission, and Get-in-touch CTA', async ({ page }) => {
+test('nav renders logo, three dropdown groups, Golden Sample, and Get-in-touch CTA', async ({
+  page,
+}) => {
   await page.goto('/');
   const nav = page.getByRole('navigation', { name: 'Primary' });
   await expect(nav).toBeVisible();
@@ -13,11 +15,29 @@ test('nav renders logo, dropdown groups, Mission, and Get-in-touch CTA', async (
   const desktop = nav.locator('div.hidden.md\\:flex').first();
   await expect(desktop.getByText('What we do', { exact: true })).toBeVisible();
   await expect(desktop.getByText('Our work', { exact: true })).toBeVisible();
-  await expect(desktop.getByRole('link', { name: 'Mission', exact: true })).toBeVisible();
+  await expect(desktop.getByText('Mission', { exact: true })).toBeVisible();
+  await expect(desktop.getByRole('link', { name: 'Golden Sample', exact: true })).toHaveAttribute(
+    'href',
+    '/golden-sample-26',
+  );
   await expect(desktop.getByRole('link', { name: /Get in touch/ })).toHaveAttribute(
     'href',
     '/contact',
   );
+});
+
+test('"Mission" dropdown reveals Overview and Game-based Storytelling', async ({ page }) => {
+  await page.goto('/');
+  const nav = page.getByRole('navigation', { name: 'Primary' });
+  const desktop = nav.locator('div.hidden.md\\:flex').first();
+  await desktop.getByText('Mission', { exact: true }).click();
+  await expect(desktop.getByRole('link', { name: 'Overview', exact: true })).toHaveAttribute(
+    'href',
+    '/mission',
+  );
+  await expect(
+    desktop.getByRole('link', { name: 'Game-based Storytelling', exact: true }),
+  ).toHaveAttribute('href', '/mission/games');
 });
 
 test('"What we do" dropdown reveals Services and Lab', async ({ page }) => {
@@ -84,7 +104,11 @@ test('mobile nav toggle opens menu with grouped accordion + CTA', async ({ page 
   const mobile = page.locator('#mobile-menu');
   await expect(mobile.getByText('What we do', { exact: true })).toBeVisible();
   await expect(mobile.getByText('Our work', { exact: true })).toBeVisible();
-  await expect(mobile.getByRole('link', { name: 'Mission', exact: true })).toBeVisible();
+  await expect(mobile.getByText('Mission', { exact: true })).toBeVisible();
+  await expect(mobile.getByRole('link', { name: 'Golden Sample', exact: true })).toHaveAttribute(
+    'href',
+    '/golden-sample-26',
+  );
   await expect(mobile.getByRole('link', { name: /Get in touch/ })).toBeVisible();
 });
 
