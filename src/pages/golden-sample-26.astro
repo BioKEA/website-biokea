@@ -1,0 +1,252 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import { projects } from '@/data/projects';
+import { stringifyJsonLd } from '@/lib/json-ld';
+
+// Sean swaps this when the Google Form is provisioned.
+const GOOGLE_FORM_URL: string | null = null; // TODO: paste embed URL
+
+const launchDate = '2026-05-07';
+const deadlineDate = '2026-06-05';
+
+const eventLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Event',
+  name: 'BioKEA Golden Sample Hunt',
+  startDate: launchDate,
+  endDate: deadlineDate,
+  eventStatus: 'https://schema.org/EventScheduled',
+  eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+  description:
+    'A 30-day public scavenger hunt across six BioKEA projects. The first ten correct solvers win real molecular sequencing of their own backyard soil.',
+  organizer: { '@id': 'https://biokea.ai/#org' },
+  location: {
+    '@type': 'VirtualLocation',
+    url: 'https://biokea.ai/golden-sample-26',
+  },
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+    availability: 'https://schema.org/InStock',
+    url: 'https://biokea.ai/golden-sample-26',
+  },
+};
+---
+
+<BaseLayout
+  title="The Golden Sample Hunt — BioKEA"
+  description="A 30-day public hunt across six BioKEA games. Collect six cards, solve the puzzle, win real sequencing of your own backyard soil. Launches May 7, 2026; deadline June 5, 2026."
+  ogImage="/assets/images/golden-sample-card.png"
+  preloadImage="/assets/images/golden-sample-card.png"
+  preloadImageType="image/png"
+>
+  <!-- ZONE A — promo hero (full-bleed navy + gold) -->
+  <section class="bg-[var(--color-ink)] text-[var(--color-cream)]">
+    <div
+      class="max-w-6xl mx-auto px-6 py-16 md:py-24 grid md:grid-cols-[1.1fr_1fr] gap-10 items-center"
+    >
+      <div>
+        <p
+          class="font-mono text-[11px] tracking-[0.2em] uppercase font-semibold text-[var(--color-gold)]"
+        >
+          ONE LAST THING · A HUNT
+        </p>
+        <h1
+          class="mt-4 text-4xl md:text-5xl lg:text-6xl font-semibold tracking-[-0.025em] leading-[1.05]"
+        >
+          There is a hidden world<br />all around you.
+        </h1>
+        <p class="mt-4 italic text-2xl md:text-3xl text-[var(--color-gold)]">
+          Even under your feet.
+        </p>
+        <p class="mt-8 max-w-[52ch] text-slate-300 leading-relaxed">
+          Hidden across six BioKEA games are six Golden Sample Cards. Collect the clues. Solve the
+          puzzle.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a
+            href="#the-games"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-sm border border-[var(--color-gold)] text-[var(--color-gold)] hover:bg-[var(--color-gold)] hover:text-[var(--color-ink)] transition"
+          >
+            See the games ↓
+          </a>
+          <a
+            href="#submit"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-[var(--color-gold)] text-[var(--color-ink)] font-semibold hover:bg-[var(--color-gold-soft)] transition"
+          >
+            Submit your answer ↓
+          </a>
+        </div>
+      </div>
+      <figure class="md:justify-self-end">
+        <img
+          src="/assets/images/golden-sample-card.png"
+          alt="The Golden Sample Card — gold and navy ornamental keepsake card depicting a swirling galaxy of soil, water, and specimen icons."
+          width="1200"
+          height="720"
+          class="w-full max-w-[520px] rounded-md shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+        />
+      </figure>
+    </div>
+  </section>
+
+  <!-- ZONE B — editorial mode -->
+
+  <section class="max-w-3xl mx-auto px-6 py-16">
+    <Eyebrow>HOW IT WORKS</Eyebrow>
+    <ol class="mt-6 space-y-6">
+      <li class="grid grid-cols-[40px_1fr] gap-4">
+        <span class="font-mono text-[var(--color-ochre)] font-semibold">01</span>
+        <div>
+          <h2 class="text-lg font-semibold text-[var(--color-ink)]">Find</h2>
+          <p class="mt-1 text-slate-600 leading-relaxed">
+            Six BioKEA games. Six hidden Golden Sample Cards. One per game.
+          </p>
+        </div>
+      </li>
+      <li class="grid grid-cols-[40px_1fr] gap-4">
+        <span class="font-mono text-[var(--color-ochre)] font-semibold">02</span>
+        <div>
+          <h2 class="text-lg font-semibold text-[var(--color-ink)]">Clue</h2>
+          <p class="mt-1 text-slate-600 leading-relaxed">
+            Each card carries one fragment of the final answer.
+          </p>
+        </div>
+      </li>
+      <li class="grid grid-cols-[40px_1fr] gap-4">
+        <span class="font-mono text-[var(--color-ochre)] font-semibold">03</span>
+        <div>
+          <h2 class="text-lg font-semibold text-[var(--color-ink)]">Solve</h2>
+          <p class="mt-1 text-slate-600 leading-relaxed">
+            Assemble all six fragments into the solution.
+          </p>
+        </div>
+      </li>
+      <li class="grid grid-cols-[40px_1fr] gap-4">
+        <span class="font-mono text-[var(--color-ochre)] font-semibold">04</span>
+        <div>
+          <h2 class="text-lg font-semibold text-[var(--color-ink)]">Submit</h2>
+          <p class="mt-1 text-slate-600 leading-relaxed">
+            Send your answer through the form below — your shipping address is required because the
+            prize ships to you.
+          </p>
+        </div>
+      </li>
+      <li class="grid grid-cols-[40px_1fr] gap-4">
+        <span class="font-mono text-[var(--color-ochre)] font-semibold">05</span>
+        <div>
+          <h2 class="text-lg font-semibold text-[var(--color-ink)]">Win</h2>
+          <p class="mt-1 text-slate-600 leading-relaxed">
+            The first ten correct submissions get real sequencing of their backyard soil.
+          </p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section id="the-games" class="max-w-6xl mx-auto px-6 py-12">
+    <Eyebrow>THE GAMES</Eyebrow>
+    <p class="mt-3 max-w-[62ch] text-slate-600 leading-relaxed">
+      A card is hidden inside each one. Some games are live now; others reveal during the hunt
+      window.
+    </p>
+    <ul class="mt-6 grid md:grid-cols-3 gap-4">
+      {
+        projects.map((p) => (
+          <li class="border border-slate-900/10 rounded-md p-4 bg-[var(--color-cream-warm)]">
+            <p class="font-mono-label text-[var(--color-teal)]">
+              {p.status === 'live'
+                ? 'Live'
+                : p.status === 'revealing-soon'
+                  ? 'Revealing soon'
+                  : 'Coming soon'}
+            </p>
+            <h3 class="mt-2 font-semibold text-[var(--color-ink)]">{p.title}</h3>
+            <p class="mt-1 text-xs font-mono text-[var(--color-ochre)]">
+              🔒 Golden Sample Card · hidden inside
+            </p>
+            {p.link && (
+              <a
+                href={p.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mt-3 inline-block text-sm underline decoration-slate-400 hover:text-[var(--color-teal)]"
+              >
+                Open game →
+              </a>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="max-w-3xl mx-auto px-6 py-12">
+    <Eyebrow>THE PRIZE</Eyebrow>
+    <p class="mt-3 text-slate-600 leading-relaxed">The first ten correct solvers receive:</p>
+    <ul class="mt-4 space-y-2 text-slate-700">
+      <li>· Real molecular sequencing of soil sampled from your own backyard.</li>
+      <li>· A full report (PDF) of what was found.</li>
+      <li>· The raw sequencing data (FASTQ).</li>
+      <li>· A Claude-powered explorer for asking your data questions in plain English.</li>
+    </ul>
+  </section>
+
+  <section class="max-w-3xl mx-auto px-6 py-12">
+    <Eyebrow>RULES</Eyebrow>
+    <ul class="mt-4 space-y-2 text-sm text-slate-600 leading-relaxed">
+      <li>
+        · Deadline: <strong>June 5, 2026, 11:59 PM PT</strong>. Hunt opens
+        <strong>May 7, 2026</strong>.
+      </li>
+      <li>· US residents only.</li>
+      <li>· Must be 18+ at the time of submission.</li>
+      <li>· One submission per email address.</li>
+      <li>· Automated or bot submissions will be disqualified.</li>
+      <li>
+        · Winners are notified by email; allow 4–6 weeks for kit delivery, sample return,
+        sequencing, and report.
+      </li>
+      <li>· Email and address are used only for prize fulfillment.</li>
+    </ul>
+  </section>
+
+  <section id="submit" class="max-w-3xl mx-auto px-6 py-12">
+    <Eyebrow>SUBMIT YOUR ANSWER</Eyebrow>
+    {
+      GOOGLE_FORM_URL ? (
+        <>
+          <iframe
+            src={GOOGLE_FORM_URL}
+            loading="lazy"
+            class="mt-6 w-full h-[900px] border border-slate-900/10 rounded-md bg-white"
+            title="Golden Sample Hunt — submission form"
+          />
+          <p class="mt-3 text-xs text-slate-500">
+            <a
+              href={GOOGLE_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="underline decoration-slate-400 hover:text-[var(--color-teal)]"
+            >
+              Open the form in a new tab →
+            </a>
+          </p>
+        </>
+      ) : (
+        <p class="mt-6 rounded-md border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
+          Submission form is being prepared. Check back here at launch (May 7, 2026).
+        </p>
+      )
+    }
+  </section>
+
+  <section class="max-w-3xl mx-auto px-6 py-16 text-center">
+    <hr class="border-t border-[var(--color-gold)] w-16 mx-auto" />
+    <p class="mt-6 italic text-slate-700 text-lg">Biodiversity can be discovered anywhere.</p>
+  </section>
+
+  <script type="application/ld+json" is:inline set:html={stringifyJsonLd(eventLd)} />
+</BaseLayout>

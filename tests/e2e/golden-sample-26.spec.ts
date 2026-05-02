@@ -1,0 +1,56 @@
+import { test, expect } from '@playwright/test';
+
+test('golden-sample-26 promo hero renders headline, sub, and card image', async ({ page }) => {
+  await page.goto('/golden-sample-26');
+  await expect(page.getByText('ONE LAST THING · A HUNT')).toBeVisible();
+  const h1 = page.getByRole('heading', { level: 1 });
+  await expect(h1).toContainText('There is a hidden world');
+  await expect(h1).toContainText('all around you.');
+  await expect(page.getByText('Even under your feet.')).toBeVisible();
+  await expect(page.getByAltText(/Golden Sample Card/i)).toBeVisible();
+});
+
+test('golden-sample-26 lists 5 how-it-works steps', async ({ page }) => {
+  await page.goto('/golden-sample-26');
+  await expect(page.getByText('HOW IT WORKS')).toBeVisible();
+  for (const step of ['Find', 'Clue', 'Solve', 'Submit', 'Win']) {
+    await expect(page.getByRole('heading', { name: step, exact: true })).toBeVisible();
+  }
+});
+
+test('golden-sample-26 lists the prize bullets', async ({ page }) => {
+  await page.goto('/golden-sample-26');
+  await expect(page.getByText('THE PRIZE', { exact: true })).toBeVisible();
+  await expect(page.getByText(/Real molecular sequencing of soil/i)).toBeVisible();
+  await expect(page.getByText(/full report/i)).toBeVisible();
+  await expect(page.getByText(/raw sequencing data/i)).toBeVisible();
+  await expect(page.getByText(/Claude-powered explorer/i)).toBeVisible();
+});
+
+test('golden-sample-26 surfaces deadline + US-only + 18+ rules', async ({ page }) => {
+  await page.goto('/golden-sample-26');
+  await expect(page.getByText(/June 5, 2026/)).toBeVisible();
+  await expect(page.getByText(/US residents only/i)).toBeVisible();
+  await expect(page.getByText(/18\+/)).toBeVisible();
+});
+
+test('golden-sample-26 has a Submit section anchor and form region', async ({ page }) => {
+  await page.goto('/golden-sample-26');
+  await expect(page.locator('#submit')).toBeVisible();
+  await expect(page.getByText('SUBMIT YOUR ANSWER', { exact: true })).toBeVisible();
+});
+
+test('golden-sample-26 emits Event JSON-LD with launch + deadline dates', async ({ page }) => {
+  await page.goto('/golden-sample-26');
+  const ld = await page.locator('script[type="application/ld+json"]').first().textContent();
+  const parsed = JSON.parse(ld!);
+  expect(parsed['@type']).toBe('Event');
+  expect(parsed.startDate).toBe('2026-05-07');
+  expect(parsed.endDate).toBe('2026-06-05');
+  expect(parsed.eventStatus).toBe('https://schema.org/EventScheduled');
+});
+
+test('golden-sample-26 closes with the tagline', async ({ page }) => {
+  await page.goto('/golden-sample-26');
+  await expect(page.getByText('Biodiversity can be discovered anywhere.')).toBeVisible();
+});
