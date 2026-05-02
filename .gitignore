@@ -14,6 +14,11 @@
 /styles/
 /test-results/
 
+# Game build artifacts — produced by scripts/build-games.mjs from
+# per-game GitHub repos. CI rebuilds on every deploy; locals run
+# `npm run games:build` (or `npm run build`) to populate this dir.
+/public/games/
+
 # production
 /build
 

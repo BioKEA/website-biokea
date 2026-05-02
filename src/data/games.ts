@@ -32,6 +32,7 @@ export const games: Game[] = [
     tagline: 'Run the eDNA pipeline as fast as the lab can throw it at you.',
     thumb: '/assets/games/pipette-rush-thumb.png',
     playUrl: '/games/pipette-rush/',
+    repo: 'BioKEA/game-pipette-rush',
   },
   {
     slug: 'plasmid-plinko',
@@ -39,6 +40,7 @@ export const games: Game[] = [
     tagline: 'Drop a primer. Clear every gene-peg on the board. Stack lab upgrades between rounds.',
     thumb: '/assets/games/plasmid-plinko-thumb.png',
     playUrl: '/games/plasmid-plinko/',
+    repo: 'BioKEA/game-plasmid-plinko',
   },
   {
     slug: 'particle-survival-shooter',
@@ -46,6 +48,7 @@ export const games: Game[] = [
     tagline: 'You are the sample. Survive eight minutes through the contaminant field.',
     thumb: '/assets/games/particle-survival-shooter-thumb.png',
     playUrl: '/games/particle-survival-shooter/',
+    repo: 'BioKEA/game-particle-survival-shooter',
   },
   {
     slug: 'cal-field-lab-collectible',
@@ -53,6 +56,7 @@ export const games: Game[] = [
     tagline: "California's biodiversity survey, rendered as a collectible card-album challenge.",
     thumb: '/assets/games/cal-field-lab-collectible-thumb.png',
     playUrl: '/games/cal-field-lab-collectible/',
+    repo: 'BioKEA/game-cal-field-lab-collectible',
   },
   {
     slug: '3d-biodiversity-collect-em-all',
@@ -60,5 +64,6 @@ export const games: Game[] = [
     tagline: 'Creatures of California. Explore · Discover · Collect.',
     thumb: '/assets/games/3d-biodiversity-collect-em-all-thumb.png',
     playUrl: '/games/3d-biodiversity-collect-em-all/',
+    repo: 'BioKEA/game-3d-biodiversity-collect-em-all',
   },
 ];

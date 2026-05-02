@@ -16,7 +16,7 @@
 // whole biokea.ai deploy.
 
 import { execSync } from 'node:child_process';
-import { cpSync, mkdirSync, rmSync } from 'node:fs';
+import { cpSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,15 +24,18 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '..');
 
-// Source-of-truth for what to build from upstream. Add an entry here when a
-// game gets its own GitHub repo. Until then, the slug's pre-bundled artifact
-// in public/games/<slug>/ continues to serve.
-const games = [
-  {
-    slug: 'codon2048',
-    repo: 'BioKEA/game-codon2048',
-  },
-];
+// Read slug+repo pairs from src/data/games.ts so this script and the
+// website never drift. Regex finds each `{ slug: '…', …, repo: '…' }`
+// pair; entries without a repo field are skipped (and continue to serve
+// from the bundled artifact under public/games/<slug>/, if present).
+function readGames() {
+  const src = readFileSync(join(root, 'src', 'data', 'games.ts'), 'utf-8');
+  const re = /\{[^{}]*?slug:\s*['"]([^'"]+)['"][^{}]*?repo:\s*['"]([^'"]+)['"]/gs;
+  const games = [];
+  for (const m of src.matchAll(re)) games.push({ slug: m[1], repo: m[2] });
+  return games;
+}
+const games = readGames();
 
 const stubEnv = {
   // Games crash at import time if Supabase env is empty (createClient throws
