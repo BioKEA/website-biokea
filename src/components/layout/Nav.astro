@@ -40,9 +40,11 @@ const navGroups: NavGroup[] = [
   },
 ];
 
-const standaloneLinks: NavLink[] = [
-  { href: '/golden-sample-26', label: 'Golden Sample', accent: 'gold' },
-];
+// Promo link slot — currently empty. The Golden Sample Hunt page stays
+// reachable at /golden-sample-26 (QR + direct links), it just isn't in
+// the nav. Restore by adding back:
+//   { href: '/golden-sample-26', label: 'Golden Sample', accent: 'gold' }
+const standaloneLinks: NavLink[] = [];
 
 const cta: NavLink = { href: '/contact', label: 'Get in touch' };
 ---
