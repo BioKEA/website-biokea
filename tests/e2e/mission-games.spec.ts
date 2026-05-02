@@ -3,24 +3,35 @@ import { test, expect } from '@playwright/test';
 test('mission/games renders headline, lede, and 6 game tiles', async ({ page }) => {
   await page.goto('/mission/games');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Biology, played.');
-  // Six game tiles, one per project in src/data/projects.ts
-  await expect(page.getByText('Intertidal Biodiversity DNA Barcode Library')).toBeVisible();
-  await expect(page.getByText('California Insect Barcoding Initiative')).toBeVisible();
-  await expect(page.getByText('DaKineDiving', { exact: false })).toBeVisible();
-  await expect(page.getByText('Bay estuary metabarcoding baseline')).toBeVisible();
-  await expect(page.getByText('Long-read microbial genome resource')).toBeVisible();
-  await expect(page.getByText('Colloquip', { exact: false })).toBeVisible();
+  // Six tiles, one per game in src/data/games.ts
+  await expect(page.getByRole('heading', { name: 'Codon Collider', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pipette Rush', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Plasmid Plinko', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Particle Accelerator', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Biodiversity Discovery Lab', exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'WildCal', exact: true })).toBeVisible();
 });
 
-test('mission/games shows a GamePlaceholder slot per tile', async ({ page }) => {
+test('mission/games shows exactly 6 game tiles', async ({ page }) => {
   await page.goto('/mission/games');
-  // Six placeholder slots, one per project
-  const slots = page.locator('[data-game-id]');
-  await expect(slots).toHaveCount(6);
+  await expect(page.locator('[data-game-slug]')).toHaveCount(6);
 });
 
 test('mission/games footer CTA links to /golden-sample-26', async ({ page }) => {
   await page.goto('/mission/games');
   const cta = page.getByRole('link', { name: /Six cards are hidden/i });
   await expect(cta).toHaveAttribute('href', '/golden-sample-26');
+});
+
+test('mission/games tile links go to /games/<slug>/', async ({ page }) => {
+  await page.goto('/mission/games');
+  const codonTile = page.locator('[data-game-slug="codon2048"]');
+  await expect(codonTile.getByRole('link', { name: /Play/i })).toHaveAttribute(
+    'href',
+    '/games/codon2048/',
+  );
 });

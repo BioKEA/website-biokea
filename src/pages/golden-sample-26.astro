@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
-import { projects } from '@/data/projects';
+import { games } from '@/data/games';
 import { stringifyJsonLd } from '@/lib/json-ld';
 
 // Sean swaps this when the Google Form is provisioned.
@@ -149,34 +149,36 @@ const eventLd = {
   <section id="the-games" class="max-w-6xl mx-auto px-6 py-12">
     <Eyebrow>THE GAMES</Eyebrow>
     <p class="mt-3 max-w-[62ch] text-slate-600 leading-relaxed">
-      A card is hidden inside each one. Some games are live now; others reveal during the hunt
-      window.
+      Six playable games. One Golden Sample Card hidden inside each. Click in, play, and look for
+      what doesn't belong.
     </p>
     <ul class="mt-6 grid md:grid-cols-3 gap-4">
       {
-        projects.map((p) => (
-          <li class="border border-slate-900/10 rounded-md p-4 bg-[var(--color-cream-warm)]">
-            <p class="font-mono-label text-[var(--color-teal)]">
-              {p.status === 'live'
-                ? 'Live'
-                : p.status === 'revealing-soon'
-                  ? 'Revealing soon'
-                  : 'Coming soon'}
-            </p>
-            <h3 class="mt-2 font-semibold text-[var(--color-ink)]">{p.title}</h3>
-            <p class="mt-1 text-xs font-mono text-[var(--color-ochre)]">
-              🔒 Golden Sample Card · hidden inside
-            </p>
-            {p.link && (
+        games.map((g) => (
+          <li class="border border-slate-900/10 rounded-md overflow-hidden bg-[var(--color-cream-warm)] flex flex-col">
+            <a href={g.playUrl} class="block group">
+              <img
+                src={g.thumb}
+                alt={`${g.title} screenshot`}
+                width="1200"
+                height="750"
+                class="w-full aspect-[8/5] object-cover bg-slate-900 group-hover:opacity-90 transition"
+                loading="lazy"
+              />
+            </a>
+            <div class="p-4 flex flex-col flex-1">
+              <h3 class="font-semibold text-[var(--color-ink)]">{g.title}</h3>
+              <p class="mt-1 text-sm text-slate-600 leading-relaxed flex-1">{g.tagline}</p>
+              <p class="mt-3 text-xs font-mono text-[var(--color-ochre)]">
+                🔒 Golden Sample Card · hidden inside
+              </p>
               <a
-                href={p.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="mt-3 inline-block text-sm underline decoration-slate-400 hover:text-[var(--color-teal)]"
+                href={g.playUrl}
+                class="mt-3 inline-block text-sm font-semibold underline decoration-slate-400 hover:text-[var(--color-teal)]"
               >
-                Open game →
+                Play →
               </a>
-            )}
+            </div>
           </li>
         ))
       }

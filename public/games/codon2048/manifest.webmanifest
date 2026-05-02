@@ -1,0 +1,26 @@
+{
+  "name": "Codon Collider",
+  "short_name": "Collider",
+  "description": "A daily DNA-merge puzzle. Smash matching sequences to build life from a single base to a complete ecosystem.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#06080d",
+  "theme_color": "#06080d",
+  "categories": ["games", "puzzle"],
+  "icons": [
+    {
+      "src": "/icon-512.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

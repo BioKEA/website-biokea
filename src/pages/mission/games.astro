@@ -1,24 +1,7 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
-import GamePlaceholder from '@/components/ui/GamePlaceholder.astro';
-import { projects } from '@/data/projects';
-
-// First-draft taglines per project. Sean to redline.
-const tagline: Record<string, string> = {
-  'california-intertidal-gap-analysis': "Find what hasn't been found yet.",
-  'california-insect-barcoding': 'A million tiny names, mapped.',
-  dakinediving: 'Read the ocean before you dive.',
-  'bay-estuary-metabarcoding-baseline': 'Listen to a watershed in molecules.',
-  'long-read-microbial-resource': 'The genomes nobody else will sequence.',
-  colloquip: 'Watch six scientists argue. Pick a side.',
-};
-
-const statusLabel: Record<string, string> = {
-  live: 'Live',
-  'revealing-soon': 'Revealing soon',
-  'coming-soon': 'Coming soon',
-};
+import { games } from '@/data/games';
 ---
 
 <BaseLayout
@@ -38,49 +21,41 @@ const statusLabel: Record<string, string> = {
         layer that turns it into something a person can <em>encounter</em> is what's missing.
       </p>
       <p>
-        BioKEA hides its science inside games. Each of the six projects below is also a play
-        surface. Inside one of them, a Golden Sample Card is hidden. Find all six and you can win
-        real sequencing of your own backyard soil.
+        BioKEA hides its science inside games. The six below are real, playable, and built around
+        what we actually do in the lab. Inside one of them, a Golden Sample Card is hidden. Find all
+        six and you can win real sequencing of your own backyard soil.
       </p>
     </div>
   </section>
 
   <section class="max-w-6xl mx-auto px-6 py-8">
     <Eyebrow>THE SIX GAMES</Eyebrow>
-    <ul class="mt-6 grid md:grid-cols-2 gap-6">
+    <ul class="mt-6 grid md:grid-cols-2 gap-6" data-testid="games-list">
       {
-        projects.map((p) => (
-          <li class="border border-slate-900/10 rounded-md overflow-hidden bg-[var(--color-cream-warm)]">
-            {p.hero && (
+        games.map((g) => (
+          <li
+            data-game-slug={g.slug}
+            class="border border-slate-900/10 rounded-md overflow-hidden bg-[var(--color-cream-warm)] flex flex-col"
+          >
+            <a href={g.playUrl} class="block group">
               <img
-                src={p.hero}
-                alt={p.heroAlt ?? ''}
-                width={p.heroWidth ?? 1200}
-                height={p.heroHeight ?? 675}
-                class="w-full aspect-[16/9] object-cover"
+                src={g.thumb}
+                alt={`${g.title} screenshot`}
+                width="1200"
+                height="750"
+                class="w-full aspect-[8/5] object-cover bg-slate-900 group-hover:opacity-90 transition"
                 loading="lazy"
               />
-            )}
-            <div class="p-5">
-              <p class="font-mono-label text-[var(--color-teal)]">
-                {statusLabel[p.status] ?? p.status}
-              </p>
-              <h2 class="mt-2 text-xl font-semibold text-[var(--color-ink)]">{p.title}</h2>
-              <p class="mt-1 italic text-slate-600">{tagline[p.slug]}</p>
-              <p class="mt-3 text-sm text-slate-600 leading-relaxed">{p.summary}</p>
-              <div class="mt-4">
-                <GamePlaceholder gameId={p.slug} />
-              </div>
-              {p.link && (
-                <a
-                  href={p.link}
-                  class="mt-4 inline-block text-sm font-medium underline decoration-slate-400 hover:text-[var(--color-teal)]"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Play / explore →
-                </a>
-              )}
+            </a>
+            <div class="p-5 flex flex-col flex-1">
+              <h2 class="text-xl font-semibold text-[var(--color-ink)]">{g.title}</h2>
+              <p class="mt-2 italic text-slate-600">{g.tagline}</p>
+              <a
+                href={g.playUrl}
+                class="mt-4 inline-block text-sm font-semibold underline decoration-slate-400 hover:text-[var(--color-teal)]"
+              >
+                Play →
+              </a>
             </div>
           </li>
         ))
