@@ -36,7 +36,7 @@ export const team: TeamMember[] = [
     name: 'Michelle Jungbluth',
     role: 'CSO, Co-Founder',
     postNominal: 'PhD',
-    image: '/assets/images/portrait-michelle.webp',
+    image: '/assets/images/portrait-michelle-clean.jpg',
     alt: 'Headshot of Michelle Jungbluth',
     tier: 'team',
     bio: "Marine and estuarine ecologist focused on zooplankton communities and food-web dynamics. Combines field sampling with DNA barcoding, eDNA, qPCR, and metabarcoding to track threatened estuarine fishes — including longfin smelt — and identify indicator species in human-impacted wetlands. Lead investigator on BioKEA's San Francisco Bay metabarcoding baseline.",
