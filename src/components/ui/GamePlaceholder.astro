@@ -1,0 +1,39 @@
+---
+// src/components/ui/GamePlaceholder.astro
+// A placeholder slot for the lightweight Golden Sample Hunt game on a
+// project tile. Default state: shows a locked "card hidden here" UI.
+// When a slot is provided, the slot replaces the default UI — Sean can
+// drop in a real interaction per project without changing this file.
+
+interface Props {
+  gameId: string;
+  class?: string;
+}
+const { gameId, class: klass = '' } = Astro.props;
+const hasSlot = Astro.slots.has('default');
+---
+
+<div
+  data-game-id={gameId}
+  class:list={[
+    'rounded-md border border-dashed text-sm',
+    hasSlot ? 'border-transparent p-0' : 'border-slate-900/20 bg-slate-50/60 p-4',
+    klass,
+  ]}
+>
+  {
+    hasSlot ? (
+      <slot />
+    ) : (
+      <div class="flex items-center gap-3 text-slate-600">
+        <span aria-hidden="true" class="text-base">
+          🔒
+        </span>
+        <div>
+          <p class="font-mono-label text-[var(--color-ochre)]">Golden Sample Card · hidden here</p>
+          <p class="mt-1 text-xs text-slate-500">Lightweight game coming soon.</p>
+        </div>
+      </div>
+    )
+  }
+</div>
