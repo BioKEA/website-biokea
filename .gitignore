@@ -19,6 +19,11 @@
 # `npm run games:build` (or `npm run build`) to populate this dir.
 /public/games/
 
+# Original .zip source bundles for the six games. Each game now lives
+# in its own private GitHub repo (BioKEA/game-<slug>); these zips are
+# kept locally as an archive but aren't tracked.
+/games/
+
 # production
 /build
 
