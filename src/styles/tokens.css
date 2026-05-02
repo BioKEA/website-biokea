@@ -23,6 +23,10 @@
   /* Warm */
   --color-ochre: #92400e;
 
+  /* Promo — Golden Sample Hunt only (May–Jun 2026) */
+  --color-gold: #d4a437;
+  --color-gold-soft: #f5d27a;
+
   /* Grid line */
   --color-grid: rgba(30, 41, 59, 0.04);
 
