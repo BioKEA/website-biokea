@@ -16,7 +16,7 @@
 // whole biokea.ai deploy.
 
 import { execSync } from 'node:child_process';
-import { cpSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -62,10 +62,35 @@ function run(cmd, opts = {}) {
 const token = getToken();
 if (!token) {
   console.warn(
-    '[games-build] No GITHUB_TOKEN and no gh auth — skipping clones. Bundled artifacts under public/games/<slug>/ will serve as-is.',
+    '[games-build] No GITHUB_TOKEN and no gh auth — skipping clones. /games/<slug>/ routes will 404 unless public/games/ already populated locally.',
   );
   process.exit(0);
 }
+
+// Tokenize all github.com HTTPS URLs for the duration of this build, so
+// `npm install` inside each game can also clone its private deps (notably
+// @biokea/leaderboard pulled via `github:BioKEA/biokea-leaderboard-js#main`).
+// We write a build-local gitconfig and point HOME at it so we don't pollute
+// the user's global config in local dev.
+const tmpHome = mkdtempSync(join(tmpdir(), 'games-build-home-'));
+writeFileSync(
+  join(tmpHome, '.gitconfig'),
+  // - url.insteadOf rewrites all https://github.com/ to include our token
+  // - credential.helper is set to "" to disable any inherited helper
+  //   (macOS osxkeychain triggers a "Keychain not Found" prompt during
+  //   builds; we don't need it because the token is in the rewritten URL).
+  // - core.askpass=true with GIT_TERMINAL_PROMPT=0 ensures no interactive
+  //   credential prompts under any circumstance.
+  `[url "https://x-access-token:${token}@github.com/"]\n` +
+    `\tinsteadOf = https://github.com/\n` +
+    `[credential]\n` +
+    `\thelper =\n`,
+);
+const gitEnv = {
+  ...process.env,
+  HOME: tmpHome,
+  GIT_TERMINAL_PROMPT: '0',
+};
 
 let okCount = 0;
 let failCount = 0;
@@ -75,16 +100,14 @@ for (const game of games) {
   console.log(`\n[games-build] ${game.slug}: ${game.repo}`);
   try {
     mkdirSync(work, { recursive: true });
-    run(
-      `git clone --depth 1 https://x-access-token:${token}@github.com/${game.repo}.git ${work}`,
-    );
+    run(`git clone --depth 1 https://github.com/${game.repo}.git ${work}`, { env: gitEnv });
     run('npm install --no-audit --no-fund --no-progress', {
       cwd: work,
-      env: { ...process.env, ...stubEnv },
+      env: { ...gitEnv, ...stubEnv },
     });
     run(`npx vite build --base /games/${game.slug}/`, {
       cwd: work,
-      env: { ...process.env, ...stubEnv },
+      env: { ...gitEnv, ...stubEnv },
     });
     const out = join(root, 'public', 'games', game.slug);
     rmSync(out, { recursive: true, force: true });
@@ -100,6 +123,9 @@ for (const game of games) {
   }
 }
 
-console.log(`\n[games-build] done. ${okCount} ok · ${failCount} failed (fallback in use)`);
+// Clean up the build-local gitconfig (token-bearing) before exit.
+rmSync(tmpHome, { recursive: true, force: true });
+
+console.log(`\n[games-build] done. ${okCount} ok · ${failCount} failed`);
 // Always exit 0; we don't want one upstream blip to nuke the marketing-site deploy.
 process.exit(0);
