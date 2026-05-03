@@ -45,6 +45,23 @@ export interface Project {
 
 export const projects: Project[] = [
   {
+    slug: 'sequoia-foundation-model',
+    title: 'Sequoia™ — a foundation model for global biodiversity',
+    summary:
+      "BioKEA's multimodal foundation model: it learns biology from DNA, images, and the spatial environment all at once — what an organism is, what it looks like, and where it lives. Reads partial DNA, fragmentary photographs, and habitat maps as one signal. Two tiers: the Seed (a small, single-file model that runs on a laptop, for education and open collaboration) and the Forest (the production engine that processes hundreds of millions of biodiversity datapoints).",
+    type: 'AI foundation model',
+    year: '2026–2027',
+    tags: ['AI', 'foundation model', 'multimodal', 'biodiversity', 'computer vision', 'DNA'],
+    status: 'coming-soon',
+    revealTarget: '2027',
+    hero: '/assets/images/sequoia-foundation-model.jpg',
+    heroAlt:
+      'Sequoia title slide — a redwood canopy seen from below, with a stylized golden tree-ring icon at the center, and the words "Introducing Sequoia: BioKEA\'s Foundation Model for Global Biodiversity. A Living Brain for the Natural World."',
+    heroWidth: 1600,
+    heroHeight: 893,
+    team: [{ name: 'Sean', lead: true }],
+  },
+  {
     slug: 'california-intertidal-gap-analysis',
     title: 'Intertidal Biodiversity DNA Barcode Library',
     summary:
