@@ -36,53 +36,34 @@ import { games } from '@/data/games';
         </div>
       </div>
 
-      <div class="lg:sticky lg:top-6 flex flex-col gap-5">
-        <aside
-          class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden"
-          data-leaderboard-panel
-        >
-          <div class="bg-[var(--color-ink)] text-[var(--color-cream)] px-5 py-4">
-            <div
-              class="font-mono text-[10px] tracking-[0.22em] uppercase text-[var(--color-ochre)]"
-            >
-              Daily ranks
-            </div>
-            <h2 class="mt-1 text-3xl font-semibold tracking-[-0.02em] leading-tight">
-              Game Leaderboard
-            </h2>
-            <div
-              class="mt-2 flex items-baseline gap-2 font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-cream)]/70"
-            >
-              <span>Top today</span>
-              <span class="text-[var(--color-cream)]/30">·</span>
-              <span data-leaderboard-date>—</span>
-            </div>
-          </div>
-          <div class="p-5">
-            <p class="text-[11px] text-slate-500 leading-snug">
-              Highest daily-seed scores across the four games with leaderboards.
-            </p>
-            <ul class="mt-4 flex flex-col gap-3" data-leaderboard-list>
-              <li class="text-[11px] font-mono text-slate-400 italic">loading…</li>
-            </ul>
-          </div>
-        </aside>
-
-        <aside class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-5">
+      <aside
+        class="lg:sticky lg:top-6 bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden"
+        data-leaderboard-panel
+      >
+        <div class="bg-[var(--color-ink)] text-[var(--color-cream)] px-5 py-4">
           <div class="font-mono text-[10px] tracking-[0.22em] uppercase text-[var(--color-ochre)]">
-            Lab updates
+            Daily ranks
           </div>
-          <h3 class="mt-1 text-base font-semibold text-[var(--color-ink)] leading-tight">
-            Be the first to play the next one.
-          </h3>
-          <p class="mt-2 text-[12px] text-slate-600 leading-relaxed">
-            New games, papers, and the Golden Sample Hunt — straight to your inbox.
+          <h2 class="mt-1 text-3xl font-semibold tracking-[-0.02em] leading-tight">
+            Game Leaderboard
+          </h2>
+          <div
+            class="mt-2 flex items-baseline gap-2 font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-cream)]/70"
+          >
+            <span>Top today</span>
+            <span class="text-[var(--color-cream)]/30">·</span>
+            <span data-leaderboard-date>—</span>
+          </div>
+        </div>
+        <div class="p-5">
+          <p class="text-[11px] text-slate-500 leading-snug">
+            Highest daily-seed scores across the four games with leaderboards.
           </p>
-          <div class="mt-3">
-            <SubscribeForm source="mission-games-page" />
-          </div>
-        </aside>
-      </div>
+          <ul class="mt-4 flex flex-col gap-3" data-leaderboard-list>
+            <li class="text-[11px] font-mono text-slate-400 italic">loading…</li>
+          </ul>
+        </div>
+      </aside>
     </div>
   </section>
 
@@ -232,15 +213,30 @@ import { games } from '@/data/games';
           </li>
         ))
       }
+      <li class="flex items-start lg:col-start-1 py-2">
+        <a
+          href="/golden-sample-26"
+          class="inline-flex items-center gap-2 font-mono-label text-[var(--color-ochre)] hover:text-[var(--color-teal)]"
+        >
+          Six cards are hidden. Find them all. →
+        </a>
+      </li>
+      <li
+        class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-6 flex flex-col md:col-span-2 lg:col-start-2 lg:col-span-2"
+      >
+        <div class="font-mono text-[10px] tracking-[0.22em] uppercase text-[var(--color-ochre)]">
+          Lab updates
+        </div>
+        <h2 class="mt-2 text-lg font-semibold text-[var(--color-ink)] leading-tight">
+          Be the first to play the next one.
+        </h2>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed">
+          New games, papers, and the Golden Sample Hunt — straight to your inbox.
+        </p>
+        <div class="mt-5 pt-4 border-t border-slate-900/10">
+          <SubscribeForm source="mission-games-page" />
+        </div>
+      </li>
     </ul>
-  </section>
-
-  <section class="max-w-6xl mx-auto px-6 py-12">
-    <a
-      href="/golden-sample-26"
-      class="inline-flex items-center gap-2 font-mono-label text-[var(--color-ochre)] hover:text-[var(--color-teal)]"
-    >
-      Six cards are hidden. Find them all. →
-    </a>
   </section>
 </BaseLayout>
