@@ -51,7 +51,14 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci
-      - run: npm run build
+      - name: Build site (incl. cloning + building 6 games from BioKEA/game-* repos)
+        run: npm run build
+        env:
+          # scripts/build-games.mjs reads GITHUB_TOKEN to clone the per-game
+          # private repos. The default GH Actions GITHUB_TOKEN is repo-scoped
+          # to BioKEA/website-biokea only — it can't read BioKEA/game-* — so
+          # we use a separate fine-grained PAT stored as BIOKEA_GAMES_PAT.
+          GITHUB_TOKEN: ${{ secrets.BIOKEA_GAMES_PAT }}
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
