@@ -38,14 +38,39 @@ function readGames() {
 }
 const games = readGames();
 
+// Slugs whose builds should ship with real Supabase credentials so the
+// shared @biokea/leaderboard client can submit + read scores. The other
+// games build with stubs and silently no-op (createClient throws on an
+// empty URL, hence why we still set *something*).
+const LEADERBOARD_ENABLED = new Set([
+  'codon2048',
+  'pipette-rush',
+  'plasmid-plinko',
+  'particle-survival-shooter',
+]);
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+const hasSupabaseSecrets = !!(supabaseUrl && supabasePublishableKey);
+
 const stubEnv = {
-  // Games crash at import time if Supabase env is empty (createClient throws
-  // on empty URL). Stub these so builds succeed; leaderboards silently no-op
-  // against an unreachable host.
   VITE_SUPABASE_URL: 'https://stub.invalid',
   VITE_SUPABASE_ANON_KEY: 'stub-anon-key',
   VITE_SUPABASE_PUBLISHABLE_KEY: 'stub-anon-key',
 };
+
+const liveEnv = hasSupabaseSecrets
+  ? {
+      VITE_SUPABASE_URL: supabaseUrl,
+      VITE_SUPABASE_ANON_KEY: supabasePublishableKey,
+      VITE_SUPABASE_PUBLISHABLE_KEY: supabasePublishableKey,
+    }
+  : null;
+
+function envForGame(slug) {
+  if (LEADERBOARD_ENABLED.has(slug) && liveEnv) return liveEnv;
+  return stubEnv;
+}
 
 function getToken() {
   if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN;
@@ -98,17 +123,21 @@ let failCount = 0;
 
 for (const game of games) {
   const work = join(tmpdir(), `games-build-${game.slug}-${process.pid}-${Date.now()}`);
-  console.log(`\n[games-build] ${game.slug}: ${game.repo}`);
+  const buildEnv = envForGame(game.slug);
+  const leaderboardLive = buildEnv === liveEnv;
+  console.log(
+    `\n[games-build] ${game.slug}: ${game.repo}${leaderboardLive ? ' [leaderboard: live]' : ''}`,
+  );
   try {
     mkdirSync(work, { recursive: true });
     run(`git clone --depth 1 https://github.com/${game.repo}.git ${work}`, { env: gitEnv });
     run('npm install --no-audit --no-fund --no-progress', {
       cwd: work,
-      env: { ...gitEnv, ...stubEnv },
+      env: { ...gitEnv, ...buildEnv },
     });
     run(`npx vite build --base /mission/games/${game.slug}/`, {
       cwd: work,
-      env: { ...gitEnv, ...stubEnv },
+      env: { ...gitEnv, ...buildEnv },
     });
     const out = join(root, 'public', 'mission', 'games', game.slug);
     rmSync(out, { recursive: true, force: true });

@@ -59,6 +59,12 @@ jobs:
           # public, so the default per-run GH Actions token is sufficient —
           # any authenticated request can read public repos.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Shared Supabase project for the @biokea/leaderboard client.
+          # build-games.mjs only injects these into LEADERBOARD_ENABLED games
+          # (codon2048, pipette-rush, plasmid-plinko, particle-survival-shooter);
+          # the other two ship with stub env so leaderboards no-op.
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
