@@ -10,28 +10,157 @@ import { games } from '@/data/games';
 >
   <section class="max-w-6xl mx-auto px-6 pt-16 pb-8">
     <Eyebrow>STORYTELLING</Eyebrow>
-    <h1
-      class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[24ch]"
-    >
-      Biology, played.
-    </h1>
-    <div class="mt-5 max-w-[62ch] text-slate-600 leading-relaxed space-y-4">
-      <p>
-        Modern biology's bottleneck is not instruments — it is storytelling. The data exists; the
-        layer that turns it into something a person can <em>encounter</em> is what's missing.
-      </p>
-      <p>
-        BioKEA hides its science inside games. The six below are real, playable, and built around
-        what we actually do in the lab. Inside one of them, a Golden Sample Card is hidden. Find all
-        six and you can win real sequencing of your own backyard soil.
-      </p>
-    </div>
-    <div class="mt-6 flex gap-3 flex-wrap font-mono text-[11px] tracking-[0.08em] uppercase">
-      <span class="text-[var(--color-teal)]">{games.length} PLAYABLE</span>
-      <span class="text-slate-400">·</span>
-      <span class="text-[var(--color-ochre)]">1 GOLDEN SAMPLE HIDDEN</span>
+    <div class="mt-3 grid lg:grid-cols-[minmax(0,62ch)_minmax(0,1fr)] gap-x-10 gap-y-8 items-start">
+      <div>
+        <h1
+          class="text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[24ch]"
+        >
+          Biology, played.
+        </h1>
+        <div class="mt-5 text-slate-600 leading-relaxed space-y-4">
+          <p>
+            Modern biology's bottleneck is not instruments — it is storytelling. The data exists;
+            the layer that turns it into something a person can <em>encounter</em> is what's missing.
+          </p>
+          <p>
+            BioKEA hides its science inside games. The six below are real, playable, and built
+            around what we actually do in the lab. Inside one of them, a Golden Sample Card is
+            hidden. Find all six and you can win real sequencing of your own backyard soil.
+          </p>
+        </div>
+        <div class="mt-6 flex gap-3 flex-wrap font-mono text-[11px] tracking-[0.08em] uppercase">
+          <span class="text-[var(--color-teal)]">{games.length} PLAYABLE</span>
+          <span class="text-slate-400">·</span>
+          <span class="text-[var(--color-ochre)]">1 GOLDEN SAMPLE HIDDEN</span>
+        </div>
+      </div>
+
+      <aside
+        class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden lg:sticky lg:top-6"
+        data-leaderboard-panel
+      >
+        <div class="bg-[var(--color-ink)] text-[var(--color-cream)] px-5 py-4">
+          <div class="font-mono text-[10px] tracking-[0.22em] uppercase text-[var(--color-ochre)]">
+            Daily ranks
+          </div>
+          <h2 class="mt-1 text-3xl font-semibold tracking-[-0.02em] leading-tight">
+            Game Leaderboard
+          </h2>
+          <div
+            class="mt-2 flex items-baseline gap-2 font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-cream)]/70"
+          >
+            <span>Top today</span>
+            <span class="text-[var(--color-cream)]/30">·</span>
+            <span data-leaderboard-date>—</span>
+          </div>
+        </div>
+        <div class="p-5">
+          <p class="text-[11px] text-slate-500 leading-snug">
+            Highest daily-seed scores across the four games with leaderboards.
+          </p>
+          <ul class="mt-4 flex flex-col gap-3" data-leaderboard-list>
+            <li class="text-[11px] font-mono text-slate-400 italic">loading…</li>
+          </ul>
+        </div>
+      </aside>
     </div>
   </section>
+
+  <script
+    is:inline
+    define:vars={{
+      supabaseUrl: 'https://xkmfsxcaapyuxachtcsy.supabase.co',
+      supabaseKey: 'sb_publishable_HmeteofpCTVchDfmzrMAxg_y0ea1IM1',
+      games: [
+        { id: 'codon2048', title: 'Codon Collider', mode: 'classic-daily', unit: 'pts' },
+        { id: 'pipette-rush', title: 'Pipette Rush', mode: 'daily', unit: 'pts' },
+        { id: 'plasmid-plinko', title: 'Plasmid Plinko', mode: 'daily', unit: 'pts' },
+        {
+          id: 'particle-survival-shooter',
+          title: 'Particle Accelerator',
+          mode: 'daily',
+          unit: 'sec',
+        },
+      ],
+    }}
+  >
+    (async () => {
+      const panel = document.querySelector('[data-leaderboard-panel]');
+      if (!panel) return;
+      const list = panel.querySelector('[data-leaderboard-list]');
+      const dateEl = panel.querySelector('[data-leaderboard-date]');
+
+      const day = new Date().toISOString().slice(0, 10);
+      if (dateEl) dateEl.textContent = day;
+
+      function fmtScore(score, unit) {
+        if (unit === 'sec') {
+          const m = Math.floor(score / 60);
+          const r = Math.floor(score % 60);
+          return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
+        }
+        return Number(score).toLocaleString();
+      }
+
+      function escapeHtml(s) {
+        return String(s).replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              '&': '&amp;',
+              '<': '&lt;',
+              '>': '&gt;',
+              '"': '&quot;',
+              "'": '&#39;',
+            })[c],
+        );
+      }
+
+      async function fetchTop(game) {
+        const params = new URLSearchParams({
+          select: 'player_handle,score',
+          game_id: `eq.${game.id}`,
+          mode: `eq.${game.mode}`,
+          seed: `eq.${day}`,
+          order: 'score.desc',
+          limit: '1',
+        });
+        const res = await fetch(`${supabaseUrl}/rest/v1/scores?${params}`, {
+          headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
+        });
+        if (!res.ok) return [];
+        return res.json();
+      }
+
+      try {
+        const results = await Promise.all(
+          games.map(async (g) => ({ game: g, rows: await fetchTop(g) })),
+        );
+        if (!list) return;
+        list.innerHTML = results
+          .map(({ game, rows }) => {
+            const top = rows[0];
+            const right = top
+              ? `<span class="font-mono text-[12px] text-[var(--color-ink)]"><span class="text-slate-700">${escapeHtml(top.player_handle)}</span> <span class="text-slate-400">·</span> ${escapeHtml(fmtScore(top.score, game.unit))}</span>`
+              : `<span class="font-mono text-[10px] tracking-[0.1em] uppercase text-slate-400">be first</span>`;
+            return `
+              <li class="flex items-baseline justify-between gap-3">
+                <a href="/mission/games/${game.id}/" class="text-sm text-[var(--color-ink)] hover:text-[var(--color-teal)] transition truncate">
+                  ${escapeHtml(game.title)}
+                </a>
+                ${right}
+              </li>
+            `;
+          })
+          .join('');
+      } catch {
+        if (list) {
+          list.innerHTML =
+            '<li class="text-[11px] font-mono text-slate-400 italic">leaderboard offline</li>';
+        }
+      }
+    })();
+  </script>
 
   <section class="max-w-6xl mx-auto px-6 pb-12">
     <ul class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="games-list">

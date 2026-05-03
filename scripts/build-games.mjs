@@ -72,6 +72,31 @@ function envForGame(slug) {
   return stubEnv;
 }
 
+// Injected into every game's index.html so players can escape back to the
+// games index without us having to ship the same change to six repos. We
+// intentionally inline all styling so the button works no matter how the
+// game's own CSS is structured (some games reset everything; some don't).
+const BACK_BUTTON_HTML = `<a href="/mission/games/" id="biokea-back" aria-label="Back to BioKEA games" style="position:fixed;top:12px;left:12px;z-index:2147483647;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:9999px;background:rgba(15,23,42,0.78);color:#f8fafc;text-decoration:none;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 2px 8px rgba(0,0,0,0.18);transition:background 0.15s ease;line-height:1;" onmouseover="this.style.background='rgba(15,23,42,0.94)'" onmouseout="this.style.background='rgba(15,23,42,0.78)'"><span style="font-size:14px;line-height:1;">&larr;</span><span>Back</span></a>`;
+
+function injectBackButton(indexHtmlPath) {
+  let html;
+  try {
+    html = readFileSync(indexHtmlPath, 'utf-8');
+  } catch {
+    // Some games may not have a top-level index.html (unlikely with Vite,
+    // but treat as non-fatal); fall through and continue the build.
+    return false;
+  }
+  // Match the opening <body> tag — possibly with attributes — and append
+  // the back-button HTML right after it. Idempotent: if a previous run
+  // already injected the marker, skip.
+  if (html.includes('id="biokea-back"')) return true;
+  const next = html.replace(/<body([^>]*)>/i, (match, attrs) => `<body${attrs}>${BACK_BUTTON_HTML}`);
+  if (next === html) return false;
+  writeFileSync(indexHtmlPath, next);
+  return true;
+}
+
 function getToken() {
   if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN;
   try {
@@ -142,6 +167,7 @@ for (const game of games) {
     const out = join(root, 'public', 'mission', 'games', game.slug);
     rmSync(out, { recursive: true, force: true });
     cpSync(join(work, 'dist'), out, { recursive: true });
+    injectBackButton(join(out, 'index.html'));
     console.log(`[games-build] ${game.slug}: ✓ built from ${game.repo}`);
     okCount++;
   } catch (err) {
