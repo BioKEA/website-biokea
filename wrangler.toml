@@ -1,4 +1,4 @@
-name = "biokea"
+name = "biokeawebsite"
 compatibility_date = "2026-04-18"
 
 # Astro's Cloudflare adapter emits the worker entry + static assets;
