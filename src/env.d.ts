@@ -12,3 +12,19 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+// `cloudflare:workers` is a virtual module provided by the Cloudflare
+// Workers runtime (and by @astrojs/cloudflare's platformProxy in dev).
+// Astro v6 + @astrojs/cloudflare v13 require it for runtime env access
+// — Astro.locals.runtime.env was removed.
+declare module 'cloudflare:workers' {
+  export const env: {
+    RESEND_API_KEY?: string;
+    CONTACT_FROM_EMAIL?: string;
+    CONTACT_TO_EMAIL?: string;
+    SUPABASE_URL?: string;
+    SUPABASE_PUBLISHABLE_KEY?: string;
+    TURNSTILE_SECRET_KEY?: string;
+    [key: string]: unknown;
+  };
+}

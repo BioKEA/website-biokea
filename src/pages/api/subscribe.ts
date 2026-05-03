@@ -7,6 +7,10 @@
 // Mirrors the validation+honeypot+optional-Turnstile pattern of
 // src/pages/api/contact.ts so the two endpoints stay shaped alike.
 import type { APIContext } from 'astro';
+// In Astro v6 + @astrojs/cloudflare v13, runtime env moved from
+// Astro.locals.runtime.env to the cloudflare:workers virtual module.
+// platformProxy in astro.config.mjs makes this resolvable in dev too.
+import { env } from 'cloudflare:workers';
 import { z } from 'zod';
 
 export const prerender = false;
@@ -190,10 +194,10 @@ export async function handleSubscribe(
   return json({ ok: true, alreadySubscribed: result.alreadyExists }, 200);
 }
 
-export async function POST({ request, locals, clientAddress }: APIContext): Promise<Response> {
-  const env = (locals as { runtime?: { env?: Env } }).runtime?.env;
-  if (!env?.RESEND_API_KEY || !env.SUPABASE_URL || !env.SUPABASE_PUBLISHABLE_KEY) {
+export async function POST({ request, clientAddress }: APIContext): Promise<Response> {
+  const e = env as unknown as Env;
+  if (!e?.RESEND_API_KEY || !e.SUPABASE_URL || !e.SUPABASE_PUBLISHABLE_KEY) {
     return json({ ok: false, error: 'Subscribe form is not configured.' }, 500);
   }
-  return handleSubscribe(request, env, clientAddress);
+  return handleSubscribe(request, e, clientAddress);
 }

@@ -1,5 +1,9 @@
 // src/pages/api/contact.ts
 import type { APIContext } from 'astro';
+// In Astro v6 + @astrojs/cloudflare v13, runtime env moved from
+// Astro.locals.runtime.env to the cloudflare:workers virtual module.
+// platformProxy in astro.config.mjs makes this resolvable in dev too.
+import { env } from 'cloudflare:workers';
 import { z } from 'zod';
 
 export const prerender = false;
@@ -135,10 +139,10 @@ export async function handleContact(
   return json({ ok: true }, 200);
 }
 
-export async function POST({ request, locals, clientAddress }: APIContext): Promise<Response> {
-  const env = (locals as { runtime?: { env?: Env } }).runtime?.env;
-  if (!env?.RESEND_API_KEY) {
+export async function POST({ request, clientAddress }: APIContext): Promise<Response> {
+  const e = env as unknown as Env;
+  if (!e?.RESEND_API_KEY) {
     return json({ ok: false, error: 'Contact form is not configured.' }, 500);
   }
-  return handleContact(request, env, clientAddress);
+  return handleContact(request, e, clientAddress);
 }
