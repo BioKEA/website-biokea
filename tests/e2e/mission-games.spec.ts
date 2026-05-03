@@ -30,7 +30,9 @@ test('mission/games footer CTA links to /golden-sample-26', async ({ page }) => 
 test('mission/games tile links go to /mission/games/<slug>/', async ({ page }) => {
   await page.goto('/mission/games');
   const codonTile = page.locator('[data-game-slug="codon2048"]');
-  await expect(codonTile.getByRole('link', { name: /Play/i })).toHaveAttribute(
+  // Each tile has two links to the same playUrl (image + footer "Play" link);
+  // assert the footer link by its exact accessible name.
+  await expect(codonTile.getByRole('link', { name: 'Play Codon Collider ↗' })).toHaveAttribute(
     'href',
     '/mission/games/codon2048/',
   );

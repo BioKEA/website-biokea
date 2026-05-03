@@ -22,6 +22,8 @@ const badge = {
 }[project.status];
 
 const isLive = project.status === 'live';
+const isComingSoon = project.status === 'coming-soon';
+const hasHero = !!project.hero || (project.heroes && project.heroes.length > 0);
 ---
 
 <article
@@ -71,6 +73,20 @@ const isLive = project.status === 'live';
               </div>
             )}
           </div>
+        </div>
+      )
+    }
+    {
+      isComingSoon && hasHero && (
+        <div class="absolute inset-x-0 bottom-0 bg-[var(--color-ink)]/85 px-4 py-3 flex items-baseline justify-between gap-3">
+          <span class="font-mono text-[12px] font-semibold tracking-[0.18em] uppercase text-[var(--color-cream)]">
+            Coming soon
+          </span>
+          {project.revealTarget && (
+            <span class="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-ochre)]">
+              Target · {project.revealTarget}
+            </span>
+          )}
         </div>
       )
     }
