@@ -3,6 +3,11 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
 import SubscribeForm from '@/components/forms/SubscribeForm.astro';
 import { games } from '@/data/games';
+import {
+  LEADERBOARD_GAMES,
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY,
+} from '@/data/leaderboard-games';
 ---
 
 <BaseLayout
@@ -41,27 +46,46 @@ import { games } from '@/data/games';
         data-leaderboard-panel
       >
         <div class="bg-[var(--color-ink)] text-[var(--color-cream)] px-5 py-4">
-          <div class="font-mono text-[10px] tracking-[0.22em] uppercase text-[var(--color-ochre)]">
-            Daily ranks
+          <div
+            class="font-mono text-[10px] tracking-[0.22em] uppercase text-[var(--color-ochre)] flex items-baseline gap-2"
+          >
+            <span>BKP</span>
+            <span class="text-[var(--color-cream)]/30">·</span>
+            <span data-leaderboard-date>—</span>
           </div>
           <h2 class="mt-1 text-3xl font-semibold tracking-[-0.02em] leading-tight">
             Game Leaderboard
           </h2>
-          <div
-            class="mt-2 flex items-baseline gap-2 font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-cream)]/70"
-          >
-            <span>Top today</span>
-            <span class="text-[var(--color-cream)]/30">·</span>
-            <span data-leaderboard-date>—</span>
-          </div>
+          <p class="mt-2 text-[11px] text-[var(--color-cream)]/70 leading-snug">
+            BioKEA Points across the six games — earn BKP by ranking on any daily seed.
+          </p>
         </div>
         <div class="p-5">
-          <p class="text-[11px] text-slate-500 leading-snug">
-            Highest daily-seed scores across the four games with leaderboards.
-          </p>
-          <ul class="mt-4 flex flex-col gap-3" data-leaderboard-list>
-            <li class="text-[11px] font-mono text-slate-400 italic">loading…</li>
-          </ul>
+          <div data-leaderboard-champion class="mb-3">
+            <div class="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
+              Today's leader
+            </div>
+            <div
+              class="mt-1 text-lg font-semibold text-[var(--color-ink)] leading-tight"
+              data-champion-name
+            >
+              <span class="text-slate-400 italic font-normal">loading…</span>
+            </div>
+          </div>
+          <div class="border-t border-slate-900/10 pt-3 mb-3">
+            <div class="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 mb-2">
+              Daily tops
+            </div>
+            <ul class="flex flex-col gap-2" data-leaderboard-list>
+              <li class="text-[11px] font-mono text-slate-400 italic">loading…</li>
+            </ul>
+          </div>
+          <a
+            href="/mission/games/leaderboard"
+            class="inline-flex items-center gap-1 font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-pink)] hover:text-[var(--color-teal)]"
+          >
+            Full leaderboard →
+          </a>
         </div>
       </aside>
     </div>
@@ -70,19 +94,9 @@ import { games } from '@/data/games';
   <script
     is:inline
     define:vars={{
-      supabaseUrl: 'https://xkmfsxcaapyuxachtcsy.supabase.co',
-      supabaseKey: 'sb_publishable_HmeteofpCTVchDfmzrMAxg_y0ea1IM1',
-      games: [
-        { id: 'codon2048', title: 'Codon Collider', mode: 'classic-daily', unit: 'pts' },
-        { id: 'pipette-rush', title: 'Pipette Rush', mode: 'daily', unit: 'pts' },
-        { id: 'plasmid-plinko', title: 'Plasmid Plinko', mode: 'daily', unit: 'pts' },
-        {
-          id: 'particle-survival-shooter',
-          title: 'Particle Accelerator',
-          mode: 'daily',
-          unit: 'sec',
-        },
-      ],
+      supabaseUrl: SUPABASE_URL,
+      supabaseKey: SUPABASE_PUBLISHABLE_KEY,
+      games: LEADERBOARD_GAMES,
     }}
   >
     (async () => {
@@ -90,75 +104,87 @@ import { games } from '@/data/games';
       if (!panel) return;
       const list = panel.querySelector('[data-leaderboard-list]');
       const dateEl = panel.querySelector('[data-leaderboard-date]');
+      const championEl = panel.querySelector('[data-champion-name]');
 
-      const day = new Date().toISOString().slice(0, 10);
+      const day = (() => {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      })();
       if (dateEl) dateEl.textContent = day;
 
-      function fmtScore(score, unit) {
+      const fmtScore = (score, unit) => {
         if (unit === 'sec') {
           const m = Math.floor(score / 60);
           const r = Math.floor(score % 60);
           return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
         }
         return Number(score).toLocaleString();
-      }
+      };
 
-      function escapeHtml(s) {
-        return String(s).replace(
+      const escapeHtml = (s) =>
+        String(s).replace(
           /[&<>"']/g,
-          (c) =>
-            ({
-              '&': '&amp;',
-              '<': '&lt;',
-              '>': '&gt;',
-              '"': '&quot;',
-              "'": '&#39;',
-            })[c],
+          (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
         );
-      }
 
-      async function fetchTop(game) {
-        const params = new URLSearchParams({
-          select: 'player_handle,score',
-          game_id: `eq.${game.id}`,
-          mode: `eq.${game.mode}`,
-          seed: `eq.${day}`,
-          order: 'score.desc',
-          limit: '1',
-        });
-        const res = await fetch(`${supabaseUrl}/rest/v1/scores?${params}`, {
+      const supaFetch = (path) =>
+        fetch(`${supabaseUrl}/rest/v1/${path}`, {
           headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
-        });
-        if (!res.ok) return [];
-        return res.json();
+        }).then((r) => (r.ok ? r.json() : []));
+
+      // ─── champion: today's #1 in cross-game daily standings ───
+      try {
+        const top = await supaFetch(
+          `daily_standings?day=eq.${day}&order=bkp_total.desc,golds.desc&limit=1`,
+        );
+        if (championEl) {
+          if (top.length > 0) {
+            const t = top[0];
+            championEl.innerHTML = `${escapeHtml(t.player_handle)}${t.verified ? ' <span class="inline-block align-middle ml-1 text-[var(--color-teal)] text-[12px]" title="Verified subscriber">✓</span>' : ''} <span class="ml-2 font-mono text-[12px] tracking-[0.04em] text-[var(--color-ochre)]">${t.bkp_total} BKP</span>`;
+          } else {
+            championEl.innerHTML =
+              '<span class="text-slate-400 italic font-normal text-base">no scores yet — be first</span>';
+          }
+        }
+      } catch {
+        if (championEl)
+          championEl.innerHTML =
+            '<span class="text-slate-400 italic font-normal text-base">offline</span>';
       }
 
+      // ─── per-game today's top score ───
       try {
         const results = await Promise.all(
-          games.map(async (g) => ({ game: g, rows: await fetchTop(g) })),
+          games.map(async (g) => {
+            const params = new URLSearchParams({
+              select: 'player_handle,score',
+              game_id: `eq.${g.id}`,
+              mode: `eq.${g.mode}`,
+              seed: `eq.${day}`,
+              order: 'score.desc',
+              limit: '1',
+            });
+            const rows = await supaFetch(`scores?${params}`);
+            return { game: g, top: rows[0] };
+          }),
         );
         if (!list) return;
         list.innerHTML = results
-          .map(({ game, rows }) => {
-            const top = rows[0];
+          .map(({ game, top }) => {
             const right = top
-              ? `<span class="font-mono text-[12px] text-[var(--color-ink)]"><span class="text-slate-700">${escapeHtml(top.player_handle)}</span> <span class="text-slate-400">·</span> ${escapeHtml(fmtScore(top.score, game.unit))}</span>`
-              : `<span class="font-mono text-[10px] tracking-[0.1em] uppercase text-slate-400">be first</span>`;
-            return `
-              <li class="flex items-baseline justify-between gap-3">
-                <a href="/mission/games/${game.id}/" class="text-sm text-[var(--color-ink)] hover:text-[var(--color-teal)] transition truncate">
+              ? `<span class="font-mono text-[11px] text-[var(--color-ink)]"><span class="text-slate-700">${escapeHtml(top.player_handle)}</span> <span class="text-slate-400">·</span> ${escapeHtml(fmtScore(top.score, game.unit))}</span>`
+              : `<span class="font-mono text-[9px] tracking-[0.1em] uppercase text-slate-400">be first</span>`;
+            return `<li class="flex items-baseline justify-between gap-3">
+                <a href="${game.playUrl}" class="text-[12px] text-[var(--color-ink)] hover:text-[var(--color-teal)] transition truncate">
                   ${escapeHtml(game.title)}
                 </a>
                 ${right}
-              </li>
-            `;
+              </li>`;
           })
           .join('');
       } catch {
-        if (list) {
-          list.innerHTML =
-            '<li class="text-[11px] font-mono text-slate-400 italic">leaderboard offline</li>';
-        }
+        if (list)
+          list.innerHTML = '<li class="text-[11px] font-mono text-slate-400 italic">offline</li>';
       }
     })();
   </script>
