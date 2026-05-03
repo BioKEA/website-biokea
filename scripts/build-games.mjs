@@ -47,6 +47,8 @@ const LEADERBOARD_ENABLED = new Set([
   'pipette-rush',
   'plasmid-plinko',
   'particle-survival-shooter',
+  'cal-field-lab-collectible',
+  '3d-biodiversity-collect-em-all',
 ]);
 
 const supabaseUrl = process.env.SUPABASE_URL;
