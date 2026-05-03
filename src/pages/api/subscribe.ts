@@ -32,13 +32,13 @@ const SubscribeSchema = z.object({
 });
 
 interface Env {
-  RESEND_API_KEY: string;
-  CONTACT_FROM_EMAIL: string;
   // Reuse the same publishable Supabase URL+anon key the games and the
   // /mission/games/ leaderboard panel already use. Anon insert is
   // allowed by the subscribers_public_insert RLS policy.
   SUPABASE_URL: string;
   SUPABASE_PUBLISHABLE_KEY: string;
+  RESEND_API_KEY: string;
+  CONTACT_FROM_EMAIL: string;
   TURNSTILE_SECRET_KEY?: string;
 }
 

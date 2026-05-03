@@ -10,8 +10,8 @@ interface Env {
 
 const env: Env = {
   RESEND_API_KEY: 'test-key',
-  CONTACT_FROM_EMAIL: 'hello@biokea.ai',
-  CONTACT_TO_EMAIL: 'team@biokea.ai',
+  CONTACT_FROM_EMAIL: 'notifications@biokea.ai',
+  CONTACT_TO_EMAIL: 'contact@biokea.ai',
 };
 
 function makeRequest(fields: Record<string, string>) {

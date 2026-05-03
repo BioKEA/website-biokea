@@ -10,7 +10,7 @@ rule in the Cloudflare dashboard — it is not expressible in this repo.
 Without rate limiting, a script kiddie or a broken form integration can:
 
 - drain Resend credit (~$0.001 per message but scales fast)
-- flood `team@biokea.ai` with spam
+- flood `contact@biokea.ai` with spam
 - exhaust the Worker's CPU budget
 
 The Zod validation + honeypot + Turnstile (when enabled) are all _inside_ the

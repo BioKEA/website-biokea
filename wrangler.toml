@@ -5,7 +5,7 @@ compatibility_date = "2026-04-18"
 # wrangler deploy picks them up from dist/ via `astro build`.
 
 [vars]
-CONTACT_FROM_EMAIL = "contact@biokea.ai"
+CONTACT_FROM_EMAIL = "notifications@biokea.ai"
 CONTACT_TO_EMAIL = "contact@biokea.ai"
 
 # Shared Supabase project (xkmfsxcaapyuxachtcsy) for game leaderboards
