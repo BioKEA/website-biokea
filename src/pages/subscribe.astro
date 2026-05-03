@@ -1,0 +1,56 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import SubscribeForm from '@/components/forms/SubscribeForm.astro';
+
+// Source comes either from a query param (?source=codon2048 — set by the
+// in-game injection's link) or defaults to the page itself. We sanitize
+// against the same pattern the API enforces so a malformed param can't
+// poison the form.
+const raw = Astro.url.searchParams.get('source') ?? '';
+const sanitized = /^[a-z0-9-]{1,64}$/.test(raw) ? raw : '';
+const source = sanitized || 'subscribe-page';
+
+const SOURCE_LABELS: Record<string, string> = {
+  codon2048: 'Codon Collider',
+  'pipette-rush': 'Pipette Rush',
+  'plasmid-plinko': 'Plasmid Plinko',
+  'particle-survival-shooter': 'Particle Accelerator',
+  'cal-field-lab-collectible': 'Biodiversity Discovery Lab',
+  '3d-biodiversity-collect-em-all': 'WildCal',
+};
+const fromGame = SOURCE_LABELS[source];
+---
+
+<BaseLayout
+  title="Lab updates — BioKEA"
+  description="Subscribe to occasional updates from BioKEA: new games, papers, the Golden Sample Hunt."
+>
+  <section class="max-w-xl mx-auto px-6 pt-16 pb-16">
+    <Eyebrow>LAB UPDATES</Eyebrow>
+    <h1
+      class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[22ch]"
+    >
+      {fromGame ? `Liked ${fromGame}? Get the next one.` : 'Lab updates from BioKEA.'}
+    </h1>
+    <div class="mt-5 text-slate-600 leading-relaxed space-y-4">
+      <p>
+        We send a short email when something's worth sending: a new game lands at
+        <a href="/mission/games/" class="text-[var(--color-teal)] underline">/mission/games/</a>, a
+        paper or dataset goes out, the Golden Sample Hunt opens.
+      </p>
+      <p>
+        No spam, no shared lists, no third-party tracking. One-click unsubscribe in every email.
+      </p>
+    </div>
+
+    <div class="mt-8 bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-6">
+      <SubscribeForm source={source} variant="full" />
+    </div>
+
+    <p class="mt-6 text-xs text-slate-500">
+      Want a real conversation instead?
+      <a href="/contact" class="underline hover:text-[var(--color-teal)]">Use the contact form</a>.
+    </p>
+  </section>
+</BaseLayout>

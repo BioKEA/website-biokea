@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
+import SubscribeForm from '@/components/forms/SubscribeForm.astro';
 import { games } from '@/data/games';
 import { stringifyJsonLd } from '@/lib/json-ld';
 
@@ -243,6 +244,24 @@ const eventLd = {
         </p>
       )
     }
+  </section>
+
+  <section class="max-w-3xl mx-auto px-6 py-12">
+    <div class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-6">
+      <Eyebrow>LAB UPDATES</Eyebrow>
+      <h2
+        class="mt-2 text-2xl font-semibold tracking-[-0.015em] text-[var(--color-ink)] leading-tight"
+      >
+        Not in the US? Hunt over? Stay in the loop.
+      </h2>
+      <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+        The hunt is US-only this round, but lab updates from BioKEA are open to anyone — new games,
+        papers, the next challenge.
+      </p>
+      <div class="mt-4">
+        <SubscribeForm source="golden-sample-26" />
+      </div>
+    </div>
   </section>
 
   <section class="max-w-3xl mx-auto px-6 py-16 text-center">

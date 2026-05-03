@@ -1,0 +1,141 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+
+const lastUpdated = '2026-05-03';
+---
+
+<BaseLayout
+  title="Privacy"
+  description="What BioKEA collects, why, how long we keep it, and how to ask us to delete it."
+>
+  <section class="max-w-3xl mx-auto px-6 pt-16 pb-8">
+    <Eyebrow>PRIVACY</Eyebrow>
+    <h1
+      class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[24ch]"
+    >
+      What we collect, and what we don't.
+    </h1>
+    <p class="mt-5 text-slate-600 leading-relaxed">
+      BioKEA is a small lab. We try to keep this short and honest.
+    </p>
+    <p class="mt-2 font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">
+      Last updated · {lastUpdated}
+    </p>
+  </section>
+
+  <section class="max-w-3xl mx-auto px-6 pb-16 prose prose-slate prose-sm">
+    <h2>What we collect</h2>
+    <ul>
+      <li>
+        <strong>Contact form (<a href="/contact">/contact</a>):</strong> name, email, organization (optional),
+        the topic you picked, and your message.
+      </li>
+      <li>
+        <strong
+          >Lab-updates subscription (<a href="/subscribe">/subscribe</a> and the form on
+          <a href="/mission/games/">/mission/games/</a>):</strong
+        > email, plus optionally your game handle and which page or game referred you.
+      </li>
+      <li>
+        <strong>Game scores:</strong> if you submit a score from one of our four leaderboard games, we
+        store the handle you chose, the score, the game, the daily-seed string, an anonymous client identifier
+        (a per-browser UUID, not tied to your identity), and a tiny bit of run metadata (e.g. wave reached).
+        We do <em>not</em> collect your email through the leaderboard.
+      </li>
+      <li>
+        <strong>Golden Sample Hunt (<a href="/golden-sample-26">/golden-sample-26</a>):</strong> if you
+        submit the hunt form, the answers go to a Google Form (Google's terms apply there). If you win,
+        we use the email and US mailing address you provide to ship a sequencing kit and return your results.
+        We don't use that information for anything else.
+      </li>
+      <li>
+        <strong>Server + edge logs:</strong> Cloudflare logs IP addresses and request metadata for every
+        request to biokea.ai — the standard stuff a CDN keeps. We don't run our own analytics on top.
+      </li>
+    </ul>
+
+    <h2>What we use it for</h2>
+    <ul>
+      <li>Replying to your email when you contact us.</li>
+      <li>
+        Sending you the lab updates you opted into. Examples: a new game drops, a paper goes out,
+        the Golden Sample Hunt opens. No shared lists, no pixel tracking, no third-party
+        re-targeting.
+      </li>
+      <li>
+        Showing your handle and score on the public game leaderboards. The handle is the only
+        identifier surfaced to other players.
+      </li>
+      <li>Fulfilling Golden Sample Hunt prizes if you win.</li>
+      <li>Spam / abuse defense (rate-limit and handle moderation on score submissions).</li>
+    </ul>
+
+    <h2>Who we share with</h2>
+    <p>
+      We don't sell, rent, or trade your data. We use a small set of vendors as data processors:
+    </p>
+    <ul>
+      <li><strong>Supabase</strong> — stores subscribers and game scores.</li>
+      <li><strong>Resend</strong> — sends transactional and lab-update emails.</li>
+      <li><strong>Cloudflare</strong> — hosts and proxies biokea.ai.</li>
+      <li>
+        <strong>Google Forms</strong> — collects Golden Sample Hunt entries (Google's privacy policy applies).
+      </li>
+    </ul>
+    <p>If a court orders us to disclose data, we'll comply, but we don't volunteer it.</p>
+
+    <h2>How long we keep it</h2>
+    <ul>
+      <li>
+        Contact form messages: archived in our team inbox indefinitely, since they're often the
+        start of an ongoing conversation.
+      </li>
+      <li>Lab-updates subscribers: until you unsubscribe.</li>
+      <li>Game scores: indefinitely (they're the leaderboard).</li>
+      <li>CDN logs: per Cloudflare's retention.</li>
+    </ul>
+
+    <h2>Your rights</h2>
+    <p>
+      Email <a href="mailto:contact@biokea.ai">contact@biokea.ai</a> any time and we'll:
+    </p>
+    <ul>
+      <li>Tell you what we have on you.</li>
+      <li>Update or correct it.</li>
+      <li>Delete it (we'll confirm when it's done).</li>
+      <li>Unsubscribe you from lab updates (or use the unsubscribe link in any of our emails).</li>
+    </ul>
+    <p>
+      If you're a California or EU resident, the same applies — CCPA / GDPR rights are honored on
+      request.
+    </p>
+
+    <h2>Cookies</h2>
+    <p>
+      The site itself doesn't set tracking cookies. The games store a few values in your browser's <code
+        >localStorage</code
+      > (your handle, a per-browser anonymous UUID for rate limiting, your local high scores). Clearing
+      site data resets all of that.
+    </p>
+
+    <h2>Children</h2>
+    <p>
+      The Golden Sample Hunt is restricted to US residents 18 and over. For everything else, the
+      games are family-friendly but the site isn't intentionally directed at children under 13, and
+      we don't knowingly collect their information.
+    </p>
+
+    <h2>Changes</h2>
+    <p>
+      If this policy changes meaningfully, we'll update the <em>Last updated</em> date and flag the change
+      in a lab-updates email. Cosmetic edits we won't bother you about.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+      <a href="mailto:contact@biokea.ai">contact@biokea.ai</a>, or use the
+      <a href="/contact">contact form</a>.
+    </p>
+  </section>
+</BaseLayout>

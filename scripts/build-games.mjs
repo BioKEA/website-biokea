@@ -97,6 +97,30 @@ function injectBackButton(indexHtmlPath) {
   return true;
 }
 
+// Bottom-right counterpart to the back button: opens the lab-updates
+// subscribe page, with the game slug threaded through as ?source so
+// we can attribute conversions per-game. Same styling vocabulary as
+// the back button (dark pill, inline CSS, max z-index, idempotent).
+function subscribeLinkHtml(slug) {
+  const href = `/subscribe?source=${encodeURIComponent(slug)}`;
+  return `<a href="${href}" id="biokea-subscribe" aria-label="Get BioKEA lab updates" style="position:fixed;bottom:12px;right:12px;z-index:2147483647;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:9999px;background:rgba(15,23,42,0.78);color:#f8fafc;text-decoration:none;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 2px 8px rgba(0,0,0,0.18);transition:background 0.15s ease;line-height:1;" onmouseover="this.style.background='rgba(15,23,42,0.94)'" onmouseout="this.style.background='rgba(15,23,42,0.78)'"><span>Lab updates</span><span style="font-size:14px;line-height:1;">&rarr;</span></a>`;
+}
+
+function injectSubscribeLink(indexHtmlPath, slug) {
+  let html;
+  try {
+    html = readFileSync(indexHtmlPath, 'utf-8');
+  } catch {
+    return false;
+  }
+  if (html.includes('id="biokea-subscribe"')) return true;
+  const linkHtml = subscribeLinkHtml(slug);
+  const next = html.replace(/<body([^>]*)>/i, (match, attrs) => `<body${attrs}>${linkHtml}`);
+  if (next === html) return false;
+  writeFileSync(indexHtmlPath, next);
+  return true;
+}
+
 function getToken() {
   if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN;
   try {
@@ -167,7 +191,9 @@ for (const game of games) {
     const out = join(root, 'public', 'mission', 'games', game.slug);
     rmSync(out, { recursive: true, force: true });
     cpSync(join(work, 'dist'), out, { recursive: true });
-    injectBackButton(join(out, 'index.html'));
+    const indexHtml = join(out, 'index.html');
+    injectBackButton(indexHtml);
+    injectSubscribeLink(indexHtml, game.slug);
     console.log(`[games-build] ${game.slug}: ✓ built from ${game.repo}`);
     okCount++;
   } catch (err) {

@@ -1,0 +1,149 @@
+---
+// src/components/forms/SubscribeForm.astro
+//
+// Reusable opt-in form for the "Lab updates" subscription. Posts to
+// /api/subscribe (server-side fetch + Resend welcome). Source string
+// is tucked in as a hidden field so we know where each subscriber
+// came from. The form is unstyled enough to drop into either light
+// (cream) or dark (ink) panels — caller controls the wrapper.
+//
+// Variants:
+//   - "compact" (default): single email row, inline submit, no handle field.
+//   - "full": standalone /subscribe page; shows handle input + extra context.
+interface Props {
+  source: string;
+  variant?: 'compact' | 'full';
+  defaultHandle?: string;
+  formId?: string;
+}
+const { source, variant = 'compact', defaultHandle = '', formId } = Astro.props;
+const id = formId ?? `subscribe-${source.replace(/[^a-z0-9-]/gi, '-')}`;
+---
+
+<form
+  id={id}
+  data-subscribe-form
+  data-source={source}
+  method="POST"
+  action="/api/subscribe"
+  class="grid gap-3"
+  novalidate
+>
+  <input type="hidden" name="source" value={source} />
+  <input type="hidden" name="consent" value="true" />
+  {/* Honeypot — real users never fill this. Hidden from layout + assistive tech. */}
+  <input
+    type="text"
+    name="website"
+    tabindex="-1"
+    autocomplete="off"
+    aria-hidden="true"
+    class="absolute -left-[9999px] w-0 h-0 opacity-0 pointer-events-none"
+  />
+
+  {
+    variant === 'full' ? (
+      <>
+        <label class="grid gap-1.5">
+          <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+            Email
+          </span>
+          <input
+            required
+            name="email"
+            type="email"
+            autocomplete="email"
+            class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/80 text-[var(--color-ink)]"
+          />
+        </label>
+        <label class="grid gap-1.5">
+          <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+            Game handle (optional)
+          </span>
+          <input
+            name="handle"
+            type="text"
+            value={defaultHandle}
+            pattern="[a-zA-Z0-9_-]{1,32}"
+            maxlength="32"
+            class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/80 text-[var(--color-ink)]"
+          />
+          <span class="text-xs text-slate-500">
+            If you've set a handle in any of our games, drop it here so we can tie a face to the
+            score.
+          </span>
+        </label>
+        <button
+          type="submit"
+          class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-3 rounded-sm font-semibold text-sm self-start"
+        >
+          Subscribe →
+        </button>
+      </>
+    ) : (
+      <div class="flex flex-col sm:flex-row gap-2">
+        <input
+          required
+          name="email"
+          type="email"
+          autocomplete="email"
+          placeholder="you@lab.org"
+          class="flex-1 border border-slate-900/15 rounded-sm px-3 py-2 bg-white/90 text-[var(--color-ink)] text-sm"
+        />
+        <button
+          type="submit"
+          class="bg-[var(--color-ink)] text-[var(--color-cream)] px-3 py-2 rounded-sm font-semibold text-xs uppercase tracking-[0.08em] whitespace-nowrap"
+        >
+          Get updates →
+        </button>
+      </div>
+    )
+  }
+
+  <p class="text-[11px] text-slate-500 leading-snug">
+    By subscribing you agree to receive occasional emails from BioKEA. Unsubscribe any time. See our <a
+      href="/privacy"
+      class="underline hover:text-[var(--color-teal)]">privacy policy</a
+    >.
+  </p>
+
+  <p
+    data-subscribe-status
+    role="status"
+    aria-live="polite"
+    class="text-sm text-slate-600 min-h-[1.25rem]"
+  >
+  </p>
+</form>
+
+<script is:inline>
+  // Wire every SubscribeForm on the page. Works for multiple instances
+  // because each form has a unique id and we look up its own status node.
+  for (const form of document.querySelectorAll('[data-subscribe-form]')) {
+    const status = form.querySelector('[data-subscribe-status]');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!status) return;
+      status.textContent = 'Subscribing…';
+      status.style.color = '';
+      const data = new FormData(form);
+      try {
+        const res = await fetch('/api/subscribe', { method: 'POST', body: data });
+        const body = await res.json();
+        if (res.ok && body.ok) {
+          status.textContent = body.alreadySubscribed
+            ? "You're already on the list — thanks."
+            : 'Subscribed. Check your inbox for a welcome email.';
+          status.style.color = 'var(--color-teal)';
+          form.reset();
+        } else {
+          status.textContent = body.error ?? 'Something went wrong. Please try again.';
+          status.style.color = 'var(--color-pink)';
+        }
+      } catch {
+        status.textContent = 'Network error. Please try again.';
+        status.style.color = 'var(--color-pink)';
+      }
+    });
+  }
+</script>

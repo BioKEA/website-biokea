@@ -5,13 +5,22 @@ compatibility_date = "2026-04-18"
 # wrangler deploy picks them up from dist/ via `astro build`.
 
 [vars]
-CONTACT_FROM_EMAIL = "hello@biokea.ai"
-CONTACT_TO_EMAIL = "team@biokea.ai"
+CONTACT_FROM_EMAIL = "contact@biokea.ai"
+CONTACT_TO_EMAIL = "contact@biokea.ai"
+
+# Shared Supabase project (xkmfsxcaapyuxachtcsy) for game leaderboards
+# and the /api/subscribe endpoint. The publishable anon key is *meant*
+# to be public — it's already baked into every game's JS bundle and
+# the /mission/games/ Game Leaderboard panel — so it lives in plain
+# vars, not secrets. RLS on each table enforces what anonymous can do
+# (insert into scores + subscribers, no select on subscribers).
+SUPABASE_URL = "https://xkmfsxcaapyuxachtcsy.supabase.co"
+SUPABASE_PUBLISHABLE_KEY = "sb_publishable_HmeteofpCTVchDfmzrMAxg_y0ea1IM1"
 
 # Secrets — set once per environment:
 #   wrangler secret put RESEND_API_KEY
 #   wrangler secret put TURNSTILE_SECRET_KEY   # optional; enables captcha
 #
-# If TURNSTILE_SECRET_KEY is unset, the contact endpoint skips captcha
-# verification. Pair it with PUBLIC_TURNSTILE_SITE_KEY at build time so
-# the widget renders on the contact page.
+# If TURNSTILE_SECRET_KEY is unset, the contact + subscribe endpoints
+# skip captcha verification. Pair it with PUBLIC_TURNSTILE_SITE_KEY at
+# build time so the widget renders on those pages.
