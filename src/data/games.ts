@@ -1,7 +1,9 @@
 // src/data/games.ts
 // The six BioKEA "games" featured in the Golden Sample Hunt
 // (Code with Claude · 2026). Each game is a self-contained Vite/React
-// app served as static assets under public/games/<slug>/.
+// app served as static assets under public/mission/games/<slug>/, so the
+// public URL is /mission/games/<slug>/ — nested under the Mission section
+// to reinforce the storytelling thesis.
 //
 // Taglines are first-draft; Sean to redline.
 
@@ -13,7 +15,8 @@ export interface Game {
   playUrl: string;
   // GitHub repo in `owner/name` form. When set, CI clones + rebuilds the
   // game from this repo on each deploy (see scripts/build-games.mjs);
-  // when unset, the pre-bundled artifact under public/games/<slug>/ ships.
+  // when unset, the pre-bundled artifact under public/mission/games/<slug>/
+  // ships.
   repo?: string;
 }
 
@@ -23,7 +26,7 @@ export const games: Game[] = [
     title: 'Codon Collider',
     tagline: 'A daily DNA-merge puzzle. Build life from a single base to a complete ecosystem.',
     thumb: '/assets/games/codon2048-thumb.png',
-    playUrl: '/games/codon2048/',
+    playUrl: '/mission/games/codon2048/',
     repo: 'BioKEA/game-codon2048',
   },
   {
@@ -31,7 +34,7 @@ export const games: Game[] = [
     title: 'Pipette Rush',
     tagline: 'Run the eDNA pipeline as fast as the lab can throw it at you.',
     thumb: '/assets/games/pipette-rush-thumb.png',
-    playUrl: '/games/pipette-rush/',
+    playUrl: '/mission/games/pipette-rush/',
     repo: 'BioKEA/game-pipette-rush',
   },
   {
@@ -39,7 +42,7 @@ export const games: Game[] = [
     title: 'Plasmid Plinko',
     tagline: 'Drop a primer. Clear every gene-peg on the board. Stack lab upgrades between rounds.',
     thumb: '/assets/games/plasmid-plinko-thumb.png',
-    playUrl: '/games/plasmid-plinko/',
+    playUrl: '/mission/games/plasmid-plinko/',
     repo: 'BioKEA/game-plasmid-plinko',
   },
   {
@@ -47,7 +50,7 @@ export const games: Game[] = [
     title: 'Particle Accelerator',
     tagline: 'You are the sample. Survive eight minutes through the contaminant field.',
     thumb: '/assets/games/particle-survival-shooter-thumb.png',
-    playUrl: '/games/particle-survival-shooter/',
+    playUrl: '/mission/games/particle-survival-shooter/',
     repo: 'BioKEA/game-particle-survival-shooter',
   },
   {
@@ -55,7 +58,7 @@ export const games: Game[] = [
     title: 'Biodiversity Discovery Lab',
     tagline: "California's biodiversity survey, rendered as a collectible card-album challenge.",
     thumb: '/assets/games/cal-field-lab-collectible-thumb.png',
-    playUrl: '/games/cal-field-lab-collectible/',
+    playUrl: '/mission/games/cal-field-lab-collectible/',
     repo: 'BioKEA/game-cal-field-lab-collectible',
   },
   {
@@ -63,7 +66,7 @@ export const games: Game[] = [
     title: 'WildCal',
     tagline: 'Creatures of California. Explore · Discover · Collect.',
     thumb: '/assets/games/3d-biodiversity-collect-em-all-thumb.png',
-    playUrl: '/games/3d-biodiversity-collect-em-all/',
+    playUrl: '/mission/games/3d-biodiversity-collect-em-all/',
     repo: 'BioKEA/game-3d-biodiversity-collect-em-all',
   },
 ];

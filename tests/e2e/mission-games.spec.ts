@@ -27,11 +27,11 @@ test('mission/games footer CTA links to /golden-sample-26', async ({ page }) => 
   await expect(cta).toHaveAttribute('href', '/golden-sample-26');
 });
 
-test('mission/games tile links go to /games/<slug>/', async ({ page }) => {
+test('mission/games tile links go to /mission/games/<slug>/', async ({ page }) => {
   await page.goto('/mission/games');
   const codonTile = page.locator('[data-game-slug="codon2048"]');
   await expect(codonTile.getByRole('link', { name: /Play/i })).toHaveAttribute(
     'href',
-    '/games/codon2048/',
+    '/mission/games/codon2048/',
   );
 });
