@@ -26,13 +26,26 @@ create table public.ranked_modes (
   primary key (game_id, mode)
 );
 
+-- The leaderboard is a daily-mode ranking. Long-form games (cal-field-
+-- lab-collectible, 3d-biodiversity-collect-em-all) don't have a daily
+-- run with a discrete score, so they're intentionally NOT in this set.
 insert into public.ranked_modes (game_id, mode) values
-  ('codon2048',                       'classic-daily'),
-  ('pipette-rush',                    'daily'),
-  ('plasmid-plinko',                  'daily'),
-  ('particle-survival-shooter',       'daily'),
-  ('cal-field-lab-collectible',       'daily'),
-  ('3d-biodiversity-collect-em-all',  'daily');
+  ('codon2048',                 'classic-daily'),
+  ('pipette-rush',              'daily'),
+  ('plasmid-plinko',            'daily'),
+  ('particle-survival-shooter', 'daily');
+
+-- If migration 0003 was applied with the long-form games included
+-- (an earlier draft), clean up by running this once in the SQL editor:
+--
+--   delete from public.ranked_modes
+--    where game_id in ('cal-field-lab-collectible',
+--                      '3d-biodiversity-collect-em-all');
+--
+-- The views recompute on read, so as soon as the rows are gone those
+-- games stop contributing to scores_with_bkp / daily_standings /
+-- season_standings. Existing rows in `scores` for those game_ids stay
+-- (they're still per-game data, just not BKP-counting anymore).
 
 alter table public.ranked_modes enable row level security;
 -- No public policies — the views read it as their owner (postgres).

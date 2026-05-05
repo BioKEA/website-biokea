@@ -16,6 +16,12 @@ export interface LeaderboardGame {
   playUrl: string;
 }
 
+// The leaderboard is a *daily-mode* ranking — fixed seed per day,
+// fresh-start runs, comparable across players. Long-form games
+// (Biodiversity Discovery Lab, WildCal) don't have a per-run "post
+// your score" moment, so they're intentionally excluded from BKP.
+// Their players get a handle + lab-updates subscription via the same
+// shared prompt; that's just no longer tied to the leaderboard.
 export const LEADERBOARD_GAMES: LeaderboardGame[] = [
   {
     id: 'codon2048',
@@ -45,20 +51,6 @@ export const LEADERBOARD_GAMES: LeaderboardGame[] = [
     unit: 'sec',
     playUrl: '/mission/games/particle-survival-shooter/',
   },
-  {
-    id: 'cal-field-lab-collectible',
-    title: 'Biodiversity Discovery Lab',
-    mode: 'daily',
-    unit: 'pts',
-    playUrl: '/mission/games/cal-field-lab-collectible/',
-  },
-  {
-    id: '3d-biodiversity-collect-em-all',
-    title: 'WildCal',
-    mode: 'daily',
-    unit: 'pts',
-    playUrl: '/mission/games/3d-biodiversity-collect-em-all/',
-  },
 ];
 
 // Per-game localStorage keys where each game stashes the player's handle.
@@ -69,8 +61,6 @@ export const KNOWN_HANDLE_KEYS: string[] = [
   'pipette-rush:handle-v1',
   'plasmid-plinko-handle',
   'pa:handle-v1', // particle-survival-shooter
-  'cal-field-lab:handle-v1',
-  'wildcal:handle-v1',
 ];
 
 export const SUPABASE_URL = 'https://xkmfsxcaapyuxachtcsy.supabase.co';
