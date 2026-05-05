@@ -185,13 +185,25 @@ export async function handleSubscribe(
   }
 
   // Don't re-send the welcome email if they were already subscribed.
+  // The earlier implementation `void`'d the welcome send, which on
+  // Cloudflare Workers gets aborted the moment the response is
+  // returned — the Worker tears down the in-flight Resend POST before
+  // it completes. Awaiting the send (matching contact.ts) is the
+  // simplest correct fix: a few hundred ms slower, but the user
+  // actually gets the email they were just told to expect.
+  let welcomeSent = result.alreadyExists; // already-subscribed: nothing new to send
   if (!result.alreadyExists) {
-    // Fire-and-forget; if Resend is briefly down we still tell the user
-    // success so they don't double-submit. They can email us if it never lands.
-    void sendWelcomeEmail(env, email);
+    welcomeSent = await sendWelcomeEmail(env, email);
   }
 
-  return json({ ok: true, alreadySubscribed: result.alreadyExists }, 200);
+  return json(
+    {
+      ok: true,
+      alreadySubscribed: result.alreadyExists,
+      welcomeSent,
+    },
+    200,
+  );
 }
 
 export async function POST({ request, clientAddress }: APIContext): Promise<Response> {

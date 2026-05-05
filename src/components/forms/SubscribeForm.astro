@@ -131,10 +131,19 @@ const id = formId ?? `subscribe-${source.replace(/[^a-z0-9-]/gi, '-')}`;
         const res = await fetch('/api/subscribe', { method: 'POST', body: data });
         const body = await res.json();
         if (res.ok && body.ok) {
-          status.textContent = body.alreadySubscribed
-            ? "You're already on the list — thanks."
-            : 'Subscribed. Check your inbox for a welcome email.';
-          status.style.color = 'var(--color-teal)';
+          if (body.alreadySubscribed) {
+            status.textContent = "You're already on the list — thanks.";
+            status.style.color = 'var(--color-teal)';
+          } else if (body.welcomeSent === false) {
+            // Subscription saved but the welcome email didn't go out.
+            // Don't promise an inbox arrival we can't deliver.
+            status.textContent =
+              "You're subscribed — but the welcome email didn't send. Reach out at contact@biokea.ai if you don't hear from us.";
+            status.style.color = 'var(--color-ochre)';
+          } else {
+            status.textContent = 'Subscribed. Check your inbox for a welcome email.';
+            status.style.color = 'var(--color-teal)';
+          }
           form.reset();
         } else {
           status.textContent = body.error ?? 'Something went wrong. Please try again.';
