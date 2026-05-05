@@ -100,7 +100,20 @@ async function insertSubscriber(
   return { ok: false, alreadyExists: false, error: message ?? `Supabase ${res.status}` };
 }
 
-async function sendWelcomeEmail(env: Env, email: string): Promise<boolean> {
+interface WelcomeResult {
+  ok: boolean;
+  // Resend's message id on success — useful for looking the send up
+  // in the Resend dashboard if a recipient says they didn't get it.
+  resendId?: string;
+  // Resend's error name + message on failure (e.g. "validation_error",
+  // "domain_not_verified", "rate_limit_exceeded"). Exposed in the API
+  // response so we can debug deliverability without server logs.
+  errorName?: string;
+  errorMessage?: string;
+  status?: number;
+}
+
+async function sendWelcomeEmail(env: Env, email: string): Promise<WelcomeResult> {
   const subject = `Welcome to BioKEA lab updates`;
   const text = [
     `Thanks for subscribing.`,
@@ -118,20 +131,49 @@ async function sendWelcomeEmail(env: Env, email: string): Promise<boolean> {
     `https://biokea.ai/`,
   ].join('\n');
 
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      authorization: `Bearer ${env.RESEND_API_KEY}`,
-    },
-    body: JSON.stringify({
-      from: env.CONTACT_FROM_EMAIL,
-      to: email,
-      subject,
-      text,
-    }),
-  });
-  return res.ok;
+  let res: Response;
+  try {
+    res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${env.RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: env.CONTACT_FROM_EMAIL,
+        to: email,
+        subject,
+        text,
+      }),
+    });
+  } catch (err) {
+    return {
+      ok: false,
+      errorName: 'fetch_failed',
+      errorMessage: err instanceof Error ? err.message : String(err),
+    };
+  }
+
+  let body: Record<string, unknown> | undefined;
+  try {
+    body = (await res.json()) as Record<string, unknown>;
+  } catch {
+    body = undefined;
+  }
+
+  if (!res.ok) {
+    return {
+      ok: false,
+      status: res.status,
+      errorName: typeof body?.name === 'string' ? body.name : undefined,
+      errorMessage: typeof body?.message === 'string' ? body.message : `HTTP ${res.status}`,
+    };
+  }
+
+  return {
+    ok: true,
+    resendId: typeof body?.id === 'string' ? body.id : undefined,
+  };
 }
 
 export async function handleSubscribe(
@@ -191,16 +233,22 @@ export async function handleSubscribe(
   // it completes. Awaiting the send (matching contact.ts) is the
   // simplest correct fix: a few hundred ms slower, but the user
   // actually gets the email they were just told to expect.
-  let welcomeSent = result.alreadyExists; // already-subscribed: nothing new to send
+  let welcome: WelcomeResult = { ok: result.alreadyExists };
   if (!result.alreadyExists) {
-    welcomeSent = await sendWelcomeEmail(env, email);
+    welcome = await sendWelcomeEmail(env, email);
   }
 
   return json(
     {
       ok: true,
       alreadySubscribed: result.alreadyExists,
-      welcomeSent,
+      welcomeSent: welcome.ok,
+      // Surface Resend's id / error so we can diagnose deliverability
+      // without server logs. Safe to expose: no secrets, no PII.
+      resendId: welcome.resendId,
+      welcomeError: welcome.ok
+        ? undefined
+        : { name: welcome.errorName, message: welcome.errorMessage, status: welcome.status },
     },
     200,
   );
