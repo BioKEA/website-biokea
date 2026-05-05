@@ -14,22 +14,23 @@ import {
   description="Daily-mode standings across the four arcade games — Codon Collider, Pipette Rush, Plasmid Plinko, and Particle Accelerator."
 >
   <section class="max-w-5xl mx-auto px-6 pt-16 pb-12">
-    <Eyebrow>STORYTELLING · DAILY LEADERBOARD</Eyebrow>
+    <Eyebrow>STORYTELLING · LEADERBOARD</Eyebrow>
     <div class="mt-3 grid lg:grid-cols-[minmax(0,52ch)_minmax(0,1fr)] gap-x-10 gap-y-6 items-start">
       <div>
         <h1
           class="text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)]"
         >
-          Daily Leaderboard
+          Leaderboard
         </h1>
         <p class="mt-5 text-slate-600 leading-relaxed">
-          A daily-mode ranking — <strong>one seed per day, fresh start every run</strong>. Each game
-          has its own scoreboard. Pick your game, post a score, see where you land.
+          Daily-mode runs — <strong>one seed per day, fresh start every game</strong>. Three views:
+          today's standings, the rolling 7-day best, and the all-time best. Each game has its own
+          scoreboard.
         </p>
         <p class="mt-3 text-xs text-slate-500 leading-relaxed">
           Only the four daily-mode games count: Codon Collider, Pipette Rush, Plasmid Plinko,
           Particle Accelerator. Long-form games (Biodiversity Discovery Lab, WildCal) track progress
-          in their own panels and don't post to the daily leaderboard.
+          in their own panels and don't post here.
         </p>
       </div>
 
@@ -80,10 +81,18 @@ import {
       <button
         type="button"
         role="tab"
-        data-tab="season"
+        data-tab="week"
         class="px-4 py-3 font-mono text-[11px] tracking-[0.16em] uppercase text-slate-500 border-b-2 border-transparent transition data-[active=true]:text-[var(--color-ink)] data-[active=true]:border-[var(--color-ink)]"
       >
-        Season
+        Week
+      </button>
+      <button
+        type="button"
+        role="tab"
+        data-tab="all"
+        class="px-4 py-3 font-mono text-[11px] tracking-[0.16em] uppercase text-slate-500 border-b-2 border-transparent transition data-[active=true]:text-[var(--color-ink)] data-[active=true]:border-[var(--color-ink)]"
+      >
+        All-time
       </button>
     </div>
   </section>
@@ -107,22 +116,36 @@ import {
     </div>
   </section>
 
-  <!-- Season panel -->
-  <section class="max-w-5xl mx-auto px-6 py-10 hidden data-[active=true]:block" data-panel="season">
+  <!-- Week panel -->
+  <section class="max-w-5xl mx-auto px-6 py-10 hidden data-[active=true]:block" data-panel="week">
     <div class="flex items-baseline justify-between mb-6">
-      <h2 class="text-2xl font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
-        Season top scores
-      </h2>
-      <span
-        class="font-mono text-[11px] tracking-[0.14em] uppercase text-slate-500"
-        data-season-month>—</span
+      <h2 class="text-2xl font-semibold tracking-[-0.02em] text-[var(--color-ink)]">Last 7 days</h2>
+      <span class="font-mono text-[11px] tracking-[0.14em] uppercase text-slate-500" data-week-range
+        >—</span
       >
     </div>
     <p class="text-sm text-slate-600 leading-relaxed mb-6">
-      Best score per player per game in the current month — daily, custom and seasonal modes
-      collapse to one personal best per game per day, ranked across the season.
+      Best score per player per game over the rolling 7-day window. One row per player — their
+      single best run, with the day it was set.
     </p>
-    <div class="grid md:grid-cols-2 gap-4" data-season-per-game></div>
+    <div class="grid md:grid-cols-2 gap-4" data-week-per-game></div>
+  </section>
+
+  <!-- All-time panel -->
+  <section class="max-w-5xl mx-auto px-6 py-10 hidden data-[active=true]:block" data-panel="all">
+    <div class="flex items-baseline justify-between mb-6">
+      <h2 class="text-2xl font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+        All-time leaders
+      </h2>
+      <span class="font-mono text-[11px] tracking-[0.14em] uppercase text-slate-500"
+        >since launch</span
+      >
+    </div>
+    <p class="text-sm text-slate-600 leading-relaxed mb-6">
+      Best score per player per game across every daily seed since the games went live. One row per
+      player — their single best run, with the day it was set.
+    </p>
+    <div class="grid md:grid-cols-2 gap-4" data-all-per-game></div>
   </section>
 
   <section class="max-w-5xl mx-auto px-6 pb-12">
@@ -169,15 +192,16 @@ import {
         return `${y}-${m}-${day}`;
       };
 
-      const startOfMonth = () => {
-        const d = new Date();
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        return `${y}-${m}-01`;
+      // Inclusive start of the rolling 7-day window ending today. Lex
+      // compare on YYYY-MM-DD seeds is chronological so this works as a
+      // PostgREST gte filter directly.
+      const weekStart = (today) => {
+        const d = new Date(today + 'T00:00:00Z');
+        d.setUTCDate(d.getUTCDate() - 6);
+        return d.toISOString().slice(0, 10);
       };
 
-      const monthLabel = () =>
-        new Date().toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+      const fmtRangeLabel = (from, to) => `${from} → ${to}`;
 
       const supaFetch = (path) =>
         fetch(`${supabaseUrl}/rest/v1/${path}`, {
@@ -216,14 +240,15 @@ import {
           const active = document.querySelector('[data-panel][data-active="true"]');
           const tab = active?.getAttribute('data-panel');
           if (tab === 'today') void loadToday();
-          else if (tab === 'season') void loadSeason();
+          else if (tab === 'week') void loadWeek();
+          else if (tab === 'all') void loadAll();
         });
       }
 
       // ─── tab switching ───
       const tabBtns = document.querySelectorAll('[data-tab]');
       const panels = document.querySelectorAll('[data-panel]');
-      const loaded = { today: false, season: false };
+      const loaded = { today: false, week: false, all: false };
       function activate(tabName) {
         tabBtns.forEach((b) =>
           b.setAttribute('data-active', b.getAttribute('data-tab') === tabName ? 'true' : 'false'),
@@ -237,9 +262,12 @@ import {
         if (tabName === 'today' && !loaded.today) {
           loaded.today = true;
           void loadToday();
-        } else if (tabName === 'season' && !loaded.season) {
-          loaded.season = true;
-          void loadSeason();
+        } else if (tabName === 'week' && !loaded.week) {
+          loaded.week = true;
+          void loadWeek();
+        } else if (tabName === 'all' && !loaded.all) {
+          loaded.all = true;
+          void loadAll();
         }
       }
       tabBtns.forEach((b) =>
@@ -306,57 +334,114 @@ import {
         );
       }
 
-      // ─── Season (per-game) ───
-      async function loadSeason() {
-        const monthStart = startOfMonth();
-        const monthEl = document.querySelector('[data-season-month]');
-        if (monthEl) monthEl.textContent = monthLabel();
+      // Collapse to one row per handle (their best). Used for the week
+      // + all-time windows so a single dominant player doesn't fill a
+      // whole top 10. Mirrors the bestByHandle helper in each game's
+      // lib so the central page and in-game panels rank consistently.
+      function bestByHandle(rows) {
+        const best = new Map();
+        for (const r of rows) {
+          const existing = best.get(r.player_handle);
+          if (!existing || r.score > existing.score) best.set(r.player_handle, r);
+        }
+        return Array.from(best.values()).sort((a, b) => b.score - a.score);
+      }
 
-        const grid = document.querySelector('[data-season-per-game]');
+      function rangeBlockHtml(idAttr, gameTitle, gameUrl, eyebrow) {
+        return `
+          <div class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden" ${idAttr}>
+            <div class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2 flex items-baseline justify-between">
+              <a href="${gameUrl}" class="text-sm font-semibold hover:text-[var(--color-ochre)]">${escapeHtml(gameTitle)}</a>
+              <span class="font-mono text-[9px] tracking-[0.18em] uppercase text-[var(--color-cream)]/60">${eyebrow}</span>
+            </div>
+            <ol class="divide-y divide-slate-900/5" data-rows>
+              <li class="px-4 py-3 text-[12px] font-mono text-slate-400 italic">loading…</li>
+            </ol>
+          </div>`;
+      }
+
+      function renderRangeRows(block, rows, unit, emptyText) {
+        if (rows.length === 0) {
+          block.innerHTML = `<li class="px-4 py-3 text-[11px] font-mono text-slate-400 italic">${emptyText}</li>`;
+          return;
+        }
+        block.innerHTML = rows
+          .map((r, i) => {
+            const mine = isMine(r.player_handle);
+            const seedSuffix = (r.seed || '').slice(5);
+            return `<li class="px-4 py-2 flex items-baseline justify-between gap-3 ${mine ? 'bg-[var(--color-ochre)]/10' : ''}">
+              <div class="flex items-baseline gap-2 min-w-0">
+                <span class="font-mono text-[10px] text-slate-400 w-4 text-right">${i + 1}</span>
+                <span class="text-sm truncate ${mine ? 'font-semibold' : ''} text-[var(--color-ink)]">${escapeHtml(r.player_handle)}</span>
+              </div>
+              <div class="flex items-baseline gap-2 shrink-0">
+                <span class="font-mono text-[12px] text-[var(--color-ink)]">${fmtScore(r.score, unit)}</span>
+                <span class="font-mono text-[10px] text-slate-500">${seedSuffix}</span>
+              </div>
+            </li>`;
+          })
+          .join('');
+      }
+
+      // ─── Week (rolling 7-day, best-per-player per game) ───
+      async function loadWeek() {
+        const today = todayKey();
+        const from = weekStart(today);
+        const rangeEl = document.querySelector('[data-week-range]');
+        if (rangeEl) rangeEl.textContent = fmtRangeLabel(from, today);
+
+        const grid = document.querySelector('[data-week-per-game]');
         if (!grid) return;
         grid.innerHTML = games
-          .map(
-            (g) => `
-              <div class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden" data-season-game="${g.id}">
-                <div class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2 flex items-baseline justify-between">
-                  <a href="${g.playUrl}" class="text-sm font-semibold hover:text-[var(--color-ochre)]">${escapeHtml(g.title)}</a>
-                  <span class="font-mono text-[9px] tracking-[0.18em] uppercase text-[var(--color-cream)]/60">season top</span>
-                </div>
-                <ol class="divide-y divide-slate-900/5" data-rows>
-                  <li class="px-4 py-3 text-[12px] font-mono text-slate-400 italic">loading…</li>
-                </ol>
-              </div>`,
-          )
+          .map((g) => rangeBlockHtml(`data-week-game="${g.id}"`, g.title, g.playUrl, '7-day top'))
           .join('');
 
         await Promise.all(
           games.map(async (g) => {
-            // scores_best_daily already collapses to one row per (player, day, game)
-            const rows = await supaFetch(
-              `scores_best_daily?game_id=eq.${g.id}&mode=eq.${encodeURIComponent(g.mode)}&seed=gte.${monthStart}&order=score.desc&limit=10`,
-            );
-            const block = grid.querySelector(`[data-season-game="${g.id}"] [data-rows]`);
+            // Pull a generous slice (8x) so the per-handle dedupe still
+            // leaves a full top 10 after collapsing repeat posters.
+            const params = new URLSearchParams({
+              select: 'player_handle,score,seed,created_at',
+              game_id: `eq.${g.id}`,
+              mode: `eq.${g.mode}`,
+              seed: `gte.${from}`,
+              order: 'score.desc',
+              limit: '80',
+            });
+            // PostgREST treats repeat keys as additive, so we need the
+            // upper bound on a separately appended `and` clause.
+            const url = `scores?${params}&seed=lte.${today}`;
+            const rows = await supaFetch(url);
+            const block = grid.querySelector(`[data-week-game="${g.id}"] [data-rows]`);
             if (!block) return;
-            if (rows.length === 0) {
-              block.innerHTML =
-                '<li class="px-4 py-3 text-[11px] font-mono text-slate-400 italic">no scores yet this season</li>';
-              return;
-            }
-            block.innerHTML = rows
-              .map((r, i) => {
-                const mine = isMine(r.player_handle);
-                return `<li class="px-4 py-2 flex items-baseline justify-between gap-3 ${mine ? 'bg-[var(--color-ochre)]/10' : ''}">
-                  <div class="flex items-baseline gap-2 min-w-0">
-                    <span class="font-mono text-[10px] text-slate-400 w-4 text-right">${i + 1}</span>
-                    <span class="text-sm truncate ${mine ? 'font-semibold' : ''} text-[var(--color-ink)]">${escapeHtml(r.player_handle)}</span>
-                  </div>
-                  <div class="flex items-baseline gap-2 shrink-0">
-                    <span class="font-mono text-[12px] text-[var(--color-ink)]">${fmtScore(r.score, g.unit)}</span>
-                    <span class="font-mono text-[10px] text-slate-500">${(r.seed || '').slice(5)}</span>
-                  </div>
-                </li>`;
-              })
-              .join('');
+            const top = bestByHandle(rows).slice(0, 10);
+            renderRangeRows(block, top, g.unit, 'no scores yet this week');
+          }),
+        );
+      }
+
+      // ─── All-time (best-per-player per game) ───
+      async function loadAll() {
+        const grid = document.querySelector('[data-all-per-game]');
+        if (!grid) return;
+        grid.innerHTML = games
+          .map((g) => rangeBlockHtml(`data-all-game="${g.id}"`, g.title, g.playUrl, 'all-time top'))
+          .join('');
+
+        await Promise.all(
+          games.map(async (g) => {
+            const params = new URLSearchParams({
+              select: 'player_handle,score,seed,created_at',
+              game_id: `eq.${g.id}`,
+              mode: `eq.${g.mode}`,
+              order: 'score.desc',
+              limit: '80',
+            });
+            const rows = await supaFetch(`scores?${params}`);
+            const block = grid.querySelector(`[data-all-game="${g.id}"] [data-rows]`);
+            if (!block) return;
+            const top = bestByHandle(rows).slice(0, 10);
+            renderRangeRows(block, top, g.unit, 'no scores yet · be the first');
           }),
         );
       }
