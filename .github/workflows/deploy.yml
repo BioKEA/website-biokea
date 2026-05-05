@@ -66,6 +66,13 @@ jobs:
           # the other two ship with stub env so leaderboards no-op.
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          # Cloudflare Turnstile site key — public, baked into the client
+          # bundle so /contact and the SubscribeForm widget can render.
+          # The matching TURNSTILE_SECRET_KEY is a Worker secret set via
+          # `wrangler secret put`, not exposed here. If this var isn't set,
+          # the widget silently doesn't render (forms fall back to honeypot-
+          # only) and the API silently doesn't enforce.
+          PUBLIC_TURNSTILE_SITE_KEY: ${{ secrets.PUBLIC_TURNSTILE_SITE_KEY }}
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

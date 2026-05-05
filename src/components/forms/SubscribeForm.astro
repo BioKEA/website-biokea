@@ -18,6 +18,12 @@ interface Props {
 }
 const { source, variant = 'compact', defaultHandle = '', formId } = Astro.props;
 const id = formId ?? `subscribe-${source.replace(/[^a-z0-9-]/gi, '-')}`;
+
+// Cloudflare Turnstile is the captcha. When PUBLIC_TURNSTILE_SITE_KEY is
+// set at build time AND TURNSTILE_SECRET_KEY is set as a Worker secret,
+// the widget renders here and the API server-verifies the token. If
+// either is missing both ends silently fall back to honeypot-only.
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | undefined;
 ---
 
 <form
@@ -100,6 +106,17 @@ const id = formId ?? `subscribe-${source.replace(/[^a-z0-9-]/gi, '-')}`;
     )
   }
 
+  {
+    turnstileSiteKey && (
+      <div
+        class="cf-turnstile"
+        data-sitekey={turnstileSiteKey}
+        data-theme="light"
+        data-size="flexible"
+      />
+    )
+  }
+
   <p class="text-[11px] text-slate-500 leading-snug">
     By subscribing you agree to receive occasional emails from BioKEA. Unsubscribe any time. See our <a
       href="/privacy"
@@ -115,6 +132,12 @@ const id = formId ?? `subscribe-${source.replace(/[^a-z0-9-]/gi, '-')}`;
   >
   </p>
 </form>
+
+{
+  turnstileSiteKey && (
+    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+  )
+}
 
 <script is:inline>
   // Wire every SubscribeForm on the page. Works for multiple instances
