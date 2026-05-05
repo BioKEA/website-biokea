@@ -49,7 +49,7 @@ import {
           <div
             class="font-mono text-[10px] tracking-[0.22em] uppercase text-[var(--color-ochre)] flex items-baseline gap-2"
           >
-            <span>BKP</span>
+            <span>DAILY</span>
             <span class="text-[var(--color-cream)]/30">·</span>
             <span data-leaderboard-date>—</span>
           </div>
@@ -57,24 +57,13 @@ import {
             Daily Leaderboard
           </h2>
           <p class="mt-2 text-[11px] text-[var(--color-cream)]/70 leading-snug">
-            Daily-mode runs from the four arcade games — fresh seed every day, BKP awarded by rank.
+            Daily-mode runs from the four arcade games — fresh seed every day, top score per game.
           </p>
         </div>
         <div class="p-5">
-          <div data-leaderboard-champion class="mb-3">
-            <div class="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
-              Today's leader
-            </div>
-            <div
-              class="mt-1 text-lg font-semibold text-[var(--color-ink)] leading-tight"
-              data-champion-name
-            >
-              <span class="text-slate-400 italic font-normal">loading…</span>
-            </div>
-          </div>
-          <div class="border-t border-slate-900/10 pt-3 mb-3">
+          <div class="mb-3">
             <div class="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 mb-2">
-              Daily tops
+              Today's tops
             </div>
             <ul class="flex flex-col gap-2" data-leaderboard-list>
               <li class="text-[11px] font-mono text-slate-400 italic">loading…</li>
@@ -104,7 +93,6 @@ import {
       if (!panel) return;
       const list = panel.querySelector('[data-leaderboard-list]');
       const dateEl = panel.querySelector('[data-leaderboard-date]');
-      const championEl = panel.querySelector('[data-champion-name]');
 
       const day = (() => {
         const d = new Date();
@@ -131,26 +119,6 @@ import {
         fetch(`${supabaseUrl}/rest/v1/${path}`, {
           headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
         }).then((r) => (r.ok ? r.json() : []));
-
-      // ─── champion: today's #1 in cross-game daily standings ───
-      try {
-        const top = await supaFetch(
-          `daily_standings?day=eq.${day}&order=bkp_total.desc,golds.desc&limit=1`,
-        );
-        if (championEl) {
-          if (top.length > 0) {
-            const t = top[0];
-            championEl.innerHTML = `${escapeHtml(t.player_handle)}${t.verified ? ' <span class="inline-block align-middle ml-1 text-[var(--color-teal)] text-[12px]" title="Verified subscriber">✓</span>' : ''} <span class="ml-2 font-mono text-[12px] tracking-[0.04em] text-[var(--color-ochre)]">${t.bkp_total} BKP</span>`;
-          } else {
-            championEl.innerHTML =
-              '<span class="text-slate-400 italic font-normal text-base">no scores yet — be first</span>';
-          }
-        }
-      } catch {
-        if (championEl)
-          championEl.innerHTML =
-            '<span class="text-slate-400 italic font-normal text-base">offline</span>';
-      }
 
       // ─── per-game today's top score ───
       try {

@@ -11,7 +11,7 @@ import {
 
 <BaseLayout
   title="Daily Leaderboard — BioKEA Games"
-  description="Daily-mode standings and BioKEA Points (BKP) across the four arcade games — Codon Collider, Pipette Rush, Plasmid Plinko, and Particle Accelerator."
+  description="Daily-mode standings across the four arcade games — Codon Collider, Pipette Rush, Plasmid Plinko, and Particle Accelerator."
 >
   <section class="max-w-5xl mx-auto px-6 pt-16 pb-12">
     <Eyebrow>STORYTELLING · DAILY LEADERBOARD</Eyebrow>
@@ -23,12 +23,8 @@ import {
           Daily Leaderboard
         </h1>
         <p class="mt-5 text-slate-600 leading-relaxed">
-          A daily-mode ranking — <strong>one seed per day, fresh start every run</strong>. Each
-          daily seed earns <strong>BioKEA Points</strong> (BKP) by rank: <span
-            class="font-mono text-[12px] tracking-tight"
-            >#1 → 25 · top 3 → 15 · top 10 → 10 · any submission → 5</span
-          >. Sum across the four arcade games and across the days of the month for the season
-          standings.
+          A daily-mode ranking — <strong>one seed per day, fresh start every run</strong>. Each game
+          has its own scoreboard. Pick your game, post a score, see where you land.
         </p>
         <p class="mt-3 text-xs text-slate-500 leading-relaxed">
           Only the four daily-mode games count: Codon Collider, Pipette Rush, Plasmid Plinko,
@@ -89,14 +85,6 @@ import {
       >
         Season
       </button>
-      <button
-        type="button"
-        role="tab"
-        data-tab="champions"
-        class="px-4 py-3 font-mono text-[11px] tracking-[0.16em] uppercase text-slate-500 border-b-2 border-transparent transition data-[active=true]:text-[var(--color-ink)] data-[active=true]:border-[var(--color-ink)]"
-      >
-        Champions
-      </button>
     </div>
   </section>
 
@@ -108,33 +96,12 @@ import {
   >
     <div class="flex items-baseline justify-between mb-6">
       <h2 class="text-2xl font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
-        Today's Champions
+        Today's leaders
       </h2>
       <span class="font-mono text-[11px] tracking-[0.14em] uppercase text-slate-500" data-today-date
         >—</span
       >
     </div>
-
-    <div
-      class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden mb-10"
-    >
-      <table class="w-full text-sm">
-        <thead class="bg-[var(--color-ink)] text-[var(--color-cream)]">
-          <tr class="font-mono text-[10px] tracking-[0.18em] uppercase">
-            <th class="px-4 py-3 text-left w-12">#</th>
-            <th class="px-4 py-3 text-left">Player</th>
-            <th class="px-4 py-3 text-right">BKP</th>
-            <th class="px-4 py-3 text-right hidden sm:table-cell">Games</th>
-            <th class="px-4 py-3 text-right hidden sm:table-cell">Golds</th>
-          </tr>
-        </thead>
-        <tbody data-today-cross>
-          <tr><td class="px-4 py-6 text-center text-slate-400 italic" colspan="5">loading…</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h3 class="text-lg font-semibold text-[var(--color-ink)] mb-4">Per-game leaders today</h3>
     <div class="grid md:grid-cols-2 gap-4" data-today-per-game>
       <!-- Per-game blocks injected by JS -->
     </div>
@@ -156,45 +123,6 @@ import {
       collapse to one personal best per game per day, ranked across the season.
     </p>
     <div class="grid md:grid-cols-2 gap-4" data-season-per-game></div>
-  </section>
-
-  <!-- Champions panel -->
-  <section
-    class="max-w-5xl mx-auto px-6 py-10 hidden data-[active=true]:block"
-    data-panel="champions"
-  >
-    <div class="flex items-baseline justify-between mb-6">
-      <h2 class="text-2xl font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
-        Season Champions
-      </h2>
-      <span
-        class="font-mono text-[11px] tracking-[0.14em] uppercase text-slate-500"
-        data-champions-month>—</span
-      >
-    </div>
-    <p class="text-sm text-slate-600 leading-relaxed mb-6">
-      Cumulative BKP across all six games for the current month. Verified players (
-      <span class="text-[var(--color-teal)]">✓</span>
-      ) have an active subscription tied to their handle.
-    </p>
-    <div class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden">
-      <table class="w-full text-sm">
-        <thead class="bg-[var(--color-ink)] text-[var(--color-cream)]">
-          <tr class="font-mono text-[10px] tracking-[0.18em] uppercase">
-            <th class="px-4 py-3 text-left w-12">#</th>
-            <th class="px-4 py-3 text-left">Player</th>
-            <th class="px-4 py-3 text-right">BKP</th>
-            <th class="px-4 py-3 text-right hidden sm:table-cell">Days</th>
-            <th class="px-4 py-3 text-right hidden sm:table-cell">Games</th>
-            <th class="px-4 py-3 text-right hidden sm:table-cell">Golds</th>
-          </tr>
-        </thead>
-        <tbody data-champions-rows>
-          <tr><td class="px-4 py-6 text-center text-slate-400 italic" colspan="6">loading…</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="mt-4 text-xs text-slate-500 italic" data-champions-rank></p>
   </section>
 
   <section class="max-w-5xl mx-auto px-6 pb-12">
@@ -285,19 +213,17 @@ import {
           if (!v) return;
           myHandle = v;
           setStoredHandle(v);
-          // Re-render whichever panel is active.
           const active = document.querySelector('[data-panel][data-active="true"]');
           const tab = active?.getAttribute('data-panel');
           if (tab === 'today') void loadToday();
           else if (tab === 'season') void loadSeason();
-          else if (tab === 'champions') void loadChampions();
         });
       }
 
       // ─── tab switching ───
       const tabBtns = document.querySelectorAll('[data-tab]');
       const panels = document.querySelectorAll('[data-panel]');
-      const loaded = { today: false, season: false, champions: false };
+      const loaded = { today: false, season: false };
       function activate(tabName) {
         tabBtns.forEach((b) =>
           b.setAttribute('data-active', b.getAttribute('data-tab') === tabName ? 'true' : 'false'),
@@ -314,9 +240,6 @@ import {
         } else if (tabName === 'season' && !loaded.season) {
           loaded.season = true;
           void loadSeason();
-        } else if (tabName === 'champions' && !loaded.champions) {
-          loaded.champions = true;
-          void loadChampions();
         }
       }
       tabBtns.forEach((b) =>
@@ -326,91 +249,61 @@ import {
       const isMine = (handle) =>
         myHandle && handle && handle.toLowerCase() === myHandle.toLowerCase();
 
-      const verifiedBadge = (verified) =>
-        verified
-          ? '<span class="inline-block align-middle ml-1 text-[var(--color-teal)] text-[11px]" title="Verified subscriber">✓</span>'
-          : '';
-
-      // ─── Today ───
+      // ─── Today (per-game only) ───
       async function loadToday() {
         const day = todayKey();
         const dateEl = document.querySelector('[data-today-date]');
         if (dateEl) dateEl.textContent = day;
 
-        // Cross-game daily standings
-        const standings = await supaFetch(
-          `daily_standings?day=eq.${day}&order=bkp_total.desc,golds.desc&limit=20`,
-        );
-        const tbody = document.querySelector('[data-today-cross]');
-        if (tbody) {
-          if (standings.length === 0) {
-            tbody.innerHTML =
-              '<tr><td class="px-4 py-6 text-center text-slate-400 italic" colspan="5">No scores posted today yet. Be first.</td></tr>';
-          } else {
-            tbody.innerHTML = standings
+        const grid = document.querySelector('[data-today-per-game]');
+        if (!grid) return;
+        grid.innerHTML = games
+          .map(
+            (g) => `
+              <div class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden" data-today-game="${g.id}">
+                <div class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2 flex items-baseline justify-between">
+                  <a href="${g.playUrl}" class="text-sm font-semibold hover:text-[var(--color-ochre)]">${escapeHtml(g.title)}</a>
+                  <span class="font-mono text-[9px] tracking-[0.18em] uppercase text-[var(--color-cream)]/60">${g.unit === 'sec' ? 'time' : 'pts'}</span>
+                </div>
+                <ol class="divide-y divide-slate-900/5" data-rows>
+                  <li class="px-4 py-3 text-[12px] font-mono text-slate-400 italic">loading…</li>
+                </ol>
+              </div>`,
+          )
+          .join('');
+
+        await Promise.all(
+          games.map(async (g) => {
+            const params = new URLSearchParams({
+              select: 'player_handle,score,created_at',
+              game_id: `eq.${g.id}`,
+              mode: `eq.${g.mode}`,
+              seed: `eq.${day}`,
+              order: 'score.desc',
+              limit: '10',
+            });
+            const rows = await supaFetch(`scores?${params}`);
+            const block = grid.querySelector(`[data-today-game="${g.id}"] [data-rows]`);
+            if (!block) return;
+            if (rows.length === 0) {
+              block.innerHTML =
+                '<li class="px-4 py-3 text-[11px] font-mono text-slate-400 italic">no scores yet · be the first</li>';
+              return;
+            }
+            block.innerHTML = rows
               .map((r, i) => {
                 const mine = isMine(r.player_handle);
-                return `<tr class="${mine ? 'bg-[var(--color-ochre)]/10' : i % 2 ? 'bg-white/40' : ''} border-t border-slate-900/5">
-                  <td class="px-4 py-2 font-mono text-[12px] text-slate-500">${i + 1}</td>
-                  <td class="px-4 py-2 ${mine ? 'font-semibold text-[var(--color-ink)]' : 'text-[var(--color-ink)]'}">${escapeHtml(r.player_handle)}${verifiedBadge(r.verified)}${mine ? ' <span class="font-mono text-[9px] tracking-[0.16em] uppercase text-[var(--color-ochre)] ml-1">you</span>' : ''}</td>
-                  <td class="px-4 py-2 text-right font-mono">${r.bkp_total}</td>
-                  <td class="px-4 py-2 text-right font-mono text-[12px] text-slate-500 hidden sm:table-cell">${r.games_played}</td>
-                  <td class="px-4 py-2 text-right font-mono text-[12px] text-slate-500 hidden sm:table-cell">${r.golds}</td>
-                </tr>`;
+                return `<li class="px-4 py-2 flex items-baseline justify-between gap-3 ${mine ? 'bg-[var(--color-ochre)]/10' : ''}">
+                  <div class="flex items-baseline gap-2 min-w-0">
+                    <span class="font-mono text-[10px] text-slate-400 w-4 text-right">${i + 1}</span>
+                    <span class="text-sm truncate ${mine ? 'font-semibold' : ''} text-[var(--color-ink)]">${escapeHtml(r.player_handle)}</span>
+                  </div>
+                  <span class="font-mono text-[12px] text-[var(--color-ink)]">${fmtScore(r.score, g.unit)}</span>
+                </li>`;
               })
               .join('');
-          }
-        }
-
-        // Per-game today (top 5 per game)
-        const grid = document.querySelector('[data-today-per-game]');
-        if (grid) {
-          grid.innerHTML = games
-            .map(
-              (g) => `
-                <div class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden" data-today-game="${g.id}">
-                  <div class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2 flex items-baseline justify-between">
-                    <a href="${g.playUrl}" class="text-sm font-semibold hover:text-[var(--color-ochre)]">${escapeHtml(g.title)}</a>
-                    <span class="font-mono text-[9px] tracking-[0.18em] uppercase text-[var(--color-cream)]/60">${g.unit === 'sec' ? 'time' : 'pts'}</span>
-                  </div>
-                  <ol class="divide-y divide-slate-900/5" data-rows>
-                    <li class="px-4 py-3 text-[12px] font-mono text-slate-400 italic">loading…</li>
-                  </ol>
-                </div>`,
-            )
-            .join('');
-
-          // Fill each block in parallel
-          await Promise.all(
-            games.map(async (g) => {
-              const rows = await supaFetch(
-                `scores_with_bkp?game_id=eq.${g.id}&seed=eq.${day}&order=rank.asc&limit=5`,
-              );
-              const block = grid.querySelector(`[data-today-game="${g.id}"] [data-rows]`);
-              if (!block) return;
-              if (rows.length === 0) {
-                block.innerHTML =
-                  '<li class="px-4 py-3 text-[11px] font-mono text-slate-400 italic">no scores yet</li>';
-                return;
-              }
-              block.innerHTML = rows
-                .map((r) => {
-                  const mine = isMine(r.player_handle);
-                  return `<li class="px-4 py-2 flex items-baseline justify-between gap-3 ${mine ? 'bg-[var(--color-ochre)]/10' : ''}">
-                    <div class="flex items-baseline gap-2 min-w-0">
-                      <span class="font-mono text-[10px] text-slate-400 w-4 text-right">${r.rank}</span>
-                      <span class="text-sm truncate ${mine ? 'font-semibold' : ''} text-[var(--color-ink)]">${escapeHtml(r.player_handle)}${verifiedBadge(r.verified)}</span>
-                    </div>
-                    <div class="flex items-baseline gap-2 shrink-0">
-                      <span class="font-mono text-[12px] text-[var(--color-ink)]">${fmtScore(r.score, g.unit)}</span>
-                      <span class="font-mono text-[10px] tracking-[0.08em] uppercase text-[var(--color-ochre)]">+${r.bkp}</span>
-                    </div>
-                  </li>`;
-                })
-                .join('');
-            }),
-          );
-        }
+          }),
+        );
       }
 
       // ─── Season (per-game) ───
@@ -466,59 +359,6 @@ import {
               .join('');
           }),
         );
-      }
-
-      // ─── Champions (cross-game season) ───
-      async function loadChampions() {
-        const monthStart = startOfMonth();
-        const monthEl = document.querySelector('[data-champions-month]');
-        if (monthEl) monthEl.textContent = monthLabel();
-
-        // Pull a generous slice so personal-rank lookup works for non-top players.
-        const standings = await supaFetch(
-          `season_standings?month=eq.${monthStart}&order=bkp_total.desc,golds.desc&limit=200`,
-        );
-
-        const tbody = document.querySelector('[data-champions-rows]');
-        if (tbody) {
-          if (standings.length === 0) {
-            tbody.innerHTML =
-              '<tr><td class="px-4 py-6 text-center text-slate-400 italic" colspan="6">No scores posted this season yet.</td></tr>';
-          } else {
-            tbody.innerHTML = standings
-              .slice(0, 20)
-              .map((r, i) => {
-                const mine = isMine(r.player_handle);
-                return `<tr class="${mine ? 'bg-[var(--color-ochre)]/10' : i % 2 ? 'bg-white/40' : ''} border-t border-slate-900/5">
-                  <td class="px-4 py-2 font-mono text-[12px] text-slate-500">${i + 1}</td>
-                  <td class="px-4 py-2 ${mine ? 'font-semibold' : ''} text-[var(--color-ink)]">${escapeHtml(r.player_handle)}${verifiedBadge(r.verified)}${mine ? ' <span class="font-mono text-[9px] tracking-[0.16em] uppercase text-[var(--color-ochre)] ml-1">you</span>' : ''}</td>
-                  <td class="px-4 py-2 text-right font-mono">${r.bkp_total}</td>
-                  <td class="px-4 py-2 text-right font-mono text-[12px] text-slate-500 hidden sm:table-cell">${r.days_played}</td>
-                  <td class="px-4 py-2 text-right font-mono text-[12px] text-slate-500 hidden sm:table-cell">${r.games_played}</td>
-                  <td class="px-4 py-2 text-right font-mono text-[12px] text-slate-500 hidden sm:table-cell">${r.golds}</td>
-                </tr>`;
-              })
-              .join('');
-          }
-        }
-
-        // Personal rank
-        const rankEl = document.querySelector('[data-champions-rank]');
-        if (rankEl) {
-          if (!myHandle) {
-            rankEl.textContent = 'Set your handle above to find your season rank.';
-          } else {
-            const idx = standings.findIndex(
-              (r) => r.player_handle.toLowerCase() === myHandle.toLowerCase(),
-            );
-            if (idx === -1) {
-              rankEl.textContent = `${myHandle} hasn't posted a score this season yet — or is outside the top 200.`;
-            } else {
-              const me = standings[idx];
-              rankEl.textContent = `You are #${idx + 1} this season — ${me.bkp_total} BKP across ${me.days_played} day${me.days_played === 1 ? '' : 's'} and ${me.games_played} game${me.games_played === 1 ? '' : 's'}.`;
-            }
-          }
-        }
       }
 
       // initial load

@@ -1,6 +1,7 @@
 // Games that submit to the shared leaderboard, with their canonical
-// "ranked mode" (the mode whose seed is a date and whose scores count
-// toward BKP). Mirrors the `ranked_modes` lookup in migration 0003.
+// "ranked mode" (the mode whose seed is a date — a daily fresh-start
+// run comparable across players). Mirrors the `ranked_modes` lookup
+// in migration 0003.
 //
 // Adding a new game means: (1) insert a row in ranked_modes, (2) add
 // an entry here, (3) add the slug to LEADERBOARD_ENABLED in
@@ -19,9 +20,10 @@ export interface LeaderboardGame {
 // The leaderboard is a *daily-mode* ranking — fixed seed per day,
 // fresh-start runs, comparable across players. Long-form games
 // (Biodiversity Discovery Lab, WildCal) don't have a per-run "post
-// your score" moment, so they're intentionally excluded from BKP.
-// Their players get a handle + lab-updates subscription via the same
-// shared prompt; that's just no longer tied to the leaderboard.
+// your score" moment, so they're intentionally excluded from the
+// daily leaderboard. Their players get a handle + lab-updates
+// subscription via the same shared prompt; that's just no longer
+// tied to the leaderboard.
 export const LEADERBOARD_GAMES: LeaderboardGame[] = [
   {
     id: 'codon2048',
