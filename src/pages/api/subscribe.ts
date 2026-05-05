@@ -115,6 +115,7 @@ interface WelcomeResult {
 
 async function sendWelcomeEmail(env: Env, email: string): Promise<WelcomeResult> {
   const subject = `Welcome to BioKEA lab updates`;
+  const unsubscribeMailto = `mailto:contact@biokea.ai?subject=unsubscribe`;
   const text = [
     `Thanks for subscribing.`,
     ``,
@@ -130,6 +131,19 @@ async function sendWelcomeEmail(env: Env, email: string): Promise<WelcomeResult>
     `— The BioKEA team`,
     `https://biokea.ai/`,
   ].join('\n');
+  const html = `<!doctype html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0a0e1a;max-width:560px;margin:0 auto;padding:24px;line-height:1.55;">
+<p>Thanks for subscribing.</p>
+<p>What you'll get from us, and only this:</p>
+<ul>
+  <li>new game drops on <a href="https://biokea.ai/mission/games/">biokea.ai/mission/games/</a></li>
+  <li>papers, datasets, and lab milestones we want to share</li>
+  <li>the Golden Sample Hunt and any future challenges</li>
+</ul>
+<p>That's it. No spam, no shared lists, no third-party tracking.</p>
+<p style="color:#5c6470;font-size:13px;">Unsubscribe any time: reply to this email with <em>unsubscribe</em>, or write to <a href="mailto:contact@biokea.ai">contact@biokea.ai</a>.</p>
+<hr style="border:none;border-top:1px solid #e6e8ec;margin:24px 0">
+<p style="color:#5c6470;font-size:12px;">— The BioKEA team · <a href="https://biokea.ai/">biokea.ai</a></p>
+</body></html>`;
 
   let res: Response;
   try {
@@ -140,10 +154,22 @@ async function sendWelcomeEmail(env: Env, email: string): Promise<WelcomeResult>
         authorization: `Bearer ${env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: env.CONTACT_FROM_EMAIL,
+        // Display-name + address form is more recognizable to spam
+        // classifiers than a bare address. The address must match the
+        // domain DKIM is signed for (biokea.ai) for alignment.
+        from: `BioKEA <${env.CONTACT_FROM_EMAIL}>`,
         to: email,
+        // Replies should land at contact@, not the no-reply notifications@.
+        reply_to: 'contact@biokea.ai',
         subject,
         text,
+        html,
+        // Gmail's Feb 2024 sender requirements expect List-Unsubscribe
+        // on bulk mail. Without it, welcome blasts get tagged as spam
+        // even when SPF/DKIM/DMARC all pass.
+        headers: {
+          'List-Unsubscribe': `<${unsubscribeMailto}>`,
+        },
       }),
     });
   } catch (err) {
