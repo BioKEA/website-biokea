@@ -12,7 +12,9 @@ test('golden-sample-26 promo hero renders headline, sub, and card image', async 
 
 test('golden-sample-26 lists 4 how-it-works steps', async ({ page }) => {
   await page.goto('/golden-sample-26');
-  await expect(page.getByText('HOW IT WORKS')).toBeVisible();
+  // Exact-match the eyebrow so it doesn't collide with the "How it works ↓"
+  // CTA link in the hero.
+  await expect(page.getByText('HOW IT WORKS', { exact: true })).toBeVisible();
   for (const step of [
     'Pick a handle',
     'Earn a sample',
