@@ -32,31 +32,28 @@ function encodeHandle(handle: string): string {
   return encodeURIComponent(handle.trim().slice(0, 32));
 }
 
-// Pipette Rush — slot 1 — N daily-mode rows submitted by this handle.
-// "Successful" is interpreted loosely: any row in `scores` for the
-// pipette-rush daily mode counts. The schema requires score >= 0 and
-// the handle moderation trigger blocks abuse handles, so this is a
-// reasonable proxy for "completed games."
-async function validateCount(
+// Pipette Rush — slot 1 — single-run high-water-mark of waves cleared.
+// The submit payload writes metadata.wave per row; we just need any
+// row for this handle where metadata.wave >= threshold to exist.
+async function validatePipetteWave(
   env: ValidateEnv,
   handle: string,
-  game: string,
   threshold: number,
 ): Promise<boolean> {
   const url =
     `${env.SUPABASE_URL}/rest/v1/scores` +
-    `?game_id=eq.${encodeURIComponent(game)}` +
+    `?game_id=eq.pipette-rush` +
+    `&mode=eq.daily` +
     `&player_handle=eq.${encodeHandle(handle)}` +
-    `&select=id`;
-  const res = await fetch(url, {
-    headers: { ...supaHeaders(env), Prefer: 'count=exact' },
-  });
+    `&select=metadata&limit=200`;
+  const res = await fetch(url, { headers: supaHeaders(env) });
   if (!res.ok) return false;
-  // PostgREST returns the count via the Content-Range header when
-  // Prefer: count=exact is set: "0-N/total".
-  const range = res.headers.get('content-range') ?? '';
-  const total = Number(range.split('/')[1] ?? '0');
-  return Number.isFinite(total) && total >= threshold;
+  const rows = (await res.json()) as { metadata: Record<string, unknown> }[];
+  for (const r of rows) {
+    const v = r.metadata?.wave;
+    if (typeof v === 'number' && v >= threshold) return true;
+  }
+  return false;
 }
 
 // Particle Accelerator — slot 6 — score (= seconds survived) >= N
@@ -156,8 +153,8 @@ export async function validateUnlock(
   handle: string,
 ): Promise<boolean> {
   switch (config.kind) {
-    case 'count':
-      return validateCount(env, handle, config.game, config.threshold);
+    case 'pipette-wave':
+      return validatePipetteWave(env, handle, config.threshold);
     case 'particle-time':
       return validateParticleTime(env, handle, config.threshold);
     case 'plasmid-ante':

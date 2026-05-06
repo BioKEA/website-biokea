@@ -9,11 +9,11 @@
 // I won't tell. That would be cheating.
 
 export type SlotKind =
-  | 'count' // pipette-rush — N successful daily runs
   | 'milestone' // long-form — server-tracked progress counter
   | 'plasmid-ante' // plasmid-plinko — antesCleared >= N in metadata
   | 'codon-tier' // codon2048 — highestTier >= N in metadata
-  | 'particle-time'; // particle — score (= seconds survived) >= N
+  | 'particle-time' // particle — score (= seconds survived) >= N
+  | 'pipette-wave'; // pipette-rush — any run with metadata.wave >= N
 
 export interface SlotConfig {
   slot: 1 | 2 | 3 | 4 | 5 | 6;
@@ -33,9 +33,14 @@ export const SLOTS: readonly SlotConfig[] = [
   {
     slot: 1,
     game: 'pipette-rush',
-    kind: 'count',
-    threshold: 12,
-    hint: 'Complete 12 daily runs in Pipette Rush.',
+    // Single-run waves cleared. Stored as metadata.wave on each
+    // pipette-rush daily score row. Switched from "12 daily runs"
+    // (which felt grindy and had no in-run signal of progress) to
+    // "complete 15 waves in one run" (which is a tangible in-game
+    // milestone the player can see climbing).
+    kind: 'pipette-wave',
+    threshold: 15,
+    hint: 'Reach wave 15 in a single Pipette Rush daily run.',
   },
   {
     slot: 2,
@@ -64,10 +69,13 @@ export const SLOTS: readonly SlotConfig[] = [
   {
     slot: 5,
     game: 'codon2048',
-    // Ecosystem tier id (see /tmp/games-audit/codon2048/src/lib/tiers.ts).
+    // Population tier id (see codon2048/src/lib/tiers.ts). Lowered
+    // from Ecosystem (11) to Population (10) — Species → Ecosystem is
+    // a brutally hard last-stretch and was gating the hunt for almost
+    // every player. Population still requires a genuinely strong run.
     kind: 'codon-tier',
-    threshold: 11,
-    hint: 'Reach the Ecosystem tier in Codon Collider daily mode.',
+    threshold: 10,
+    hint: 'Reach the Population tier in Codon Collider daily mode.',
   },
   {
     slot: 6,
