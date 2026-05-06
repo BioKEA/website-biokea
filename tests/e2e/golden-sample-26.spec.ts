@@ -10,10 +10,15 @@ test('golden-sample-26 promo hero renders headline, sub, and card image', async 
   await expect(page.getByAltText(/Golden Sample Card/i)).toBeVisible();
 });
 
-test('golden-sample-26 lists 5 how-it-works steps', async ({ page }) => {
+test('golden-sample-26 lists 4 how-it-works steps', async ({ page }) => {
   await page.goto('/golden-sample-26');
   await expect(page.getByText('HOW IT WORKS')).toBeVisible();
-  for (const step of ['Find', 'Clue', 'Solve', 'Submit', 'Win']) {
+  for (const step of [
+    'Pick a handle',
+    'Earn a sample',
+    'Watch your collection fill',
+    'Claim your prize',
+  ]) {
     await expect(page.getByRole('heading', { name: step, exact: true })).toBeVisible();
   }
 });
@@ -29,15 +34,18 @@ test('golden-sample-26 lists the prize bullets', async ({ page }) => {
 
 test('golden-sample-26 surfaces deadline + US-only + 18+ rules', async ({ page }) => {
   await page.goto('/golden-sample-26');
-  await expect(page.getByText(/June 5, 2026/)).toBeVisible();
+  // 60-day campaign window — see src/lib/golden-sample/config.ts.
+  await expect(page.getByText('2026-07-06').first()).toBeVisible();
   await expect(page.getByText(/US residents only/i)).toBeVisible();
   await expect(page.getByText(/18\+/)).toBeVisible();
 });
 
-test('golden-sample-26 has a Submit section anchor and form region', async ({ page }) => {
+test('golden-sample-26 has a Submit section anchor and the redeem form region', async ({
+  page,
+}) => {
   await page.goto('/golden-sample-26');
   await expect(page.locator('#submit')).toBeVisible();
-  await expect(page.getByText('SUBMIT YOUR ANSWER', { exact: true })).toBeVisible();
+  await expect(page.getByText('CLAIM YOUR PRIZE', { exact: true })).toBeVisible();
 });
 
 test('golden-sample-26 emits Event JSON-LD with launch + deadline dates', async ({ page }) => {
@@ -46,8 +54,18 @@ test('golden-sample-26 emits Event JSON-LD with launch + deadline dates', async 
   const parsed = JSON.parse(ld!);
   expect(parsed['@type']).toBe('Event');
   expect(parsed.startDate).toBe('2026-05-07');
-  expect(parsed.endDate).toBe('2026-06-05');
+  // Window extended to ~60 days when the hunt was switched from copy-
+  // only promo to live earn-and-claim with a 10-prize cap.
+  expect(parsed.endDate).toBe('2026-07-06');
   expect(parsed.eventStatus).toBe('https://schema.org/EventScheduled');
+});
+
+test('golden-sample-26 renders all 6 collection slots', async ({ page }) => {
+  await page.goto('/golden-sample-26');
+  await expect(page.getByText('YOUR COLLECTION', { exact: true })).toBeVisible();
+  for (let slot = 1; slot <= 6; slot++) {
+    await expect(page.locator(`[data-slot="${slot}"]`)).toBeVisible();
+  }
 });
 
 test('golden-sample-26 closes with the tagline', async ({ page }) => {
