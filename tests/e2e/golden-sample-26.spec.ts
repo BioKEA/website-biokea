@@ -55,9 +55,9 @@ test('golden-sample-26 emits Event JSON-LD with launch + deadline dates', async 
   const ld = await page.locator('script[type="application/ld+json"]').first().textContent();
   const parsed = JSON.parse(ld!);
   expect(parsed['@type']).toBe('Event');
-  expect(parsed.startDate).toBe('2026-05-07');
-  // Window extended to ~60 days when the hunt was switched from copy-
-  // only promo to live earn-and-claim with a 10-prize cap.
+  expect(parsed.startDate).toBe('2026-05-06');
+  // Window is ~60 days; opens one day before public launch so the team
+  // can test end-to-end claim → redeem before the marketing copy lands.
   expect(parsed.endDate).toBe('2026-07-06');
   expect(parsed.eventStatus).toBe('https://schema.org/EventScheduled');
 });
