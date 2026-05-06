@@ -80,11 +80,14 @@ export const SLOTS: readonly SlotConfig[] = [
   {
     slot: 6,
     game: 'particle-survival-shooter',
-    // 5 minutes survived = 300 seconds. The full run cap is 8 min, so
-    // this still requires a strong run without demanding a perfect one.
+    // Survive the full game. RUN_DURATION in particle is 480 seconds
+    // (8 minutes); reaching that = the run completed without dying.
+    // Earlier draft thresholds (300/360) handed the slot out for
+    // partial survival, which felt too lenient given this is the last
+    // word in the sentence.
     kind: 'particle-time',
-    threshold: 300,
-    hint: 'Survive 5 minutes in Particle Accelerator.',
+    threshold: 480,
+    hint: 'Survive the entire 8-minute run in Particle Accelerator.',
   },
 ] as const;
 
