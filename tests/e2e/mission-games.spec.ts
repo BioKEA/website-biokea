@@ -21,9 +21,12 @@ test('mission/games shows exactly 6 game tiles', async ({ page }) => {
   await expect(page.locator('[data-game-slug]')).toHaveCount(6);
 });
 
-test('mission/games footer CTA links to /golden-sample-26', async ({ page }) => {
+test('mission/games hero CTA links to /golden-sample-26', async ({ page }) => {
   await page.goto('/mission/games');
-  const cta = page.getByRole('link', { name: /Six cards are hidden/i });
+  // The hunt CTA was moved up under the intro paragraph and rebranded
+  // as the prominent "Golden Sample Hunt · Six golden samples · 10 prizes"
+  // dark-pill button.
+  const cta = page.getByRole('link', { name: /Golden Sample Hunt/i }).first();
   await expect(cta).toHaveAttribute('href', '/golden-sample-26');
 });
 
