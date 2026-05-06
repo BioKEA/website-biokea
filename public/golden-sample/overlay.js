@@ -2,13 +2,17 @@
 //
 // Shared in-game overlay for the Golden Sample 26 hunt. Injected into
 // every BioKEA game's index.html by scripts/build-games.mjs. The
-// games stay free of any reveal logic — they just dispatch
-// `window.dispatchEvent(new CustomEvent('biokea:golden-found', {
+// games dispatch `window.dispatchEvent(new CustomEvent('biokea:golden-found', {
 //   detail: { word, slot, sentence, alreadyHeld }
 // }))` and this overlay renders the moment.
 //
 // Vanilla JS, no framework. Self-contained. Idempotent if loaded
 // twice (we early-return when a singleton flag is set).
+//
+// Visuals: the actual /assets/images/golden-sample-card.png is shown
+// front-and-center (the same ornate gold/navy card players see on
+// /golden-sample-26), with the player's earned word stamped over it
+// as a wax-seal-style overlay.
 //
 // I won't tell. That would be cheating.
 
@@ -18,6 +22,7 @@
 
   const STORAGE_KEY = 'biokea:golden-tickets:v1';
   const SENTENCE_FALLBACK = 'Every Human Now Has Scientific Superpowers';
+  const CARD_IMG = '/assets/images/golden-sample-card.png';
 
   // ─── Storage ─────────────────────────────────────────────────
   function loadTickets() {
@@ -34,15 +39,11 @@
       all[String(slot)] = payload;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
     } catch {
-      /* localStorage full / private mode — not load-bearing, the
-         server has the canonical record. */
+      // localStorage full / private mode — server has the canonical record
     }
   }
 
   // ─── Audio ───────────────────────────────────────────────────
-  // A short 3-note triumphant arpeggio synthesized via WebAudio so we
-  // don't have to ship a sound file. Fades in/out so it doesn't punch
-  // through whatever music the game was already playing.
   function playChime() {
     let ctx;
     try {
@@ -65,7 +66,6 @@
       osc.start(t);
       osc.stop(t + 0.5);
     });
-    // Low-frequency thud underneath, gives the moment weight.
     const sub = ctx.createOscillator();
     const subGain = ctx.createGain();
     sub.type = 'sine';
@@ -76,8 +76,6 @@
     sub.connect(subGain).connect(ctx.destination);
     sub.start(now);
     sub.stop(now + 0.65);
-    // Close the context after the sound is done so we don't pile up
-    // contexts on repeated reveals.
     setTimeout(() => ctx.close().catch(() => undefined), 800);
   }
 
@@ -92,23 +90,23 @@
         to { opacity: 1; }
       }
       @keyframes biokea-golden-cardin {
-        0%   { transform: translate(-50%, -50%) scale(0.4) rotate(-12deg); opacity: 0; }
-        60%  { transform: translate(-50%, -50%) scale(1.06) rotate(2deg);  opacity: 1; }
+        0%   { transform: translate(-50%, -50%) scale(0.4) rotate(-10deg); opacity: 0; }
+        55%  { transform: translate(-50%, -50%) scale(1.04) rotate(2deg);  opacity: 1; }
         100% { transform: translate(-50%, -50%) scale(1) rotate(0deg);     opacity: 1; }
       }
       @keyframes biokea-golden-glow {
         0%   { transform: translate(-50%, -50%) scale(0.2); opacity: 0;   }
-        40%  { transform: translate(-50%, -50%) scale(1.4); opacity: 0.95;}
-        100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0;   }
+        40%  { transform: translate(-50%, -50%) scale(1.6); opacity: 0.95;}
+        100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0;   }
       }
       @keyframes biokea-golden-spark {
         0%   { transform: translate(0, 0) scale(0.6); opacity: 1; }
         100% { transform: translate(var(--biokea-spark-x, 0), var(--biokea-spark-y, 0)) scale(0.1); opacity: 0; }
       }
-      @keyframes biokea-golden-wordin {
-        0%   { letter-spacing: 0.5em; opacity: 0; transform: translateY(8px); }
-        60%  { letter-spacing: 0.05em; opacity: 1; transform: translateY(0); }
-        100% { letter-spacing: 0.02em; opacity: 1; transform: translateY(0); }
+      @keyframes biokea-golden-stampin {
+        0%   { transform: translate(-50%, -50%) scale(2.2) rotate(-8deg); opacity: 0; }
+        70%  { transform: translate(-50%, -50%) scale(0.96) rotate(-4deg); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(1) rotate(-4deg);   opacity: 1; }
       }
       .biokea-golden-toast {
         position: fixed;
@@ -149,8 +147,8 @@
       'display:flex',
       'align-items:center',
       'justify-content:center',
-      'background:radial-gradient(ellipse at center, rgba(20,14,40,0.55) 0%, rgba(6,6,18,0.92) 100%)',
-      'backdrop-filter:blur(4px)',
+      'background:radial-gradient(ellipse at center, rgba(20,14,40,0.65) 0%, rgba(6,6,18,0.95) 100%)',
+      'backdrop-filter:blur(6px)',
       'animation:biokea-golden-fadein 320ms ease both',
       'font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif',
     ].join(';');
@@ -161,20 +159,20 @@
       'position:absolute',
       'left:50%',
       'top:50%',
-      'width:560px',
-      'height:560px',
+      'width:680px',
+      'height:680px',
       'border-radius:50%',
-      'background:radial-gradient(circle, rgba(251,191,36,0.55) 0%, rgba(251,191,36,0.18) 38%, rgba(251,191,36,0) 70%)',
+      'background:radial-gradient(circle, rgba(251,191,36,0.65) 0%, rgba(251,191,36,0.22) 38%, rgba(251,191,36,0) 70%)',
       'pointer-events:none',
-      'animation:biokea-golden-glow 1100ms ease-out both',
+      'animation:biokea-golden-glow 1200ms ease-out both',
     ].join(';');
     root.appendChild(glow);
 
-    // Sparkles — small dots that animate outward.
-    for (let i = 0; i < 28; i++) {
+    // Sparkle shower — small dots animating outward.
+    for (let i = 0; i < 36; i++) {
       const sp = document.createElement('div');
-      const angle = (Math.PI * 2 * i) / 28 + Math.random() * 0.4;
-      const dist = 220 + Math.random() * 140;
+      const angle = (Math.PI * 2 * i) / 36 + Math.random() * 0.4;
+      const dist = 280 + Math.random() * 180;
       sp.style.cssText = [
         'position:absolute',
         'left:50%',
@@ -187,55 +185,109 @@
         'pointer-events:none',
         `--biokea-spark-x:${Math.cos(angle) * dist}px`,
         `--biokea-spark-y:${Math.sin(angle) * dist}px`,
-        `animation:biokea-golden-spark ${800 + Math.random() * 600}ms ease-out ${100 + Math.random() * 200}ms both`,
+        `animation:biokea-golden-spark ${800 + Math.random() * 700}ms ease-out ${100 + Math.random() * 250}ms both`,
       ].join(';');
       root.appendChild(sp);
     }
 
-    // The card itself.
-    const card = document.createElement('div');
-    card.style.cssText = [
+    // ── Modal container — holds card + framing chrome ──
+    const modal = document.createElement('div');
+    modal.style.cssText = [
       'position:absolute',
       'left:50%',
       'top:50%',
-      'width:min(420px, 88vw)',
-      'padding:32px 28px 28px',
-      'background:linear-gradient(160deg, #fef3c7 0%, #fbbf24 55%, #b45309 105%)',
-      'color:#1f1505',
-      'border:2px solid rgba(120,53,15,0.45)',
+      'transform:translate(-50%, -50%)',
+      'width:min(620px, 94vw)',
+      'animation:biokea-golden-cardin 720ms cubic-bezier(0.16, 1.2, 0.3, 1) both',
+    ].join(';');
+
+    // Card frame — wraps the image so we can position the wax-seal stamp
+    // on top of it without affecting the rest of the layout.
+    const cardFrame = document.createElement('div');
+    cardFrame.style.cssText = [
+      'position:relative',
       'border-radius:14px',
-      'box-shadow:0 20px 60px -10px rgba(180, 83, 9, 0.55), 0 0 0 1px rgba(255,255,255,0.4) inset',
+      'overflow:hidden',
+      'box-shadow:0 30px 70px -10px rgba(180, 83, 9, 0.65), 0 0 0 1px rgba(251,191,36,0.55) inset',
+    ].join(';');
+
+    const cardImg = document.createElement('img');
+    cardImg.src = CARD_IMG;
+    cardImg.alt = 'Golden Sample Card — ornate gold and navy keepsake.';
+    cardImg.style.cssText = 'display:block;width:100%;height:auto';
+    // If the absolute path can't resolve (e.g. someone forks the game
+    // outside the website domain), fall back to a navy gradient so the
+    // stamp + framing still look intentional.
+    cardImg.onerror = () => {
+      cardFrame.style.background =
+        'linear-gradient(135deg, #1f1505 0%, #b45309 50%, #fbbf24 100%)';
+      cardImg.remove();
+      cardFrame.style.aspectRatio = '1438 / 830';
+    };
+    cardFrame.appendChild(cardImg);
+
+    // ── Wax-seal stamp with the earned word ──
+    // Centered over the card image (which has a dark galaxy at center,
+    // giving the cream-on-navy seal great contrast).
+    const stamp = document.createElement('div');
+    stamp.style.cssText = [
+      'position:absolute',
+      'left:50%',
+      'top:50%',
+      'transform:translate(-50%, -50%) rotate(-4deg)',
+      'min-width:46%',
+      'max-width:80%',
+      'padding:14px 22px',
+      'background:linear-gradient(150deg, #fef3c7 0%, #fbbf24 50%, #b45309 110%)',
+      'color:#1f1505',
+      'border:2px solid rgba(120,53,15,0.7)',
+      'border-radius:6px',
+      'box-shadow:0 12px 28px -4px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.5) inset, 0 0 0 4px rgba(120,53,15,0.25)',
       'text-align:center',
-      'animation:biokea-golden-cardin 700ms cubic-bezier(0.16, 1.2, 0.3, 1) both',
+      'animation:biokea-golden-stampin 720ms cubic-bezier(0.16, 1.4, 0.3, 1) 320ms both',
+    ].join(';');
+    const stampLabel = document.createElement('div');
+    stampLabel.style.cssText =
+      'font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:10px;letter-spacing:0.32em;text-transform:uppercase;font-weight:700;color:rgba(120,53,15,0.85)';
+    stampLabel.textContent = `Slot ${slot} of 6`;
+    const stampWord = document.createElement('div');
+    stampWord.style.cssText = [
+      'margin-top:4px',
+      'font-size:clamp(28px, 6vw, 44px)',
+      'font-weight:900',
+      'letter-spacing:0.04em',
+      'color:#1f1505',
+      'text-shadow:0 1px 0 rgba(255,255,255,0.5)',
+      'line-height:1',
+    ].join(';');
+    stampWord.textContent = word;
+    stamp.appendChild(stampLabel);
+    stamp.appendChild(stampWord);
+    cardFrame.appendChild(stamp);
+
+    modal.appendChild(cardFrame);
+
+    // ── Below the card: sentence visualization + CTA ──
+    const below = document.createElement('div');
+    below.style.cssText = [
+      'margin-top:18px',
+      'padding:18px 22px',
+      'background:rgba(15, 23, 42, 0.85)',
+      'border:1px solid rgba(251, 191, 36, 0.35)',
+      'border-radius:10px',
+      'text-align:center',
+      'color:#fde68a',
+      'backdrop-filter:blur(4px)',
     ].join(';');
 
     const eyebrow = document.createElement('div');
     eyebrow.style.cssText =
-      'font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:10px;letter-spacing:0.32em;text-transform:uppercase;color:rgba(120,53,15,0.85);font-weight:600';
-    eyebrow.textContent = `Golden Sample · ${slot} of 6`;
+      'font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:#fbbf24;font-weight:600';
+    eyebrow.textContent = `Golden Sample · ${slot} of 6 earned`;
 
-    const title = document.createElement('div');
-    title.style.cssText =
-      'margin-top:6px;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(120,53,15,0.6)';
-    title.textContent = 'You earned a piece of the message';
-
-    const wordEl = document.createElement('div');
-    wordEl.style.cssText = [
-      'margin:24px 0 18px',
-      'font-size:clamp(34px, 7vw, 52px)',
-      'font-weight:800',
-      'letter-spacing:0.02em',
-      'color:#1f1505',
-      'text-shadow:0 1px 0 rgba(255,255,255,0.55)',
-      'animation:biokea-golden-wordin 800ms ease-out 350ms both',
-    ].join(';');
-    wordEl.textContent = word;
-
-    // Mini sentence visualization — show all 6 word slots, light up
-    // the one we just earned, fade the rest.
     const sentenceRow = document.createElement('div');
     sentenceRow.style.cssText =
-      'display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-bottom:18px';
+      'display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:12px';
     const tickets = loadTickets();
     sentenceWords.forEach((w, i) => {
       const slotNum = i + 1;
@@ -249,21 +301,24 @@
         'border-radius:3px',
         'letter-spacing:0.06em',
         isThis
-          ? 'background:#1f1505;color:#fde68a;font-weight:700'
+          ? 'background:#fbbf24;color:#1f1505;font-weight:800'
           : isOwned
-            ? 'background:rgba(120,53,15,0.18);color:rgba(31,21,5,0.95);font-weight:600'
-            : 'background:rgba(120,53,15,0.08);color:rgba(31,21,5,0.45)',
+            ? 'background:rgba(251,191,36,0.18);color:#fde68a;font-weight:600'
+            : 'background:rgba(251,191,36,0.08);color:rgba(253,230,138,0.4)',
       ].join(';');
       chip.textContent = isOwned ? w : '·····';
       sentenceRow.appendChild(chip);
     });
 
+    const ctaRow = document.createElement('div');
+    ctaRow.style.cssText =
+      'display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;flex-wrap:wrap';
+
     const cta = document.createElement('button');
     cta.type = 'button';
     cta.style.cssText = [
-      'margin-top:6px',
-      'background:#1f1505',
-      'color:#fde68a',
+      'background:#fbbf24',
+      'color:#1f1505',
       'border:none',
       'padding:10px 18px',
       'border-radius:4px',
@@ -271,29 +326,31 @@
       'font-size:11px',
       'letter-spacing:0.18em',
       'text-transform:uppercase',
-      'font-weight:700',
+      'font-weight:800',
       'cursor:pointer',
       'transition:transform 120ms ease, background 120ms ease',
     ].join(';');
     cta.textContent = 'Got it';
 
-    const footer = document.createElement('a');
-    footer.href = 'https://biokea.ai/golden-sample-26';
-    footer.target = '_top';
-    footer.rel = 'noopener';
-    footer.style.cssText =
-      'display:block;margin-top:14px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(120,53,15,0.85);text-decoration:none';
+    const collectionLink = document.createElement('a');
+    collectionLink.href = 'https://biokea.ai/golden-sample-26';
+    collectionLink.target = '_top';
+    collectionLink.rel = 'noopener';
+    collectionLink.style.cssText =
+      'font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#fbbf24;text-decoration:none;border-bottom:1px solid rgba(251,191,36,0.35);padding-bottom:1px';
     const earnedTotal =
       Object.keys(tickets).length + (tickets[String(slot)] ? 0 : 1);
-    footer.textContent = `View collection · ${earnedTotal} of 6`;
+    collectionLink.textContent = `View collection · ${earnedTotal} of 6 →`;
 
-    card.appendChild(eyebrow);
-    card.appendChild(title);
-    card.appendChild(wordEl);
-    card.appendChild(sentenceRow);
-    card.appendChild(cta);
-    card.appendChild(footer);
-    root.appendChild(card);
+    ctaRow.appendChild(cta);
+    ctaRow.appendChild(collectionLink);
+
+    below.appendChild(eyebrow);
+    below.appendChild(sentenceRow);
+    below.appendChild(ctaRow);
+
+    modal.appendChild(below);
+    root.appendChild(modal);
 
     function dismiss() {
       root.style.transition = 'opacity 240ms ease';
@@ -312,8 +369,6 @@
     });
 
     document.body.appendChild(root);
-    // Small delay so the modal is on screen before the chime plays —
-    // feels more synced.
     setTimeout(playChime, 80);
   }
 
@@ -338,9 +393,6 @@
       showToast('Golden sample already collected');
       return;
     }
-    // Persist the token + word locally so the collection wall on
-    // /golden-sample-26 lights up even if the player goes there
-    // directly from this game.
     saveTicket(detail.slot, {
       slot: detail.slot,
       game: detail.game ?? null,
