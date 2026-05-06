@@ -300,23 +300,30 @@ import {
 
         await Promise.all(
           games.map(async (g) => {
+            // Pull more than top 10 (8x) so the per-handle dedupe still
+            // leaves a full top 10 after collapsing repeat posters. The
+            // four arcade games each post a fresh row per game-end (no
+            // client-side personal-best gate for pipette/plasmid/
+            // particle), so a single player can occupy several rows of
+            // the raw `scores` table for one daily seed.
             const params = new URLSearchParams({
               select: 'player_handle,score,created_at',
               game_id: `eq.${g.id}`,
               mode: `eq.${g.mode}`,
               seed: `eq.${day}`,
               order: 'score.desc',
-              limit: '10',
+              limit: '80',
             });
             const rows = await supaFetch(`scores?${params}`);
             const block = grid.querySelector(`[data-today-game="${g.id}"] [data-rows]`);
             if (!block) return;
-            if (rows.length === 0) {
+            const top = bestByHandle(rows).slice(0, 10);
+            if (top.length === 0) {
               block.innerHTML =
                 '<li class="px-4 py-3 text-[11px] font-mono text-slate-400 italic">no scores yet · be the first</li>';
               return;
             }
-            block.innerHTML = rows
+            block.innerHTML = top
               .map((r, i) => {
                 const mine = isMine(r.player_handle);
                 return `<li class="px-4 py-2 flex items-baseline justify-between gap-3 ${mine ? 'bg-[var(--color-ochre)]/10' : ''}">
