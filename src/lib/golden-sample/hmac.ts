@@ -55,7 +55,9 @@ export async function signTicket(payload: TicketPayload, secret: string): Promis
   const key = await importKey(secret);
   const json = JSON.stringify(payload);
   const data = new TextEncoder().encode(json);
-  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, data));
+  const sig = new Uint8Array(
+    await crypto.subtle.sign('HMAC', key, data as unknown as BufferSource),
+  );
   return `${toBase64Url(data)}.${toBase64Url(sig)}`;
 }
 
@@ -73,7 +75,15 @@ export async function verifyTicket(token: string, secret: string): Promise<Ticke
     return null;
   }
   const key = await importKey(secret);
-  const ok = await crypto.subtle.verify('HMAC', key, sig, payloadBytes);
+  // The Workers runtime accepts Uint8Array directly, but @types/node's
+  // BufferSource union is stricter — cast to bypass the SharedArrayBuffer
+  // false-positive without introducing a runtime copy.
+  const ok = await crypto.subtle.verify(
+    'HMAC',
+    key,
+    sig as unknown as BufferSource,
+    payloadBytes as unknown as BufferSource,
+  );
   if (!ok) return null;
   try {
     const parsed = JSON.parse(new TextDecoder().decode(payloadBytes)) as TicketPayload;
