@@ -184,13 +184,11 @@ import {
         return Number(score).toLocaleString();
       };
 
-      const todayKey = () => {
-        const d = new Date();
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
-      };
+      // Use UTC so the date key matches Codon Collider's daily seeds,
+      // which are also UTC-based. Without this, players in UTC− time zones
+      // see evening scores vanish because the game stores them under the
+      // next UTC day while the page was querying the current local day.
+      const todayKey = () => new Date().toISOString().slice(0, 10);
 
       // Inclusive start of the rolling 7-day window ending today. Lex
       // compare on YYYY-MM-DD seeds is chronological so this works as a
