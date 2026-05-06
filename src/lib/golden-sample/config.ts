@@ -42,7 +42,10 @@ export const SLOTS: readonly SlotConfig[] = [
     game: '3d-biodiversity-collect-em-all',
     kind: 'milestone',
     threshold: 20,
-    hint: 'Encounter 20 different animals in WildCal.',
+    // Encounter (= seen in the BayDex), not capture. Capture would
+    // require battle + catch, which is a much steeper grind; we want
+    // exploration to be the unlock.
+    hint: 'Encounter 20 different creatures in WildCal.',
   },
   {
     slot: 3,
@@ -69,10 +72,11 @@ export const SLOTS: readonly SlotConfig[] = [
   {
     slot: 6,
     game: 'particle-survival-shooter',
-    // 6 minutes survived = 360 seconds.
+    // 5 minutes survived = 300 seconds. The full run cap is 8 min, so
+    // this still requires a strong run without demanding a perfect one.
     kind: 'particle-time',
-    threshold: 360,
-    hint: 'Survive 6 minutes in Particle Accelerator.',
+    threshold: 300,
+    hint: 'Survive 5 minutes in Particle Accelerator.',
   },
 ] as const;
 
