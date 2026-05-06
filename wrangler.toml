@@ -24,3 +24,25 @@ SUPABASE_PUBLISHABLE_KEY = "sb_publishable_HmeteofpCTVchDfmzrMAxg_y0ea1IM1"
 # If TURNSTILE_SECRET_KEY is unset, the contact + subscribe endpoints
 # skip captcha verification. Pair it with PUBLIC_TURNSTILE_SITE_KEY at
 # build time so the widget renders on those pages.
+#
+# Golden Sample 26 hunt secrets — required for /api/golden-sample/*
+# to function (otherwise the endpoints return 500 "Hunt is not
+# configured"; the games' fetch will fail silently and no animation
+# fires). Set with:
+#
+#   wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+#     # Used by the hunt APIs to read past `scores` for proof-of-
+#     # progress validation + write to golden_sample_* tables. Anon
+#     # key isn't enough — the hunt tables are RLS-locked with no
+#     # public policies so the word vault stays opaque.
+#
+#   wrangler secret put GOLDEN_HMAC_SECRET
+#     # 32+ byte random string. Used to sign tickets so screenshots of
+#     # the in-game reveal can't be turned into someone else's
+#     # redemption. Rotate it and every existing ticket invalidates.
+#
+#   wrangler secret put GOLDEN_WORDS
+#     # JSON map of {gameId: word}. Six entries. NEVER commit this to
+#     # source. Words live only here.
+#     # See migrations/0004_golden_sample_hunt.sql for the canonical
+#     # game-ids; src/lib/golden-sample/config.ts has the slot map.

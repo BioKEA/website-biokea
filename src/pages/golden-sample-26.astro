@@ -4,12 +4,19 @@ import Eyebrow from '@/components/ui/Eyebrow.astro';
 import SubscribeForm from '@/components/forms/SubscribeForm.astro';
 import { games } from '@/data/games';
 import { stringifyJsonLd } from '@/lib/json-ld';
+import {
+  CAMPAIGN_OPENS_ISO,
+  CAMPAIGN_CLOSES_ISO,
+  HUNT_NAME,
+  PRIZE_CAP,
+  SLOTS,
+  SENTENCE,
+} from '@/lib/golden-sample/config';
 
-// Sean swaps this when the Google Form is provisioned.
-const GOOGLE_FORM_URL: string | null = null; // TODO: paste embed URL
-
-const launchDate = '2026-05-07';
-const deadlineDate = '2026-06-05';
+// Display dates derived from canonical ISO constants in config.ts so
+// the copy stays in sync with what the API enforces.
+const launchDate = CAMPAIGN_OPENS_ISO.slice(0, 10);
+const deadlineDate = CAMPAIGN_CLOSES_ISO.slice(0, 10);
 
 const eventLd = {
   '@context': 'https://schema.org',
@@ -20,7 +27,7 @@ const eventLd = {
   eventStatus: 'https://schema.org/EventScheduled',
   eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
   description:
-    'A 30-day public scavenger hunt across six BioKEA projects. The first ten correct solvers win real molecular sequencing of their own backyard soil.',
+    'A 60-day public hunt across six BioKEA games. Earn six golden samples by playing — collect them all and ten winners receive real molecular sequencing of their own backyard soil.',
   organizer: { '@id': 'https://biokea.ai/#org' },
   location: {
     '@type': 'VirtualLocation',
@@ -34,11 +41,26 @@ const eventLd = {
     url: 'https://biokea.ai/golden-sample-26',
   },
 };
+
+// Build the slot→game lookup so the collection wall can render its
+// game-link + hint per slot at server render time. (The held/word
+// state is filled in client-side from /api/golden-sample/state.)
+const gamesBySlug = new Map(games.map((g) => [g.slug, g]));
+const slotsRender = SLOTS.map((s) => {
+  const g = gamesBySlug.get(s.game);
+  return {
+    slot: s.slot,
+    title: g?.title ?? s.game,
+    playUrl: g?.playUrl ?? `/mission/games/${s.game}/`,
+    thumb: g?.thumb ?? '/assets/images/golden-sample-card.png',
+    hint: s.hint,
+  };
+});
 ---
 
 <BaseLayout
   title="The Golden Sample Hunt — BioKEA"
-  description="A 30-day public hunt across six BioKEA games. Collect six cards, solve the puzzle, win real sequencing of your own backyard soil. Launches May 7, 2026; deadline June 5, 2026."
+  description={`A 60-day public hunt across six BioKEA games. Earn six golden samples by playing; ${PRIZE_CAP} winners receive real sequencing of their own backyard soil. Launches ${launchDate}; deadline ${deadlineDate}.`}
   ogImage="/assets/images/golden-sample-card.png"
   preloadImage="/assets/images/golden-sample-card.png"
   preloadImageType="image/png"
@@ -63,23 +85,29 @@ const eventLd = {
           Even under your feet.
         </p>
         <p class="mt-8 max-w-[52ch] text-slate-300 leading-relaxed">
-          Hidden across six BioKEA games are six Golden Sample Cards. Collect the clues. Solve the
-          puzzle.
+          Hidden across six BioKEA games are six golden samples. One in each game. Reach a milestone
+          in each, and the games reveal a word — six words that spell out a single sentence about
+          what biology is becoming.
         </p>
         <div class="mt-8 flex flex-wrap gap-3">
           <a
-            href="#the-games"
+            href="#collection"
             class="inline-flex items-center gap-2 px-4 py-2 rounded-sm border border-[var(--color-gold)] text-[var(--color-gold)] hover:bg-[var(--color-gold)] hover:text-[var(--color-ink)] transition"
           >
-            See the games ↓
+            Open my collection ↓
           </a>
           <a
-            href="#submit"
+            href="#how"
             class="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-[var(--color-gold)] text-[var(--color-ink)] font-semibold hover:bg-[var(--color-gold-soft)] transition"
           >
-            Submit your answer ↓
+            How it works ↓
           </a>
         </div>
+        <p
+          class="mt-6 text-[11px] font-mono uppercase tracking-[0.18em] text-[var(--color-gold)]/70"
+        >
+          Best on desktop · keyboard + mouse for now
+        </p>
       </div>
       <figure class="md:justify-self-end">
         <img
@@ -93,65 +121,165 @@ const eventLd = {
     </div>
   </section>
 
-  <!-- ZONE B — editorial mode -->
-
-  <section class="max-w-3xl mx-auto px-6 py-16">
+  <!-- ZONE B — How it works -->
+  <section id="how" class="max-w-3xl mx-auto px-6 py-16">
     <Eyebrow>HOW IT WORKS</Eyebrow>
     <ol class="mt-6 space-y-6">
       <li class="grid grid-cols-[40px_1fr] gap-4">
         <span class="font-mono text-[var(--color-ochre)] font-semibold">01</span>
         <div>
-          <h2 class="text-lg font-semibold text-[var(--color-ink)]">Find</h2>
+          <h2 class="text-lg font-semibold text-[var(--color-ink)]">Pick a handle</h2>
           <p class="mt-1 text-slate-600 leading-relaxed">
-            Six BioKEA games. Six hidden Golden Sample Cards. One per game.
+            Use the same handle in every BioKEA game — that's how your collection follows you across
+            games and devices. (Play on a desktop browser; mobile support is coming.)
           </p>
         </div>
       </li>
       <li class="grid grid-cols-[40px_1fr] gap-4">
         <span class="font-mono text-[var(--color-ochre)] font-semibold">02</span>
         <div>
-          <h2 class="text-lg font-semibold text-[var(--color-ink)]">Clue</h2>
+          <h2 class="text-lg font-semibold text-[var(--color-ink)]">Earn a sample</h2>
           <p class="mt-1 text-slate-600 leading-relaxed">
-            Each card carries one fragment of the final answer.
+            Each game has a hidden milestone. Reach it and a golden sample appears with one word
+            from the answer. Six games. Six words.
           </p>
         </div>
       </li>
       <li class="grid grid-cols-[40px_1fr] gap-4">
         <span class="font-mono text-[var(--color-ochre)] font-semibold">03</span>
         <div>
-          <h2 class="text-lg font-semibold text-[var(--color-ink)]">Solve</h2>
+          <h2 class="text-lg font-semibold text-[var(--color-ink)]">Watch your collection fill</h2>
           <p class="mt-1 text-slate-600 leading-relaxed">
-            Assemble all six fragments into the solution.
+            Come back here. Type your handle. The slots you've earned light up. The slots you
+            haven't stay sealed.
           </p>
         </div>
       </li>
       <li class="grid grid-cols-[40px_1fr] gap-4">
         <span class="font-mono text-[var(--color-ochre)] font-semibold">04</span>
         <div>
-          <h2 class="text-lg font-semibold text-[var(--color-ink)]">Submit</h2>
+          <h2 class="text-lg font-semibold text-[var(--color-ink)]">Claim your prize</h2>
           <p class="mt-1 text-slate-600 leading-relaxed">
-            Send your answer through the form below — your shipping address is required because the
-            prize ships to you.
-          </p>
-        </div>
-      </li>
-      <li class="grid grid-cols-[40px_1fr] gap-4">
-        <span class="font-mono text-[var(--color-ochre)] font-semibold">05</span>
-        <div>
-          <h2 class="text-lg font-semibold text-[var(--color-ink)]">Win</h2>
-          <p class="mt-1 text-slate-600 leading-relaxed">
-            The first ten correct submissions get real sequencing of their backyard soil.
+            All six? The full sentence reveals — and the form below opens. Submit your address. The
+            first <strong>{PRIZE_CAP}</strong> handles to complete the hunt receive real sequencing of
+            their own backyard soil.
           </p>
         </div>
       </li>
     </ol>
   </section>
 
+  <!-- ZONE C — Collection wall -->
+  <section id="collection" class="max-w-5xl mx-auto px-6 py-12">
+    <Eyebrow>YOUR COLLECTION</Eyebrow>
+    <div class="mt-3 grid lg:grid-cols-[minmax(0,40ch)_minmax(0,1fr)] gap-x-10 gap-y-6 items-start">
+      <div>
+        <h2
+          class="text-3xl md:text-4xl font-semibold tracking-[-0.02em] leading-tight text-[var(--color-ink)]"
+        >
+          Six slots. One sentence.
+        </h2>
+        <p class="mt-4 text-slate-600 leading-relaxed">
+          Type the handle you use in the games. The slots fill in based on what you've earned.
+        </p>
+        <div class="mt-6 flex gap-2">
+          <input
+            type="text"
+            data-collection-handle
+            placeholder="your handle"
+            maxlength="32"
+            class="flex-1 border border-slate-900/15 rounded-sm px-3 py-2 bg-white/90 text-[var(--color-ink)] text-sm font-mono"
+          />
+          <button
+            type="button"
+            data-collection-load
+            class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2 rounded-sm font-semibold text-xs uppercase tracking-[0.08em]"
+          >
+            Load
+          </button>
+        </div>
+        <p
+          class="mt-3 text-[11px] font-mono uppercase tracking-[0.16em] text-slate-500"
+          data-collection-status
+        >
+          —
+        </p>
+        <p
+          class="mt-4 text-[11px] font-mono uppercase tracking-[0.16em] text-[var(--color-ochre)]"
+          data-collection-prizes
+        >
+          —
+        </p>
+      </div>
+
+      <ol class="grid sm:grid-cols-2 gap-4" data-collection-slots>
+        {
+          slotsRender.map((s) => (
+            <li
+              class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden flex flex-col"
+              data-slot={s.slot}
+            >
+              <div class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2 flex items-baseline justify-between">
+                <span class="font-mono text-[10px] tracking-[0.2em] uppercase text-[var(--color-gold)]">
+                  Slot {s.slot}
+                </span>
+                <span
+                  class="font-mono text-[9px] tracking-[0.18em] uppercase text-[var(--color-cream)]/55"
+                  data-slot-state
+                >
+                  sealed
+                </span>
+              </div>
+              <div class="p-4 flex-1 flex flex-col">
+                <h3 class="text-sm font-semibold text-[var(--color-ink)]">{s.title}</h3>
+                <p class="mt-1 text-[12px] text-slate-600 leading-snug">{s.hint}</p>
+                <div
+                  class="mt-3 flex items-center justify-center min-h-[44px] rounded-sm border border-dashed border-slate-300 bg-white/60"
+                  data-slot-word
+                >
+                  <span class="font-mono text-[11px] tracking-[0.18em] uppercase text-slate-400">
+                    ·····
+                  </span>
+                </div>
+                <a
+                  href={s.playUrl}
+                  class="mt-3 font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-pink)] hover:text-[var(--color-teal)]"
+                >
+                  Play {s.title} →
+                </a>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <div
+      class="mt-10 hidden data-[show=true]:block bg-[var(--color-ink)] text-[var(--color-cream)] rounded-md p-6 md:p-8 text-center"
+      data-sentence-reveal
+    >
+      <p class="font-mono text-[10px] tracking-[0.28em] uppercase text-[var(--color-gold)]">
+        Six of six · the message
+      </p>
+      <p
+        class="mt-3 text-3xl md:text-4xl font-semibold tracking-[-0.02em] leading-tight"
+        data-sentence-text
+      >
+        —
+      </p>
+      <p class="mt-3 text-[12px] text-[var(--color-cream)]/65 max-w-[52ch] mx-auto">
+        Claim your prize below — first {PRIZE_CAP} handles to complete the hunt win real sequencing of
+        their own backyard soil.
+      </p>
+    </div>
+  </section>
+
+  <!-- ZONE D — The games -->
   <section id="the-games" class="max-w-6xl mx-auto px-6 py-12">
     <Eyebrow>THE GAMES</Eyebrow>
     <p class="mt-3 max-w-[62ch] text-slate-600 leading-relaxed">
-      Six playable games. One Golden Sample Card hidden inside each. Click in, play, and look for
-      what doesn't belong.
+      Six playable games. One golden sample hidden inside each. Click in, play, and reach the
+      milestone — the reveal will find you.
     </p>
     <ul class="mt-6 grid md:grid-cols-3 gap-4">
       {
@@ -171,7 +299,7 @@ const eventLd = {
               <h3 class="font-semibold text-[var(--color-ink)]">{g.title}</h3>
               <p class="mt-1 text-sm text-slate-600 leading-relaxed flex-1">{g.tagline}</p>
               <p class="mt-3 text-xs font-mono text-[var(--color-ochre)]">
-                🔒 Golden Sample Card · hidden inside
+                🔒 Golden sample hidden inside
               </p>
               <a
                 href={g.playUrl}
@@ -186,9 +314,12 @@ const eventLd = {
     </ul>
   </section>
 
+  <!-- ZONE E — The prize -->
   <section class="max-w-3xl mx-auto px-6 py-12">
     <Eyebrow>THE PRIZE</Eyebrow>
-    <p class="mt-3 text-slate-600 leading-relaxed">The first ten correct solvers receive:</p>
+    <p class="mt-3 text-slate-600 leading-relaxed">
+      The first <strong>{PRIZE_CAP}</strong> handles to collect all six golden samples receive:
+    </p>
     <ul class="mt-4 space-y-2 text-slate-700">
       <li>· Real molecular sequencing of soil sampled from your own backyard.</li>
       <li>· A full report (PDF) of what was found.</li>
@@ -197,17 +328,22 @@ const eventLd = {
     </ul>
   </section>
 
+  <!-- ZONE F — Rules -->
   <section class="max-w-3xl mx-auto px-6 py-12">
     <Eyebrow>RULES</Eyebrow>
     <ul class="mt-4 space-y-2 text-sm text-slate-600 leading-relaxed">
       <li>
-        · Deadline: <strong>June 5, 2026, 11:59 PM PT</strong>. Hunt opens
-        <strong>May 7, 2026</strong>.
+        · Hunt window: <strong>{launchDate}</strong> through <strong>{deadlineDate}</strong> (~60 days).
+        Tickets earned outside this window won't count toward the prize.
       </li>
       <li>· US residents only.</li>
-      <li>· Must be 18+ at the time of submission.</li>
-      <li>· One submission per email address.</li>
-      <li>· Automated or bot submissions will be disqualified.</li>
+      <li>· Must be 18+ at the time of redemption.</li>
+      <li>· One redemption per handle.</li>
+      <li>· Best played on a desktop browser. Mobile support is coming.</li>
+      <li>
+        · Automated submissions, source-scraping, or LLM-assisted spoiler retrieval will be
+        disqualified — that's not the spirit of this. Earn it.
+      </li>
       <li>
         · Winners are notified by email; allow 4–6 weeks for kit delivery, sample return,
         sequencing, and report.
@@ -216,36 +352,134 @@ const eventLd = {
     </ul>
   </section>
 
+  <!-- ZONE G — Redeem -->
   <section id="submit" class="max-w-3xl mx-auto px-6 py-12">
-    <Eyebrow>SUBMIT YOUR ANSWER</Eyebrow>
-    {
-      GOOGLE_FORM_URL ? (
-        <>
-          <iframe
-            src={GOOGLE_FORM_URL}
-            loading="lazy"
-            class="mt-6 w-full h-[900px] border border-slate-900/10 rounded-md bg-white"
-            title="Golden Sample Hunt — submission form"
+    <Eyebrow>CLAIM YOUR PRIZE</Eyebrow>
+    <p class="mt-3 text-sm text-slate-600 leading-relaxed">
+      Available once your collection is complete (six of six). Submit the handle you played under
+      and the address where the kit should ship.
+    </p>
+
+    <form data-redeem-form class="mt-6 grid gap-3 hidden data-[show=true]:grid" novalidate>
+      <div class="grid sm:grid-cols-2 gap-3">
+        <label class="grid gap-1">
+          <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+            Handle
+          </span>
+          <input
+            required
+            name="handle"
+            data-redeem-handle
+            class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/80 text-[var(--color-ink)]"
           />
-          <p class="mt-3 text-xs text-slate-500">
-            <a
-              href={GOOGLE_FORM_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="underline decoration-slate-400 hover:text-[var(--color-teal)]"
-            >
-              Open the form in a new tab →
-            </a>
-          </p>
-        </>
-      ) : (
-        <p class="mt-6 rounded-md border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
-          Submission form is being prepared. Check back here at launch (May 7, 2026).
-        </p>
-      )
-    }
+        </label>
+        <label class="grid gap-1">
+          <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+            Email
+          </span>
+          <input
+            required
+            type="email"
+            name="email"
+            class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/80 text-[var(--color-ink)]"
+          />
+        </label>
+      </div>
+      <label class="grid gap-1">
+        <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+          Full name
+        </span>
+        <input
+          required
+          name="name"
+          class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/80 text-[var(--color-ink)]"
+        />
+      </label>
+      <label class="grid gap-1">
+        <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+          Street address
+        </span>
+        <input
+          required
+          name="line1"
+          class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/80 text-[var(--color-ink)]"
+        />
+      </label>
+      <label class="grid gap-1">
+        <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+          Apt / unit (optional)
+        </span>
+        <input
+          name="line2"
+          class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/80 text-[var(--color-ink)]"
+        />
+      </label>
+      <div class="grid sm:grid-cols-3 gap-3">
+        <label class="grid gap-1">
+          <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+            City
+          </span>
+          <input
+            required
+            name="city"
+            class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/80 text-[var(--color-ink)]"
+          />
+        </label>
+        <label class="grid gap-1">
+          <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+            State / region
+          </span>
+          <input
+            name="region"
+            class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/80 text-[var(--color-ink)]"
+          />
+        </label>
+        <label class="grid gap-1">
+          <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+            Postal code
+          </span>
+          <input
+            required
+            name="postal"
+            class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/80 text-[var(--color-ink)]"
+          />
+        </label>
+      </div>
+      <label class="grid gap-1">
+        <span class="font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--color-teal)]">
+          Country
+        </span>
+        <input
+          required
+          name="country"
+          value="United States"
+          class="border border-slate-900/15 rounded-sm px-3 py-2.5 bg-white/80 text-[var(--color-ink)]"
+        />
+      </label>
+      <button
+        type="submit"
+        class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-3 rounded-sm font-semibold text-sm self-start"
+      >
+        Claim my prize →
+      </button>
+      <p
+        data-redeem-status
+        role="status"
+        aria-live="polite"
+        class="text-sm text-slate-600 min-h-[1.25rem]"
+      >
+      </p>
+    </form>
+
+    <p
+      data-redeem-locked
+      class="mt-6 rounded-md border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600"
+    >
+      Load your collection above. The form unlocks when you've earned all six.
+    </p>
   </section>
 
+  <!-- ZONE H — Lab updates -->
   <section class="max-w-3xl mx-auto px-6 py-12">
     <div class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-6">
       <Eyebrow>LAB UPDATES</Eyebrow>
@@ -270,4 +504,220 @@ const eventLd = {
   </section>
 
   <script type="application/ld+json" is:inline set:html={stringifyJsonLd(eventLd)} />
+
+  <script
+    is:inline
+    define:vars={{
+      sentenceFallback: SENTENCE,
+      huntName: HUNT_NAME,
+      slotCount: SLOTS.length,
+    }}
+  >
+    (() => {
+      const HANDLE_KEY = 'biokea:player:handle';
+      const TICKETS_KEY = 'biokea:golden-tickets:v1';
+
+      const handleInput = document.querySelector('[data-collection-handle]');
+      const loadBtn = document.querySelector('[data-collection-load]');
+      const statusEl = document.querySelector('[data-collection-status]');
+      const prizesEl = document.querySelector('[data-collection-prizes]');
+      const slotEls = document.querySelectorAll('[data-slot]');
+      const sentenceBox = document.querySelector('[data-sentence-reveal]');
+      const sentenceText = document.querySelector('[data-sentence-text]');
+      const redeemForm = document.querySelector('[data-redeem-form]');
+      const redeemLocked = document.querySelector('[data-redeem-locked]');
+      const redeemHandle = document.querySelector('[data-redeem-handle]');
+      const redeemStatus = document.querySelector('[data-redeem-status]');
+
+      // Pre-fill the handle from the cross-game localStorage key —
+      // the same one the games use, so a player who's been earning
+      // tickets sees their collection immediately.
+      try {
+        const stored = localStorage.getItem(HANDLE_KEY);
+        if (stored && handleInput) handleInput.value = stored;
+      } catch {}
+
+      function setSlotState(slotEl, { held, word }) {
+        const stateEl = slotEl.querySelector('[data-slot-state]');
+        const wordEl = slotEl.querySelector('[data-slot-word]');
+        if (held) {
+          slotEl.classList.add('ring-2', 'ring-[var(--color-gold)]');
+          if (stateEl) {
+            stateEl.textContent = 'earned';
+            stateEl.style.color = 'var(--color-gold)';
+          }
+          if (wordEl) {
+            wordEl.classList.remove('border-dashed', 'border-slate-300');
+            wordEl.classList.add(
+              'border-solid',
+              'border-[var(--color-gold)]',
+              'bg-[var(--color-gold)]/10',
+            );
+            wordEl.innerHTML =
+              '<span class="font-bold text-base tracking-[0.04em] text-[var(--color-ink)]">' +
+              (word ? String(word).toUpperCase() : '—') +
+              '</span>';
+          }
+        } else {
+          slotEl.classList.remove('ring-2', 'ring-[var(--color-gold)]');
+          if (stateEl) {
+            stateEl.textContent = 'sealed';
+            stateEl.style.color = '';
+          }
+          if (wordEl) {
+            wordEl.classList.add('border-dashed', 'border-slate-300');
+            wordEl.classList.remove(
+              'border-solid',
+              'border-[var(--color-gold)]',
+              'bg-[var(--color-gold)]/10',
+            );
+            wordEl.innerHTML =
+              '<span class="font-mono text-[11px] tracking-[0.18em] uppercase text-slate-400">·····</span>';
+          }
+        }
+      }
+
+      function showSentence(words) {
+        if (!sentenceBox || !sentenceText) return;
+        sentenceText.textContent = words.join(' ');
+        sentenceBox.setAttribute('data-show', 'true');
+      }
+
+      function hideSentence() {
+        if (sentenceBox) sentenceBox.removeAttribute('data-show');
+      }
+
+      function unlockRedeem(handle) {
+        if (redeemForm) redeemForm.setAttribute('data-show', 'true');
+        if (redeemLocked) redeemLocked.style.display = 'none';
+        if (redeemHandle) redeemHandle.value = handle;
+      }
+
+      function lockRedeem() {
+        if (redeemForm) redeemForm.removeAttribute('data-show');
+        if (redeemLocked) redeemLocked.style.display = '';
+      }
+
+      async function loadCollection(handle) {
+        if (!handle) return;
+        try {
+          localStorage.setItem(HANDLE_KEY, handle);
+        } catch {}
+        if (statusEl) statusEl.textContent = 'loading…';
+        let data;
+        try {
+          const res = await fetch('/api/golden-sample/state?handle=' + encodeURIComponent(handle));
+          data = await res.json();
+        } catch {
+          if (statusEl) statusEl.textContent = 'network error';
+          return;
+        }
+        if (!data || !data.ok) {
+          if (statusEl) statusEl.textContent = (data && data.error) || 'could not load';
+          return;
+        }
+
+        // Render slots from server response.
+        const wordsBySlot = {};
+        for (const s of data.slots) {
+          const slotEl = document.querySelector('[data-slot="' + s.slot + '"]');
+          if (slotEl) setSlotState(slotEl, { held: s.held, word: s.word });
+          if (s.held && s.word) wordsBySlot[s.slot] = s.word;
+        }
+
+        if (statusEl) statusEl.textContent = data.earned_count + ' of ' + slotCount + ' earned';
+        if (prizesEl)
+          prizesEl.textContent =
+            data.prizes_remaining + ' of ' + data.prize_cap + ' prizes remaining';
+
+        if (data.complete) {
+          const ordered = [];
+          for (let i = 1; i <= slotCount; i++) ordered.push(wordsBySlot[i] || '?');
+          showSentence(ordered);
+          unlockRedeem(handle);
+        } else {
+          hideSentence();
+          lockRedeem();
+        }
+      }
+
+      loadBtn?.addEventListener('click', () => {
+        const v = (handleInput?.value ?? '').trim();
+        if (!v) return;
+        void loadCollection(v);
+      });
+      handleInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          loadBtn?.click();
+        }
+      });
+
+      // Auto-load on first paint if a handle is already known.
+      if (handleInput && handleInput.value) {
+        void loadCollection(handleInput.value.trim());
+      }
+
+      // Redeem form — gather tokens from localStorage (which the
+      // overlay populates on each in-game earn) and POST to redeem.
+      redeemForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!redeemStatus) return;
+        redeemStatus.textContent = 'submitting…';
+        redeemStatus.style.color = '';
+
+        let tickets = {};
+        try {
+          tickets = JSON.parse(localStorage.getItem(TICKETS_KEY) ?? '{}');
+        } catch {}
+        const tokens = [];
+        for (let i = 1; i <= slotCount; i++) {
+          const t = tickets[String(i)];
+          if (t && t.token) tokens.push(t.token);
+        }
+        if (tokens.length !== slotCount) {
+          redeemStatus.textContent =
+            'Missing tokens locally. Re-play any game on this device to refresh, or contact contact@biokea.ai.';
+          redeemStatus.style.color = 'var(--color-pink)';
+          return;
+        }
+
+        const fd = new FormData(redeemForm);
+        const payload = {
+          handle: String(fd.get('handle') ?? '').trim(),
+          email: String(fd.get('email') ?? '').trim(),
+          tokens,
+          address: {
+            name: String(fd.get('name') ?? '').trim(),
+            line1: String(fd.get('line1') ?? '').trim(),
+            line2: String(fd.get('line2') ?? '').trim(),
+            city: String(fd.get('city') ?? '').trim(),
+            region: String(fd.get('region') ?? '').trim(),
+            postal: String(fd.get('postal') ?? '').trim(),
+            country: String(fd.get('country') ?? '').trim(),
+          },
+        };
+        try {
+          const res = await fetch('/api/golden-sample/redeem', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const body = await res.json();
+          if (res.ok && body.ok) {
+            redeemStatus.textContent = 'Claimed. Watch your inbox — we ship within 4–6 weeks.';
+            redeemStatus.style.color = 'var(--color-teal)';
+            redeemForm.reset();
+            redeemForm.removeAttribute('data-show');
+          } else {
+            redeemStatus.textContent = body.error ?? 'Could not claim. Please try again.';
+            redeemStatus.style.color = 'var(--color-pink)';
+          }
+        } catch {
+          redeemStatus.textContent = 'Network error. Please try again.';
+          redeemStatus.style.color = 'var(--color-pink)';
+        }
+      });
+    })();
+  </script>
 </BaseLayout>
