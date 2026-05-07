@@ -61,9 +61,13 @@ export const SLOTS: readonly SlotConfig[] = [
   {
     slot: 4,
     game: 'plasmid-plinko',
+    // Plasmid daily-mode level (antesCleared) the player has to reach
+    // in a single run. Mirror change in plasmid-plinko's
+    // src/lib/golden-sample.ts:SLOT_THRESHOLD_ANTES so the in-run gate
+    // matches.
     kind: 'plasmid-ante',
-    threshold: 3,
-    hint: 'Reach level 3 in Plasmid Plinko daily mode.',
+    threshold: 8,
+    hint: 'Reach level 8 in Plasmid Plinko daily mode.',
   },
   {
     slot: 5,
