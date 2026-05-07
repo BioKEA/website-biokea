@@ -545,6 +545,12 @@ const slotsRender = SLOTS.map((s) => {
     (() => {
       const HANDLE_KEY = 'biokea:player:handle';
       const TICKETS_KEY = 'biokea:golden-tickets:v1';
+      // Per-device anonymous UUID, set by @biokea/leaderboard on first
+      // submit from any BioKEA game. We pass it to /api/golden-sample/
+      // state so the server only discloses words for slots earned on
+      // *this* device — typing another player's handle no longer
+      // reveals their words (or assembles the sentence).
+      const CLIENT_ID_KEY = 'biokea-leaderboard-client-id';
 
       const handleInput = document.querySelector('[data-collection-handle]');
       const loadBtn = document.querySelector('[data-collection-load]');
@@ -566,13 +572,13 @@ const slotsRender = SLOTS.map((s) => {
         if (stored && handleInput) handleInput.value = stored;
       } catch {}
 
-      function setSlotState(slotEl, { held, word }) {
+      function setSlotState(slotEl, { held, word, ownedByRequester }) {
         const stateEl = slotEl.querySelector('[data-slot-state]');
         const wordEl = slotEl.querySelector('[data-slot-word]');
         if (held) {
           slotEl.classList.add('ring-2', 'ring-[var(--color-gold)]');
           if (stateEl) {
-            stateEl.textContent = 'earned';
+            stateEl.textContent = ownedByRequester ? 'earned' : 'earned · elsewhere';
             stateEl.style.color = 'var(--color-gold)';
           }
           if (wordEl) {
@@ -582,10 +588,18 @@ const slotsRender = SLOTS.map((s) => {
               'border-[var(--color-gold)]',
               'bg-[var(--color-gold)]/10',
             );
-            wordEl.innerHTML =
-              '<span class="font-bold text-base tracking-[0.04em] text-[var(--color-ink)]">' +
-              (word ? String(word).toUpperCase() : '—') +
-              '</span>';
+            if (word && ownedByRequester) {
+              wordEl.innerHTML =
+                '<span class="font-bold text-base tracking-[0.04em] text-[var(--color-ink)]">' +
+                String(word).toUpperCase() +
+                '</span>';
+            } else {
+              // Held by this handle but not on this device — show
+              // earned indicator without the word (security: someone
+              // typing a leader's handle should not see the words).
+              wordEl.innerHTML =
+                '<span class="font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--color-ochre)]">earned · play here to view</span>';
+            }
           }
         } else {
           slotEl.classList.remove('ring-2', 'ring-[var(--color-gold)]');
@@ -633,9 +647,18 @@ const slotsRender = SLOTS.map((s) => {
           localStorage.setItem(HANDLE_KEY, handle);
         } catch {}
         if (statusEl) statusEl.textContent = 'loading…';
+        // Pass this device's client_id so the server can decide whether
+        // to disclose the words for held slots. Without it, all words
+        // come back null and the wall shows 'earned · play here to view'.
+        let clientId = '';
+        try {
+          clientId = localStorage.getItem(CLIENT_ID_KEY) ?? '';
+        } catch {}
+        const params = new URLSearchParams({ handle });
+        if (clientId) params.set('client_id', clientId);
         let data;
         try {
-          const res = await fetch('/api/golden-sample/state?handle=' + encodeURIComponent(handle));
+          const res = await fetch('/api/golden-sample/state?' + params.toString());
           data = await res.json();
         } catch {
           if (statusEl) statusEl.textContent = 'network error';
@@ -648,18 +671,40 @@ const slotsRender = SLOTS.map((s) => {
 
         // Render slots from server response.
         const wordsBySlot = {};
+        let ownedHere = 0;
         for (const s of data.slots) {
           const slotEl = document.querySelector('[data-slot="' + s.slot + '"]');
-          if (slotEl) setSlotState(slotEl, { held: s.held, word: s.word });
-          if (s.held && s.word) wordsBySlot[s.slot] = s.word;
+          if (slotEl)
+            setSlotState(slotEl, {
+              held: s.held,
+              word: s.word,
+              ownedByRequester: !!s.owned_by_requester,
+            });
+          if (s.held && s.word && s.owned_by_requester) {
+            wordsBySlot[s.slot] = s.word;
+            ownedHere++;
+          }
         }
 
-        if (statusEl) statusEl.textContent = data.earned_count + ' of ' + slotCount + ' earned';
+        if (statusEl) {
+          const earned = data.earned_count;
+          if (earned !== ownedHere && earned > 0) {
+            statusEl.textContent =
+              earned + ' of ' + slotCount + ' earned · ' + ownedHere + ' on this device';
+          } else {
+            statusEl.textContent = earned + ' of ' + slotCount + ' earned';
+          }
+        }
         if (prizesEl)
           prizesEl.textContent =
             data.prizes_remaining + ' of ' + data.prize_cap + ' prizes remaining';
 
-        if (data.complete) {
+        // Sentence reveal + redeem unlock require ALL six earned on
+        // THIS device — both because the words have to come from the
+        // server (which gates per device) and because redeem itself
+        // needs the per-slot HMAC tokens which are stored in this
+        // device's localStorage.
+        if (data.complete && ownedHere === slotCount) {
           const ordered = [];
           for (let i = 1; i <= slotCount; i++) ordered.push(wordsBySlot[i] || '?');
           showSentence(ordered);
