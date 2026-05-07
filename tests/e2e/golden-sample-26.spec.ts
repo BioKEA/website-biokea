@@ -37,7 +37,7 @@ test('golden-sample-26 lists the prize bullets', async ({ page }) => {
 test('golden-sample-26 surfaces deadline + US-only + 18+ rules', async ({ page }) => {
   await page.goto('/mission/games/golden-sample-26');
   // 60-day campaign window — see src/lib/golden-sample/config.ts.
-  await expect(page.getByText('2026-07-06').first()).toBeVisible();
+  await expect(page.getByText('2026-07-07').first()).toBeVisible();
   await expect(page.getByText(/US residents only/i)).toBeVisible();
   await expect(page.getByText(/18\+/)).toBeVisible();
 });
@@ -55,10 +55,9 @@ test('golden-sample-26 emits Event JSON-LD with launch + deadline dates', async 
   const ld = await page.locator('script[type="application/ld+json"]').first().textContent();
   const parsed = JSON.parse(ld!);
   expect(parsed['@type']).toBe('Event');
-  expect(parsed.startDate).toBe('2026-05-06');
-  // Window is ~60 days; opens one day before public launch so the team
-  // can test end-to-end claim → redeem before the marketing copy lands.
-  expect(parsed.endDate).toBe('2026-07-06');
+  // 60-day public hunt window; launches 2026-05-07.
+  expect(parsed.startDate).toBe('2026-05-07');
+  expect(parsed.endDate).toBe('2026-07-07');
   expect(parsed.eventStatus).toBe('https://schema.org/EventScheduled');
 });
 
