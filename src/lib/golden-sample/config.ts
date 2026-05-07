@@ -106,11 +106,10 @@ export function slotForGame(gameId: string): SlotConfig | undefined {
 // Campaign window — tickets issued outside this range still trigger
 // the in-game animation (the player earned it; deny that and they'll
 // hate us) but won't count toward the prize on /golden-sample-26.
-// Opens one day earlier than the official launch so the team can test
-// end-to-end (claim → state → redeem) before the public hero copy
-// drops on 2026-05-07.
-export const CAMPAIGN_OPENS_ISO = '2026-05-06T00:00:00Z';
-export const CAMPAIGN_CLOSES_ISO = '2026-07-06T23:59:59Z';
+// Public launch day is 2026-05-07 (today). The pre-launch test window
+// closed at 2026-05-06; opens for the public at 2026-05-07T00:00:00Z.
+export const CAMPAIGN_OPENS_ISO = '2026-05-07T00:00:00Z';
+export const CAMPAIGN_CLOSES_ISO = '2026-07-07T23:59:59Z';
 
 // Maximum prizes awarded across the campaign. The 11th completer sees
 // "hunt closed — sentence revealed, prizes redeemed" instead of an
