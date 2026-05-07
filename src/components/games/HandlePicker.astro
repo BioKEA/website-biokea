@@ -1,0 +1,192 @@
+---
+// src/components/games/HandlePicker.astro
+//
+// Set-once handle picker that powers all four BioKEA score-submitting
+// games. Writes both `biokea:player:handle` (the canonical cross-game
+// key already read by every game's BiokeaLeaderboardPrompt at mount)
+// AND `biokea:player:handle-confirmed`, the new flag that tells each
+// game's prompt to render a streamlined "Save score as <handle>?"
+// confirmation instead of the full picker.
+//
+// Server-validates against /api/handle-check (mirrors the trigger
+// from migration 0002) so a blocked handle gets caught here rather
+// than at score-submit in some random game.
+---
+
+<section data-handle-picker class="max-w-6xl mx-auto px-6 pt-6">
+  <div
+    class="bg-[var(--color-ink)] text-[var(--color-cream)] rounded-md px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4"
+  >
+    <div
+      class="font-mono text-[10px] tracking-[0.22em] uppercase text-[var(--color-ochre)] sm:w-32"
+    >
+      Your Handle
+    </div>
+
+    <div data-handle-set class="flex-1 flex flex-wrap items-center gap-3" hidden>
+      <span class="text-sm text-[var(--color-cream)]/85">
+        Playing as
+        <strong data-handle-display class="font-semibold text-[var(--color-cream)]"></strong>
+      </span>
+      <span class="text-[var(--color-cream)]/30">·</span>
+      <span class="text-xs text-[var(--color-cream)]/60">
+        Every BioKEA game uses this handle.
+      </span>
+      <button
+        type="button"
+        data-handle-edit
+        class="ml-auto font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--color-teal)] hover:text-[var(--color-cream)] underline underline-offset-2"
+      >
+        change
+      </button>
+    </div>
+
+    <form data-handle-form class="flex-1 flex flex-col sm:flex-row gap-2 sm:items-center" hidden>
+      <input
+        name="handle"
+        type="text"
+        placeholder="DrBio"
+        pattern="[a-zA-Z0-9_-]{1,32}"
+        maxlength="32"
+        autocomplete="off"
+        spellcheck="false"
+        class="flex-1 border border-slate-700 bg-slate-900 rounded-sm px-3 py-2 text-sm font-mono text-[var(--color-cream)] placeholder:text-slate-500 focus:outline-none focus:border-[var(--color-ochre)]"
+      />
+      <button
+        type="submit"
+        data-handle-save
+        class="bg-[var(--color-ochre)] text-[var(--color-ink)] px-3 py-2 rounded-sm font-semibold text-xs uppercase tracking-[0.08em] whitespace-nowrap hover:bg-[var(--color-cream)] transition disabled:opacity-50"
+      >
+        Save handle
+      </button>
+    </form>
+  </div>
+
+  <p
+    data-handle-status
+    role="status"
+    aria-live="polite"
+    class="mt-2 px-1 text-xs min-h-[1rem] text-slate-500"
+  >
+  </p>
+  <p data-handle-help class="mt-1 px-1 text-xs text-slate-500">
+    Pick once and every game uses it. 1–32 letters, numbers, <code>_</code> or <code>-</code>.
+  </p>
+</section>
+
+<script is:inline>
+  (() => {
+    const root = document.querySelector('[data-handle-picker]');
+    if (!root) return;
+    const HANDLE_KEY = 'biokea:player:handle';
+    const CONFIRMED_KEY = 'biokea:player:handle-confirmed';
+    const HANDLE_REGEX = /^[a-zA-Z0-9_-]{1,32}$/;
+
+    const setView = root.querySelector('[data-handle-set]');
+    const display = root.querySelector('[data-handle-display]');
+    const editBtn = root.querySelector('[data-handle-edit]');
+    const form = root.querySelector('[data-handle-form]');
+    const input = form && form.querySelector('input[name="handle"]');
+    const saveBtn = root.querySelector('[data-handle-save]');
+    const status = root.querySelector('[data-handle-status]');
+
+    function show(el, on) {
+      if (!el) return;
+      if (on) el.removeAttribute('hidden');
+      else el.setAttribute('hidden', '');
+    }
+
+    function readHandle() {
+      try {
+        return localStorage.getItem(HANDLE_KEY) || '';
+      } catch {
+        return '';
+      }
+    }
+    function readConfirmed() {
+      try {
+        return localStorage.getItem(CONFIRMED_KEY) === '1';
+      } catch {
+        return false;
+      }
+    }
+
+    function render() {
+      const h = readHandle();
+      const valid = HANDLE_REGEX.test(h);
+      const confirmed = readConfirmed();
+      if (h && valid && confirmed) {
+        if (display) display.textContent = h;
+        show(setView, true);
+        show(form, false);
+      } else {
+        if (input && valid && h) input.value = h;
+        show(setView, false);
+        show(form, true);
+      }
+    }
+
+    if (editBtn) {
+      editBtn.addEventListener('click', () => {
+        show(setView, false);
+        show(form, true);
+        if (input) {
+          input.value = readHandle();
+          input.focus();
+          input.select();
+        }
+      });
+    }
+
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!input || !status || !saveBtn) return;
+        const h = String(input.value || '').trim();
+        if (!HANDLE_REGEX.test(h)) {
+          status.textContent = 'Pick a handle: 1–32 letters, numbers, _ or -.';
+          status.style.color = 'var(--color-pink)';
+          return;
+        }
+        status.textContent = 'Checking…';
+        status.style.color = '';
+        saveBtn.disabled = true;
+        try {
+          const res = await fetch('/api/handle-check?handle=' + encodeURIComponent(h));
+          const body = await res.json();
+          if (!body.ok) {
+            status.textContent = body.error || 'Handle check failed. Try again.';
+            status.style.color = 'var(--color-pink)';
+            return;
+          }
+          if (!body.allowed) {
+            status.textContent = "That handle isn't allowed. Pick another.";
+            status.style.color = 'var(--color-pink)';
+            return;
+          }
+          try {
+            localStorage.setItem(HANDLE_KEY, h);
+            localStorage.setItem(CONFIRMED_KEY, '1');
+          } catch {}
+          window.dispatchEvent(new CustomEvent('biokea:handle-changed', { detail: { handle: h } }));
+          status.textContent = 'Saved. Every game on this device will use ' + h + '.';
+          status.style.color = 'var(--color-teal)';
+          render();
+        } catch {
+          status.textContent = 'Network error. Please try again.';
+          status.style.color = 'var(--color-pink)';
+        } finally {
+          saveBtn.disabled = false;
+        }
+      });
+    }
+
+    // Sync if a different tab updates the handle (storage event fires
+    // cross-tab automatically — this just re-renders our view).
+    window.addEventListener('storage', (e) => {
+      if (e.key === HANDLE_KEY || e.key === CONFIRMED_KEY) render();
+    });
+
+    render();
+  })();
+</script>

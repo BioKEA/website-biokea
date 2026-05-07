@@ -2,6 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
 import SubscribeForm from '@/components/forms/SubscribeForm.astro';
+import HandlePicker from '@/components/games/HandlePicker.astro';
 import { games } from '@/data/games';
 import {
   LEADERBOARD_GAMES,
@@ -14,7 +15,9 @@ import {
   title="Game-based Storytelling — BioKEA"
   description="Six BioKEA games. Biology you can play with — and a hunt that pays out real sequencing of your backyard soil."
 >
-  <section class="max-w-6xl mx-auto px-6 pt-16 pb-8">
+  <HandlePicker />
+
+  <section class="max-w-6xl mx-auto px-6 pt-10 pb-8">
     <Eyebrow>STORYTELLING</Eyebrow>
     <div class="mt-3 grid lg:grid-cols-[minmax(0,40ch)_minmax(0,1fr)] gap-x-10 gap-y-8 items-start">
       <div>
