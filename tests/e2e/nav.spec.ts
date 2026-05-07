@@ -18,8 +18,8 @@ test('nav renders logo, two dropdown groups, Mission, and Get-in-touch CTA', asy
     '/mission',
   );
   // Both promos are intentionally hidden from the nav. The pages remain
-  // reachable at /golden-sample-26 and /mission/games (sitemap, direct
-  // links, JSON-LD, llms-full.txt all intact).
+  // reachable at /mission/games/golden-sample-26 and /mission/games
+  // (sitemap, direct links, JSON-LD, llms-full.txt all intact).
   await expect(desktop.getByRole('link', { name: 'Golden Sample', exact: true })).toHaveCount(0);
   await expect(
     desktop.getByRole('link', { name: 'Game-based Storytelling', exact: true }),

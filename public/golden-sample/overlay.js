@@ -333,7 +333,7 @@
     cta.textContent = 'Got it';
 
     const collectionLink = document.createElement('a');
-    collectionLink.href = 'https://biokea.ai/golden-sample-26';
+    collectionLink.href = 'https://biokea.ai/mission/games/golden-sample-26';
     collectionLink.target = '_top';
     collectionLink.rel = 'noopener';
     collectionLink.style.cssText =

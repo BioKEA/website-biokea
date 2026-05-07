@@ -172,7 +172,7 @@ import {
         Golden Sample Hunt
       </h2>
       <a
-        href="/golden-sample-26"
+        href="/mission/games/golden-sample-26"
         class="font-mono text-[11px] tracking-[0.14em] uppercase text-[var(--color-ochre)] hover:text-[var(--color-teal)]"
       >
         Hunt rules + your collection →
@@ -554,8 +554,18 @@ import {
         }
       }
 
-      // initial load
-      activate('today');
+      // initial load — honour ?tab= or #tab so cross-links from other
+      // pages can land directly on a specific panel (e.g. the
+      // /mission/games/golden-sample-26 page links here with #hunt).
+      const validTabs = ['today', 'week', 'all', 'hunt'];
+      const initialTab = (() => {
+        const fromHash = (location.hash || '').replace('#', '');
+        if (validTabs.includes(fromHash)) return fromHash;
+        const fromQuery = new URLSearchParams(location.search).get('tab');
+        if (fromQuery && validTabs.includes(fromQuery)) return fromQuery;
+        return 'today';
+      })();
+      activate(initialTab);
     })();
   </script>
 </BaseLayout>

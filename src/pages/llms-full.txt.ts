@@ -166,7 +166,7 @@ A 30-day public scavenger hunt. The six BioKEA projects above double as "games":
 - The raw sequencing data (FASTQ)
 - A Claude-powered explorer for the data
 
-Hunt window: May 7, 2026 → June 5, 2026 (deadline 11:59 PM PT). US residents only, 18+, one submission per email. Page: ${SITE}/golden-sample-26
+Hunt window: May 7, 2026 → July 6, 2026 (~60 days). US residents only, 18+, one redemption per handle. Page: ${SITE}/mission/games/golden-sample-26
 
 ## Milestones
 
