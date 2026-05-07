@@ -33,13 +33,13 @@ export const SLOTS: readonly SlotConfig[] = [
   {
     slot: 1,
     game: 'pipette-rush',
-    // TEMPORARY: lowered from 15 → 3 to make end-to-end testing of
-    // the hunt + Hunt-tab leaderboard fast. Bump back to 15 once
-    // testing wraps. Mirror change in pipette-rush's lib/golden-
-    // sample.ts:SLOT_THRESHOLD_WAVE so the in-run gate matches.
+    // Single-run waves cleared. Stored as metadata.wave on each
+    // pipette-rush daily score row. Mirror change in pipette-rush's
+    // lib/golden-sample.ts:SLOT_THRESHOLD_WAVE so the in-run gate
+    // matches.
     kind: 'pipette-wave',
-    threshold: 3,
-    hint: 'Reach wave 3 in a single Pipette Rush daily run.',
+    threshold: 12,
+    hint: 'Reach wave 12 in a single Pipette Rush daily run.',
   },
   {
     slot: 2,
