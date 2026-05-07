@@ -10,7 +10,6 @@ import {
   HUNT_NAME,
   PRIZE_CAP,
   SLOTS,
-  SENTENCE,
 } from '@/lib/golden-sample/config';
 
 // Display dates derived from canonical ISO constants in config.ts so
@@ -544,7 +543,6 @@ const slotsRender = SLOTS.map((s) => {
   <script
     is:inline
     define:vars={{
-      sentenceFallback: SENTENCE,
       huntName: HUNT_NAME,
       slotCount: SLOTS.length,
     }}

@@ -18,9 +18,11 @@ export type SlotKind =
 export interface SlotConfig {
   slot: 1 | 2 | 3 | 4 | 5 | 6;
   game: string;
-  // Order in the assembled sentence:
-  //   "Every Human Now Has Scientific Superpowers"
-  //    1     2     3   4   5         6
+  // The slot index is the position in the hidden sentence, but the
+  // sentence itself is intentionally NOT in this file. It's assembled
+  // server-side from the GOLDEN_WORDS Cloudflare Worker secret only
+  // when the player has earned all six slots and submits valid
+  // tokens to /api/golden-sample/redeem.
   kind: SlotKind;
   threshold: number;
   // Human-readable unlock description for the collection wall.
@@ -120,6 +122,7 @@ export function isCampaignOpen(now = new Date()): boolean {
   return t >= Date.parse(CAMPAIGN_OPENS_ISO) && t <= Date.parse(CAMPAIGN_CLOSES_ISO);
 }
 
-// Display constants used in copy. Kept here so site + emails agree.
-export const SENTENCE = 'Every Human Now Has Scientific Superpowers';
+// Public hunt name — safe in source. The sentence is server-only;
+// the redemption API assembles it from GOLDEN_WORDS at the moment a
+// player redeems all six valid tokens, never on the client.
 export const HUNT_NAME = 'Golden Sample 26';

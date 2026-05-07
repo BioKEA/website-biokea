@@ -3,7 +3,7 @@
 // Shared in-game overlay for the Golden Sample 26 hunt. Injected into
 // every BioKEA game's index.html by scripts/build-games.mjs. The
 // games dispatch `window.dispatchEvent(new CustomEvent('biokea:golden-found', {
-//   detail: { word, slot, sentence, alreadyHeld }
+//   detail: { word, slot, alreadyHeld }
 // }))` and this overlay renders the moment.
 //
 // Vanilla JS, no framework. Self-contained. Idempotent if loaded
@@ -14,6 +14,12 @@
 // /golden-sample-26), with the player's earned word stamped over it
 // as a wax-seal-style overlay.
 //
+// The full sentence is intentionally NOT in this file. The card the
+// player just earned shows their word; the row of 6 slots shows the
+// other earned words from localStorage and `·····` placeholders for
+// unearned slots. The complete reveal happens on the website's
+// collection wall once all six slots are claimed.
+//
 // I won't tell. That would be cheating.
 
 (function () {
@@ -21,7 +27,7 @@
   window.__biokeaGoldenSampleLoaded = true;
 
   const STORAGE_KEY = 'biokea:golden-tickets:v1';
-  const SENTENCE_FALLBACK = 'Every Human Now Has Scientific Superpowers';
+  const SLOT_COUNT = 6;
   const CARD_IMG = '/assets/images/golden-sample-card.png';
 
   // ─── Storage ─────────────────────────────────────────────────
@@ -135,8 +141,6 @@
     ensureStyles();
     const word = String(detail.word ?? '').toUpperCase();
     const slot = Number(detail.slot ?? 0);
-    const sentence = String(detail.sentence ?? SENTENCE_FALLBACK);
-    const sentenceWords = sentence.split(' ');
 
     const root = document.createElement('div');
     root.setAttribute('data-biokea-golden', '');
@@ -289,10 +293,16 @@
     sentenceRow.style.cssText =
       'display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:12px';
     const tickets = loadTickets();
-    sentenceWords.forEach((w, i) => {
+    for (let i = 0; i < SLOT_COUNT; i++) {
       const slotNum = i + 1;
       const isThis = slotNum === slot;
-      const isOwned = !!tickets[String(slotNum)] || isThis;
+      const ticket = tickets[String(slotNum)];
+      // The earned-now slot uses the freshly-arrived word; previously
+      // earned slots use whatever the player has in their per-device
+      // localStorage. Slots not yet earned on this device show
+      // placeholders only — the words live as a Cloudflare Worker
+      // secret and never enter client source.
+      const ownedWord = isThis ? word : (ticket && ticket.word ? String(ticket.word).toUpperCase() : null);
       const chip = document.createElement('span');
       chip.style.cssText = [
         'font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace',
@@ -302,13 +312,13 @@
         'letter-spacing:0.06em',
         isThis
           ? 'background:#fbbf24;color:#1f1505;font-weight:800'
-          : isOwned
+          : ownedWord
             ? 'background:rgba(251,191,36,0.18);color:#fde68a;font-weight:600'
             : 'background:rgba(251,191,36,0.08);color:rgba(253,230,138,0.4)',
       ].join(';');
-      chip.textContent = isOwned ? w : '·····';
+      chip.textContent = ownedWord ?? '·····';
       sentenceRow.appendChild(chip);
-    });
+    }
 
     const ctaRow = document.createElement('div');
     ctaRow.style.cssText =
