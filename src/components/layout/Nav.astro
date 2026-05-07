@@ -31,23 +31,22 @@ const navGroups: NavGroup[] = [
       { href: '/press', label: 'Press' },
     ],
   },
-  // Mission is currently a flat standaloneLinks entry below. Restore the
-  // dropdown when /mission/games (Game-based Storytelling) is meant to be
-  // surfaced from the menu again, by re-adding:
-  //   {
-  //     label: 'Mission',
-  //     items: [
-  //       { href: '/mission', label: 'Overview' },
-  //       { href: '/mission/games', label: 'Game-based Storytelling' },
-  //     ],
-  //   },
+  {
+    label: 'Mission',
+    items: [
+      { href: '/mission', label: 'Overview' },
+      { href: '/mission/games', label: 'Game-based Storytelling' },
+    ],
+  },
 ];
 
-// Both Mission and Golden Sample pages stay reachable (sitemap, direct
-// links, JSON-LD, llms-full.txt); only their menu entries are managed
-// here. Restore Golden Sample by adding:
-//   { href: '/mission/games/golden-sample-26', label: 'Golden Sample', accent: 'gold' }
-const standaloneLinks: NavLink[] = [{ href: '/mission', label: 'Mission' }];
+// Golden Sample 26 is live (2026-05-07 → 2026-07-07). Surfaced as a
+// gold-accented standalone link so it pops in the otherwise quiet nav.
+// Path is the canonical /mission/games/golden-sample-26; the legacy
+// /golden-sample-26 308-redirects there.
+const standaloneLinks: NavLink[] = [
+  { href: '/mission/games/golden-sample-26', label: 'Golden Sample', accent: 'gold' },
+];
 
 const cta: NavLink = { href: '/contact', label: 'Get in touch' };
 ---
