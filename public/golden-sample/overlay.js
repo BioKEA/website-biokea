@@ -389,10 +389,10 @@
   window.addEventListener('biokea:golden-found', (ev) => {
     const detail = ev && ev.detail ? ev.detail : {};
     if (!detail.word || !detail.slot) return;
-    if (detail.alreadyHeld) {
-      showToast('Golden sample already collected');
-      return;
-    }
+    // Always persist the ticket to localStorage, even on already-held
+    // replays. This rehydrates the collection wall after a multi-
+    // device scenario or a localStorage clear — without it the player
+    // would see ✓ instead of the word on /mission/games/golden-sample-26.
     saveTicket(detail.slot, {
       slot: detail.slot,
       game: detail.game ?? null,
@@ -400,6 +400,10 @@
       token: detail.token ?? null,
       issued_at: detail.issued_at ?? new Date().toISOString(),
     });
+    if (detail.alreadyHeld) {
+      showToast('Golden sample already collected');
+      return;
+    }
     showReveal(detail);
   });
 })();

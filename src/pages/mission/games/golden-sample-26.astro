@@ -587,7 +587,7 @@ const slotsRender = SLOTS.map((s) => {
         }
       }
 
-      function setSlotState(slotEl, { held, word, ownedByRequester }) {
+      function setSlotState(slotEl, { held, word }) {
         const stateEl = slotEl.querySelector('[data-slot-state]');
         const wordEl = slotEl.querySelector('[data-slot-word]');
         if (held) {
@@ -603,17 +603,17 @@ const slotsRender = SLOTS.map((s) => {
               'border-[var(--color-gold)]',
               'bg-[var(--color-gold)]/10',
             );
-            if (word && ownedByRequester) {
+            if (word) {
               wordEl.innerHTML =
                 '<span class="font-bold text-base tracking-[0.04em] text-[var(--color-ink)]">' +
                 String(word).toUpperCase() +
                 '</span>';
             } else {
-              // Held by this handle, but earned on a different device.
-              // Show a clean ✓ — the word stays sealed on this device
-              // for security; the player can still see they've earned
-              // the slot. Multi-device players who need the word here
-              // can replay the relevant game on this device.
+              // Edge case: held according to the server but the word
+              // isn't in this device's localStorage (player cleared
+              // storage, or earned on another device). Render a ✓ so
+              // the slot still reads "earned"; replaying the relevant
+              // game on this device repopulates the word.
               wordEl.innerHTML =
                 '<span class="font-mono text-base font-bold text-[var(--color-gold)]">✓</span>';
             }
@@ -669,6 +669,14 @@ const slotsRender = SLOTS.map((s) => {
         // All slots stay sealed by default markup.
       }
 
+      function readLocalTickets() {
+        try {
+          return JSON.parse(localStorage.getItem(TICKETS_KEY) ?? '{}') || {};
+        } catch {
+          return {};
+        }
+      }
+
       async function loadCollection() {
         const handle = readHandle();
         if (!handle) {
@@ -681,6 +689,11 @@ const slotsRender = SLOTS.map((s) => {
         if (emptyEl) emptyEl.removeAttribute('data-show');
         if (statusEl) statusEl.textContent = 'loading…';
 
+        // Server is the source of truth for *which* slots are held +
+        // global prize counts. Words are read from localStorage — the
+        // in-game overlay saves them there on every earn — so the
+        // wall doesn't depend on a server round-trip exposing them
+        // (the API still gates per client_id as defence-in-depth).
         const clientId = readClientId();
         const params = new URLSearchParams({ handle });
         if (clientId) params.set('client_id', clientId);
@@ -697,23 +710,19 @@ const slotsRender = SLOTS.map((s) => {
           return;
         }
 
-        // Render slots from server response. Words come back only for
-        // slots earned on this device's client_id; slots earned with
-        // a different device show as held without the word.
+        const localTickets = readLocalTickets();
         const wordsBySlot = {};
-        let ownedHere = 0;
         for (const s of data.slots) {
+          const local = localTickets[String(s.slot)];
+          // Prefer the word from this device's localStorage (saved by
+          // the overlay on the run that earned it). Server response is
+          // a fallback for the same-device case where client_id check
+          // passes — covers the rare case of localStorage clear after
+          // earn but before visit.
+          const word = (local && typeof local.word === 'string' && local.word) || s.word || null;
           const slotEl = document.querySelector('[data-slot="' + s.slot + '"]');
-          if (slotEl)
-            setSlotState(slotEl, {
-              held: s.held,
-              word: s.word,
-              ownedByRequester: !!s.owned_by_requester,
-            });
-          if (s.held && s.word && s.owned_by_requester) {
-            wordsBySlot[s.slot] = s.word;
-            ownedHere++;
-          }
+          if (slotEl) setSlotState(slotEl, { held: s.held, word });
+          if (s.held && word) wordsBySlot[s.slot] = word;
         }
 
         if (statusEl) {
@@ -723,12 +732,11 @@ const slotsRender = SLOTS.map((s) => {
           prizesEl.textContent =
             data.prizes_remaining + ' of ' + data.prize_cap + ' prizes remaining';
 
-        // Sentence reveal + redeem unlock require ALL six earned on
-        // THIS device — both because the words have to come from the
-        // server (which gates per device) and because redeem itself
-        // needs the per-slot HMAC tokens which are stored in this
-        // device's localStorage.
-        if (data.complete && ownedHere === slotCount) {
+        // Sentence reveal + redeem unlock require all six earned AND
+        // the per-slot HMAC tokens to be present in this device's
+        // localStorage (redeem submits those tokens for verification).
+        const haveAllWords = Object.keys(wordsBySlot).length === slotCount;
+        if (data.complete && haveAllWords) {
           const ordered = [];
           for (let i = 1; i <= slotCount; i++) ordered.push(wordsBySlot[i] || '?');
           showSentence(ordered);
