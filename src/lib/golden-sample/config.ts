@@ -33,14 +33,13 @@ export const SLOTS: readonly SlotConfig[] = [
   {
     slot: 1,
     game: 'pipette-rush',
-    // Single-run waves cleared. Stored as metadata.wave on each
-    // pipette-rush daily score row. Switched from "12 daily runs"
-    // (which felt grindy and had no in-run signal of progress) to
-    // "complete 15 waves in one run" (which is a tangible in-game
-    // milestone the player can see climbing).
+    // TEMPORARY: lowered from 15 → 3 to make end-to-end testing of
+    // the hunt + Hunt-tab leaderboard fast. Bump back to 15 once
+    // testing wraps. Mirror change in pipette-rush's lib/golden-
+    // sample.ts:SLOT_THRESHOLD_WAVE so the in-run gate matches.
     kind: 'pipette-wave',
-    threshold: 15,
-    hint: 'Reach wave 15 in a single Pipette Rush daily run.',
+    threshold: 3,
+    hint: 'Reach wave 3 in a single Pipette Rush daily run.',
   },
   {
     slot: 2,
