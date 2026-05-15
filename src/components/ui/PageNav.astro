@@ -159,7 +159,11 @@ const { sections, ariaLabel = 'On-page navigation' } = Astro.props;
 </style>
 
 <script is:inline>
-  (() => {
+  // PageNav is mounted at the top of the document; its target sections
+  // are rendered AFTER this script in DOM order, so we must wait for
+  // DOMContentLoaded — otherwise getElementById() returns null for each
+  // section, the script bails early, and the rail never appears.
+  const setupPageNav = () => {
     const nav = document.querySelector('[data-page-nav]');
     if (!nav) return;
     const track = nav.querySelector('.page-nav-track');
@@ -212,8 +216,11 @@ const { sections, ariaLabel = 'On-page navigation' } = Astro.props;
         links.forEach((l) => l.removeAttribute('data-active'));
       }
 
-      // Reveal the rail once we approach the first tracked section.
-      if (window.scrollY > targets[0].offsetTop - 240) {
+      // Reveal the rail as soon as the first tracked section is in or
+      // above the viewport — effectively "visible from page load".
+      // Long pages with a tall hero may prefer a later trigger; if so,
+      // raise the offset here.
+      if (window.scrollY >= 0) {
         nav.setAttribute('data-visible', '');
       } else {
         nav.removeAttribute('data-visible');
@@ -251,5 +258,11 @@ const { sections, ariaLabel = 'On-page navigation' } = Astro.props;
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', refresh);
-  })();
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupPageNav);
+  } else {
+    setupPageNav();
+  }
 </script>

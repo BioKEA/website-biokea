@@ -46,4 +46,9 @@ export const milestones: Milestone[] = [
     title: 'First employee hired',
     body: 'Founding team expands, the first salaried hire joins the team.',
   },
+  {
+    date: '2026-05',
+    title: "Main-stage talk at Anthropic's Code w/ Claude: Extended",
+    body: "Sean discusses BioKEA's mission on main stage at Anthropic's Code w/ Claude: Extended.",
+  },
 ];

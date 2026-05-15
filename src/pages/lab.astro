@@ -12,8 +12,7 @@ import { stringifyJsonLd } from '@/lib/json-ld';
 const labSections = [
   { id: 'lab-overview', label: 'Overview' },
   { id: 'lab-location', label: 'Bay Area' },
-  { id: 'lab-operational', label: 'Operational' },
-  { id: 'lab-hardware', label: 'Hardware' },
+  { id: 'lab-hardware', label: 'Operational · Hardware' },
   { id: 'lab-diversityscanner', label: 'DiversityScanner' },
 ];
 ---
@@ -57,7 +56,7 @@ const labSections = [
       class="relative rounded-sm overflow-hidden border border-black/10 aspect-[4/3] bg-black/5"
       data-lab-slider
       role="region"
-      aria-label="Lab interior — rotating photos of the operational LDC space"
+      aria-label="Lab interior — rotating photos and a stage-by-stage cutaway of the operational LDC space"
       aria-roledescription="carousel"
     >
       <img
@@ -70,12 +69,22 @@ const labSections = [
         data-caption="Wet-lab floor — current state"
       />
       <img
+        src="/assets/images/ldc-interior-iso2.png"
+        alt="An isometric cutaway illustration of the BioKEA Berkeley lab, showing extraction, prep, quantification, and sequencing equipment arranged along the pipeline flow."
+        width="1448"
+        height="1086"
+        class="absolute inset-0 w-full h-full object-contain bg-[var(--color-cream-warm)] p-4 transition-opacity duration-700 ease-in-out opacity-0"
+        data-slide="1"
+        data-caption="Cutaway · LDC interior, stage-by-stage"
+        loading="lazy"
+      />
+      <img
         src="/assets/images/Lab-Photo1.jpeg"
         alt="LDC interior viewed from the ground floor"
         width="2856"
         height="2142"
         class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0"
-        data-slide="1"
+        data-slide="2"
         data-caption="Ground floor view"
         loading="lazy"
       />
@@ -85,7 +94,7 @@ const labSections = [
         width="2856"
         height="2142"
         class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0"
-        data-slide="2"
+        data-slide="3"
         data-caption="From above, side angle"
         loading="lazy"
       />
@@ -95,7 +104,7 @@ const labSections = [
         width="2856"
         height="2142"
         class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0"
-        data-slide="3"
+        data-slide="4"
         data-caption="Lounge + maker space — coming together"
         loading="lazy"
       />
@@ -121,27 +130,34 @@ const labSections = [
         <button
           type="button"
           data-slider-dot="0"
-          aria-label="Show photo 1 of 4"
+          aria-label="Show photo 1 of 5"
           aria-selected="true"
           class="w-2 h-2 rounded-full bg-[var(--color-cream)] transition-opacity"></button>
         <button
           type="button"
           data-slider-dot="1"
-          aria-label="Show photo 2 of 4"
+          aria-label="Show photo 2 of 5"
           aria-selected="false"
           class="w-2 h-2 rounded-full bg-[var(--color-cream)] opacity-50 transition-opacity"
         ></button>
         <button
           type="button"
           data-slider-dot="2"
-          aria-label="Show photo 3 of 4"
+          aria-label="Show photo 3 of 5"
           aria-selected="false"
           class="w-2 h-2 rounded-full bg-[var(--color-cream)] opacity-50 transition-opacity"
         ></button>
         <button
           type="button"
           data-slider-dot="3"
-          aria-label="Show photo 4 of 4"
+          aria-label="Show photo 4 of 5"
+          aria-selected="false"
+          class="w-2 h-2 rounded-full bg-[var(--color-cream)] opacity-50 transition-opacity"
+        ></button>
+        <button
+          type="button"
+          data-slider-dot="4"
+          aria-label="Show photo 5 of 5"
           aria-selected="false"
           class="w-2 h-2 rounded-full bg-[var(--color-cream)] opacity-50 transition-opacity"
         ></button>
@@ -178,28 +194,8 @@ const labSections = [
     </p>
   </section>
 
-  <section id="lab-operational" class="max-w-6xl mx-auto px-6 py-16 scroll-mt-20">
-    <Eyebrow>OPERATIONAL</Eyebrow>
-    <h2 class="mt-3 text-2xl font-semibold">Current state</h2>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-6">
-      {
-        labStats.map((s) => (
-          <StatPill value={s.value} label={s.label} live={s.live} datetime={s.datetime} />
-        ))
-      }
-    </div>
-    <div class="mt-8">
-      <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500 mb-3">
-        Capability
-      </div>
-      <ul class="space-y-1.5 text-sm text-slate-600 leading-relaxed max-w-[62ch]">
-        {capabilityLines.map((line) => <li>· {line}</li>)}
-      </ul>
-    </div>
-  </section>
-
-  <section id="lab-hardware" class="max-w-6xl mx-auto px-6 pb-16 scroll-mt-20">
-    <Eyebrow>HARDWARE</Eyebrow>
+  <section id="lab-hardware" class="max-w-6xl mx-auto px-6 py-16 scroll-mt-20">
+    <Eyebrow>OPERATIONAL · HARDWARE</Eyebrow>
     <h2 class="mt-3 text-2xl font-semibold max-w-[30ch]">
       A full extraction-to-sequencing pipeline, stage by stage.
     </h2>
@@ -208,6 +204,28 @@ const labSections = [
       Francisco, Berkeley — picking up near-new hardware at roughly one-tenth retail cost.
       Positioned to run serious throughput on public-interest projects.
     </p>
+
+    <div class="mt-8">
+      <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500 mb-3">
+        Current state
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+        {
+          labStats.map((s) => (
+            <StatPill value={s.value} label={s.label} live={s.live} datetime={s.datetime} />
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="mt-8">
+      <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500 mb-3">
+        Capability
+      </div>
+      <ul class="space-y-1.5 text-sm text-slate-600 leading-relaxed max-w-[62ch]">
+        {capabilityLines.map((line) => <li>· {line}</li>)}
+      </ul>
+    </div>
 
     <div class="mt-12 grid md:grid-cols-2 gap-6">
       {
@@ -249,20 +267,6 @@ const labSections = [
     <p class="mt-10 text-xs text-slate-500 font-mono">
       Full inventory (~80 items) available on request.
     </p>
-
-    <figure class="mt-14">
-      <img
-        src="/assets/images/ldc-interior-iso2.png"
-        alt="An isometric cutaway illustration of the BioKEA Berkeley lab, showing extraction, prep, quantification, and sequencing equipment arranged along the pipeline flow."
-        width="1448"
-        height="1086"
-        class="w-full rounded-md block"
-        loading="lazy"
-      />
-      <figcaption class="mt-3 font-mono text-[10px] tracking-[0.14em] uppercase text-slate-500">
-        Fig · LDC interior, stage-by-stage
-      </figcaption>
-    </figure>
 
     <figure
       id="lab-diversityscanner"
