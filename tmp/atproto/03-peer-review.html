@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentis — Peer Review: Multi-Marker eDNA</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #09090b;
+    --bg-card: #111113;
+    --bg-elevated: #18181b;
+    --bg-hover: #1e1e21;
+    --fg: #fafafa;
+    --fg-muted: #a1a1aa;
+    --fg-faint: #52525b;
+    --border: #27272a;
+    --border-hover: #3f3f46;
+    --blue: #3b82f6;
+    --cyan: #06b6d4;
+    --emerald: #10b981;
+    --amber: #f59e0b;
+    --purple: #8b5cf6;
+    --red: #ef4444;
+    --pink: #ec4899;
+    --orange: #f97316;
+    --gold: #eab308;
+    --gradient: linear-gradient(135deg, #3b82f6, #06b6d4);
+  }
+
+  html, body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* ===== Nav ===== */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 20px;
+    background: rgba(9, 9, 11, 0.92);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    height: 48px;
+  }
+  .nav-left { display: flex; align-items: center; gap: 16px; }
+  .nav-logo {
+    font-size: 16px; font-weight: 600; letter-spacing: -0.5px;
+    background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .nav-sep { width: 1px; height: 20px; background: var(--border); }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    font-size: 12px; color: var(--fg-faint); padding: 5px 12px; border-radius: 6px;
+    text-decoration: none; transition: all 0.15s; cursor: pointer;
+  }
+  .nav-tab:hover { color: var(--fg-muted); background: var(--bg-elevated); }
+  .nav-tab.active { color: var(--fg); background: var(--bg-elevated); }
+
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-search {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 12px; background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 6px; font-size: 12px; color: var(--fg-faint); cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .nav-search:hover { border-color: var(--border-hover); }
+  .nav-search kbd {
+    font-family: inherit; font-size: 10px; color: var(--fg-faint);
+    background: var(--bg); border: 1px solid var(--border); border-radius: 3px;
+    padding: 1px 4px;
+  }
+  .avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--gradient); display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600; color: white; cursor: pointer;
+  }
+  .avatar-wrapper { position: relative; }
+  .avatar-menu {
+    display: none; position: absolute; top: calc(100% + 6px); right: 0;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 6px; min-width: 180px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 200;
+  }
+  .avatar-menu::before { content: ''; position: absolute; top: -8px; left: 0; right: 0; height: 8px; }
+  .avatar-wrapper:hover .avatar-menu { display: block; }
+  .avatar-menu a {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: 6px; font-size: 13px;
+    color: var(--fg-muted); text-decoration: none; transition: all 0.12s;
+  }
+  .avatar-menu a:hover { background: var(--bg-elevated); color: var(--fg); }
+  .avatar-menu .menu-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+  /* === Nav Dropdowns === */
+  .nav-dropdown { position: relative; display: flex; align-items: center; }
+  .nav-dropdown-btn {
+    display: flex; align-items: center; gap: 4px; font-size: 13px;
+    color: var(--fg-faint); padding: 6px 10px; border-radius: 6px;
+    cursor: pointer; border: none; background: none; font-family: inherit;
+    transition: color 0.15s, background 0.15s;
+  }
+  .nav-dropdown-btn:hover { color: var(--fg-muted); background: var(--bg-elevated); }
+  .nav-dropdown.active .nav-dropdown-btn { color: var(--fg); background: var(--bg-elevated); }
+  .nav-dropdown-btn .chev { font-size: 10px; opacity: 0.5; }
+  .nav-dropdown-menu {
+    display: none; position: absolute; top: calc(100% + 6px); left: 0;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 6px; min-width: 180px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 300;
+  }
+  .nav-dropdown-menu::before { content: ''; position: absolute; top: -8px; left: 0; right: 0; height: 8px; }
+  .nav-dropdown:hover .nav-dropdown-menu { display: block; }
+  .nav-dropdown-menu a {
+    display: block; padding: 8px 12px; border-radius: 6px; font-size: 13px;
+    color: var(--fg-muted); text-decoration: none; transition: all 0.12s; white-space: nowrap;
+  }
+  .nav-dropdown-menu a:hover { background: var(--bg-elevated); color: var(--fg); }
+  .nav-dropdown-menu a.active { color: var(--fg); background: var(--bg-elevated); }
+  /* === Nav Bell === */
+  .nav-bell {
+    position: relative; display: flex; align-items: center; padding: 6px 8px;
+    border-radius: 6px; color: var(--fg-faint); transition: color 0.15s, background 0.15s;
+  }
+  .nav-bell:hover { color: var(--fg); background: var(--bg-elevated); }
+  .nav-bell.active { color: var(--fg); }
+  .nav-bell-badge {
+    position: absolute; top: 4px; right: 4px; width: 7px; height: 7px;
+    border-radius: 50%; background: #ef4444; border: 1.5px solid var(--bg);
+  }
+  .nav-search.active { color: var(--fg); background: var(--bg-elevated); }
+
+  /* ===== Three-Panel Layout ===== */
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 340px;
+    height: calc(100vh - 48px);
+    margin-top: 48px;
+  }
+
+  /* ===== Left Sidebar ===== */
+  .sidebar-left {
+    border-right: 1px solid var(--border);
+    background: var(--bg-card);
+    overflow-y: auto;
+    display: flex; flex-direction: column;
+  }
+  .sidebar-left::-webkit-scrollbar { width: 4px; }
+  .sidebar-left::-webkit-scrollbar-track { background: transparent; }
+  .sidebar-left::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .sl-header {
+    padding: 16px 16px 14px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .sl-header h2 {
+    font-size: 15px; font-weight: 600; color: var(--fg); margin-bottom: 2px;
+  }
+  .sl-header .sl-sub {
+    font-size: 11px; color: var(--fg-faint); line-height: 1.5;
+  }
+
+  /* Stats row */
+  .review-stats {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .review-stat {
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px; text-align: center;
+  }
+  .review-stat .rs-num { font-size: 20px; font-weight: 700; line-height: 1; margin-bottom: 2px; }
+  .review-stat .rs-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--fg-faint); }
+
+  /* Filter tabs */
+  .filter-tabs {
+    display: flex; padding: 10px 16px; gap: 4px;
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .filter-tab {
+    font-size: 11px; padding: 4px 12px; border-radius: 20px; cursor: pointer;
+    color: var(--fg-faint); background: transparent; border: 1px solid var(--border);
+    transition: all 0.15s;
+  }
+  .filter-tab:hover { color: var(--fg-muted); border-color: var(--border-hover); }
+  .filter-tab.active { color: var(--fg); background: var(--bg-elevated); border-color: var(--border-hover); }
+
+  /* Manuscript list */
+  .ms-list { flex: 1; overflow-y: auto; }
+  .ms-list::-webkit-scrollbar { width: 4px; }
+  .ms-list::-webkit-scrollbar-track { background: transparent; }
+  .ms-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .ms-item {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background 0.12s;
+  }
+  .ms-item:hover { background: var(--bg-hover); }
+  .ms-item.active { background: var(--bg-elevated); border-left: 2px solid var(--blue); }
+
+  .ms-badge {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+    padding: 2px 8px; border-radius: 10px; display: inline-block; margin-bottom: 6px;
+  }
+  .ms-badge.in-review { background: rgba(245,158,11,0.12); color: var(--amber); }
+  .ms-badge.revision { background: rgba(249,115,22,0.12); color: var(--orange); }
+  .ms-badge.accepted { background: rgba(16,185,129,0.12); color: var(--emerald); }
+  .ms-badge.submitted { background: rgba(59,130,246,0.12); color: var(--blue); }
+
+  .ms-title {
+    font-size: 12px; font-weight: 600; color: var(--fg); line-height: 1.4;
+    margin-bottom: 4px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .ms-authors {
+    font-size: 10px; color: var(--fg-faint); margin-bottom: 8px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .ms-progress { margin-bottom: 6px; }
+  .ms-progress-bar {
+    height: 3px; background: var(--bg); border-radius: 2px; overflow: hidden;
+  }
+  .ms-progress-fill {
+    height: 100%; border-radius: 2px;
+    background: var(--gradient);
+    transition: width 0.3s;
+  }
+  .ms-progress-label {
+    font-size: 9px; color: var(--fg-faint); margin-top: 3px;
+    display: flex; justify-content: space-between;
+  }
+
+  .ms-meta {
+    font-size: 10px; color: var(--fg-faint);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ms-meta-dot { width: 2px; height: 2px; border-radius: 50%; background: var(--fg-faint); }
+
+  .sl-footer {
+    padding: 12px 16px; border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .sl-footer-stat {
+    font-size: 10px; color: var(--fg-faint); line-height: 1.6;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sl-footer-stat strong { color: var(--fg-muted); font-weight: 600; }
+
+  /* ===== Center Panel ===== */
+  .center-panel {
+    overflow-y: auto; background: var(--bg);
+    display: flex; flex-direction: column;
+  }
+  .center-panel::-webkit-scrollbar { width: 6px; }
+  .center-panel::-webkit-scrollbar-track { background: transparent; }
+  .center-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .center-header {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px;
+    background: rgba(9, 9, 11, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .ch-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .ch-back {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--fg-faint); cursor: pointer; transition: all 0.15s;
+    background: transparent; border: 1px solid var(--border);
+    font-size: 14px; flex-shrink: 0;
+  }
+  .ch-back:hover { color: var(--fg); border-color: var(--border-hover); }
+  .ch-title {
+    font-size: 13px; font-weight: 600; color: var(--fg);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .ch-center {
+    font-size: 11px; color: var(--fg-muted); white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .ch-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+  .btn-border {
+    padding: 6px 14px; border-radius: 7px; font-size: 12px; font-weight: 500;
+    color: var(--fg-muted); background: transparent; border: 1px solid var(--border);
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-border:hover { color: var(--fg); border-color: var(--border-hover); }
+
+  .btn-primary {
+    padding: 6px 14px; border-radius: 7px; font-size: 12px; font-weight: 600;
+    color: #09090b; background: white; border: none;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-primary:hover { background: #e4e4e7; }
+
+  /* Timeline */
+  .timeline {
+    padding: 24px 24px 24px 48px;
+    position: relative;
+    flex: 1;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute; left: 67px; top: 0; bottom: 0;
+    width: 2px; background: var(--border);
+  }
+
+  .tl-event { position: relative; margin-bottom: 28px; padding-left: 40px; }
+  .tl-event:last-child { margin-bottom: 0; }
+
+  .tl-dot {
+    position: absolute; left: 13px; top: 6px;
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid; z-index: 2;
+  }
+  .tl-dot.blue { border-color: var(--blue); background: var(--blue); }
+  .tl-dot.purple { border-color: var(--purple); background: var(--purple); width: 14px; height: 14px; left: 12px; top: 5px; }
+  .tl-dot.emerald { border-color: var(--emerald); background: var(--emerald); }
+  .tl-dot.pending {
+    border-color: var(--fg-faint); background: transparent;
+    border-style: dashed;
+  }
+
+  .tl-time {
+    font-size: 10px; color: var(--fg-faint); margin-bottom: 6px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tl-time-speed {
+    padding: 1px 6px; border-radius: 8px; font-size: 9px; font-weight: 600;
+    background: rgba(139,92,246,0.12); color: var(--purple);
+  }
+
+  .tl-desc { font-size: 12px; color: var(--fg-muted); line-height: 1.5; margin-bottom: 4px; }
+  .tl-subdesc { font-size: 11px; color: var(--fg-faint); }
+
+  /* Review Card */
+  .review-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    margin-top: 10px; overflow: hidden;
+  }
+  .review-card.ai { border-left: 3px solid var(--purple); }
+
+  .rc-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+  }
+  .rc-reviewer { display: flex; align-items: center; gap: 10px; }
+  .rc-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: white; flex-shrink: 0;
+  }
+  .rc-avatar.ai-avatar {
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+  }
+  .rc-avatar.human-avatar {
+    background: linear-gradient(135deg, var(--emerald), var(--cyan));
+  }
+  .rc-info { min-width: 0; }
+  .rc-name { font-size: 13px; font-weight: 600; color: var(--fg); display: flex; align-items: center; gap: 6px; }
+  .rc-handle { font-size: 10px; color: var(--fg-faint); }
+  .rc-affiliation { font-size: 10px; color: var(--fg-faint); }
+
+  .ai-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 700;
+    background: rgba(139,92,246,0.15); color: var(--purple);
+    text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  .at-verified {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 2px 7px; border-radius: 10px; font-size: 9px; font-weight: 600;
+    background: rgba(59,130,246,0.12); color: var(--blue);
+  }
+
+  /* Score display */
+  .rc-score-main {
+    padding: 16px; display: flex; align-items: center; gap: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .score-big {
+    font-size: 36px; font-weight: 800; letter-spacing: -1px;
+    background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    line-height: 1;
+  }
+  .score-label { font-size: 14px; color: var(--fg-faint); font-weight: 500; }
+  .score-sublabel { font-size: 10px; color: var(--fg-faint); }
+
+  /* Score grid */
+  .score-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+  }
+  .score-item { display: flex; flex-direction: column; gap: 4px; }
+  .score-item-top { display: flex; align-items: center; justify-content: space-between; }
+  .score-item-label { font-size: 11px; color: var(--fg-muted); }
+  .score-item-num { font-size: 11px; font-weight: 700; }
+  .score-bar { height: 4px; background: var(--bg); border-radius: 2px; overflow: hidden; width: 100%; }
+  .score-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+  .score-bar-fill.emerald { background: var(--emerald); }
+  .score-bar-fill.blue { background: var(--blue); }
+  .score-bar-fill.cyan { background: var(--cyan); }
+  .score-bar-fill.amber { background: var(--amber); }
+
+  /* Review summary */
+  .rc-summary {
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+  }
+  .rc-summary.ai-summary { border-left: 3px solid var(--purple); margin: 0; }
+  .rc-summary-text {
+    font-size: 12px; color: var(--fg-muted); line-height: 1.65;
+  }
+
+  /* Specific comments */
+  .rc-comments { padding: 0; }
+  .rc-comment-item {
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; gap: 10px;
+    cursor: pointer; transition: background 0.12s;
+  }
+  .rc-comment-item:hover { background: var(--bg-hover); }
+  .rc-comment-item:last-child { border-bottom: none; }
+
+  .rc-comment-flag {
+    padding: 2px 7px; border-radius: 8px; font-size: 8px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0; margin-top: 2px;
+  }
+  .rc-comment-flag.minor { background: rgba(245,158,11,0.12); color: var(--amber); }
+  .rc-comment-flag.error { background: rgba(239,68,68,0.12); color: var(--red); }
+  .rc-comment-flag.major { background: rgba(249,115,22,0.12); color: var(--orange); }
+
+  .rc-comment-body { min-width: 0; }
+  .rc-comment-section { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--fg-faint); margin-bottom: 2px; }
+  .rc-comment-text { font-size: 11px; color: var(--fg-muted); line-height: 1.5; }
+
+  /* Automated checks */
+  .rc-checks {
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: rgba(16,185,129,0.04);
+    border-top: 1px solid var(--border);
+  }
+  .rc-checks-label { font-size: 10px; color: var(--fg-faint); font-weight: 600; }
+  .rc-check {
+    font-size: 10px; color: var(--emerald);
+    display: flex; align-items: center; gap: 3px;
+  }
+
+  /* Recommendation tag */
+  .rc-recommendation {
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .rec-tag {
+    padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;
+    border: 1px solid;
+  }
+  .rec-tag.accept-minor { border-color: rgba(16,185,129,0.3); color: var(--emerald); background: rgba(16,185,129,0.06); }
+  .rec-tag.accept { border-color: var(--emerald); color: var(--emerald); background: rgba(16,185,129,0.08); }
+  .rec-tag.major-rev { border-color: rgba(249,115,22,0.3); color: var(--orange); background: rgba(249,115,22,0.06); }
+  .rec-tag.reject { border-color: rgba(239,68,68,0.3); color: var(--red); background: rgba(239,68,68,0.06); }
+
+  /* Pending event */
+  .tl-pending-card {
+    background: var(--bg-card); border: 1px dashed var(--border); border-radius: 12px;
+    padding: 16px; margin-top: 10px;
+  }
+  .tl-pending-title { font-size: 13px; font-weight: 600; color: var(--fg-muted); margin-bottom: 4px; }
+  .tl-pending-detail { font-size: 11px; color: var(--fg-faint); line-height: 1.5; }
+
+  /* Consensus section */
+  .consensus {
+    margin: 8px 24px 24px 88px;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px;
+  }
+  .consensus-header {
+    font-size: 13px; font-weight: 700; color: var(--fg); margin-bottom: 12px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .consensus-score {
+    font-size: 40px; font-weight: 800; letter-spacing: -1.5px;
+    background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    line-height: 1; margin-bottom: 12px;
+  }
+  .consensus-dist { display: flex; gap: 12px; margin-bottom: 12px; }
+  .consensus-dist-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--fg-muted);
+  }
+  .cd-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .cd-dot.emerald { background: var(--emerald); }
+  .cd-dot.amber { background: var(--amber); }
+  .cd-dot.gray { background: var(--fg-faint); }
+  .consensus-note { font-size: 11px; color: var(--fg-faint); font-style: italic; }
+
+  /* ===== Right Sidebar ===== */
+  .sidebar-right {
+    border-left: 1px solid var(--border);
+    background: var(--bg-card);
+    overflow-y: auto;
+    display: flex; flex-direction: column;
+  }
+  .sidebar-right::-webkit-scrollbar { width: 4px; }
+  .sidebar-right::-webkit-scrollbar-track { background: transparent; }
+  .sidebar-right::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .sr-section {
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+  }
+  .sr-section-title {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--fg-faint); margin-bottom: 10px;
+  }
+
+  .sr-field { margin-bottom: 8px; }
+  .sr-field:last-child { margin-bottom: 0; }
+  .sr-field-label { font-size: 10px; color: var(--fg-faint); margin-bottom: 2px; }
+  .sr-field-value { font-size: 12px; color: var(--fg-muted); }
+  .sr-field-value.mono { font-family: 'SF Mono', Monaco, 'Fira Code', monospace; font-size: 11px; }
+
+  .sr-status-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 600;
+  }
+  .sr-status-badge.amber { background: rgba(245,158,11,0.12); color: var(--amber); }
+  .sr-status-badge.emerald { background: rgba(16,185,129,0.12); color: var(--emerald); }
+
+  /* Author list */
+  .sr-author {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0;
+  }
+  .sr-author-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--gradient);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: white; flex-shrink: 0;
+  }
+  .sr-author-info { min-width: 0; }
+  .sr-author-name { font-size: 12px; font-weight: 600; color: var(--fg); display: flex; align-items: center; gap: 6px; }
+  .sr-author-handle { font-size: 10px; color: var(--fg-faint); }
+  .sr-author-tag {
+    padding: 1px 6px; border-radius: 6px; font-size: 8px; font-weight: 700;
+    background: rgba(59,130,246,0.12); color: var(--blue); text-transform: uppercase;
+  }
+
+  /* AT Protocol strip */
+  .at-strip {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px; margin-top: 8px;
+    background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.15);
+    border-radius: 8px;
+  }
+  .at-logo {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #0085ff; display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 800; color: white; flex-shrink: 0;
+  }
+  .at-strip-text { font-size: 10px; color: var(--blue); line-height: 1.4; }
+
+  /* Review panel list */
+  .sr-reviewer-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0;
+  }
+  .sr-reviewer-left { display: flex; align-items: center; gap: 8px; }
+  .sr-reviewer-icon {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: white; flex-shrink: 0;
+  }
+  .sr-reviewer-name { font-size: 12px; color: var(--fg-muted); }
+  .sr-reviewer-tag {
+    padding: 2px 8px; border-radius: 8px; font-size: 9px; font-weight: 600;
+  }
+  .sr-reviewer-tag.complete { background: rgba(16,185,129,0.12); color: var(--emerald); }
+  .sr-reviewer-tag.pending { background: rgba(245,158,11,0.12); color: var(--amber); }
+
+  /* Linked data */
+  .sr-link-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0;
+  }
+  .sr-link-left { display: flex; align-items: center; gap: 8px; }
+  .sr-link-icon {
+    width: 20px; height: 20px; border-radius: 4px;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; flex-shrink: 0;
+  }
+  .sr-link-text { font-size: 11px; color: var(--blue); cursor: pointer; }
+  .sr-link-text:hover { text-decoration: underline; }
+  .sr-link-meta { font-size: 10px; color: var(--fg-faint); }
+
+  /* Transparency badges */
+  .sr-transparency-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 0;
+  }
+  .sr-t-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+  }
+  .sr-t-text { font-size: 11px; color: var(--fg-muted); }
+
+  /* Actions */
+  .sr-actions {
+    padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 8px;
+    flex-shrink: 0;
+    margin-top: auto;
+    border-top: 1px solid var(--border);
+  }
+  .btn-action {
+    width: 100%; padding: 8px 0; border-radius: 8px;
+    font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+    text-align: center;
+  }
+  .btn-action.border {
+    color: var(--fg-muted); background: transparent; border: 1px solid var(--border);
+  }
+  .btn-action.border:hover { color: var(--fg); border-color: var(--border-hover); }
+  .btn-action.primary {
+    color: #09090b; background: white; border: none;
+  }
+  .btn-action.primary:hover { background: #e4e4e7; }
+
+  /* ===== Cross-link CTAs ===== */
+  .cross-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--fg-faint); text-decoration: none;
+    padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+    transition: all 0.15s;
+  }
+  .cross-link:hover { color: var(--fg-muted); border-color: var(--border-hover); background: var(--bg-elevated); }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 1024px) {
+    .layout { grid-template-columns: 240px 1fr 300px; }
+  }
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar-left, .sidebar-right { display: none; }
+  }
+
+  .variant-tabs { display: flex; gap: 6px; padding: 8px 24px; background: var(--bg); border-bottom: 1px solid var(--border); position: fixed; top: 48px; left: 0; right: 0; z-index: 99; }
+  .variant-pill { font-size: 11px; padding: 4px 10px; border-radius: 12px; color: var(--fg-faint); text-decoration: none; border: 1px solid var(--border); transition: all 0.15s; white-space: nowrap; }
+  .variant-pill:hover { color: var(--fg-muted); border-color: var(--border-hover); }
+  .variant-pill.active { color: var(--fg); background: var(--bg-elevated); border-color: var(--border-hover); }
+</style>
+</head>
+<body>
+
+<!-- ===== Nav ===== -->
+<nav>
+  <div class="nav-left">
+    <a href="../index.html" class="nav-logo" style="text-decoration:none;">agentis</a>
+    <div class="nav-tabs">
+      <a href="01-dashboard.html" class="nav-tab">Dashboard</a>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn">Data <span class="chev">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="02-sample-management.html">Samples &amp; LIMS</a>
+          <a href="03-upload.html">Data Upload</a>
+          <a href="04-ldc-pipeline.html">LDC Pipeline</a>
+          <a href="20-qc-dashboard.html">QC Dashboard</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn">Analysis <span class="chev">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="07-knowledge-graph.html">Knowledge Graph</a>
+          <a href="08-discourse-graph.html">Discourse Graph</a>
+          <a href="19-taxonomy-browser.html">Taxonomy Browser</a>
+          <a href="22-phylogenetic-tree.html">Phylogenetic Tree</a>
+        </div>
+      </div>
+      <div class="nav-dropdown active">
+        <button class="nav-dropdown-btn">Publishing <span class="chev">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="05-narrative-editor.html">Narrative Editor</a>
+          <a href="09-peer-review.html" class="active">Peer Review</a>
+          <a href="10-storymap-preview.html">StoryMap</a>
+          <a href="11-fair-data-package.html">FAIR Data Package</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn">Community <span class="chev">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="17-bluesky-feed.html">Bluesky Feed</a>
+          <a href="23-collaboration.html">Team Workspace</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-right">
+    <a href="21-notifications.html" class="nav-bell" style="text-decoration:none;" title="Notifications">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13.5a2 2 0 0 1-4 0"/><path d="M3.5 6.5a4.5 4.5 0 0 1 9 0c0 2.5 1 4 1.5 5H2c.5-1 1.5-2.5 1.5-5z"/></svg><span class="nav-bell-badge"></span>
+    </a>
+    <a href="12-search.html" class="nav-search" style="text-decoration:none;">Search <kbd>/</kbd></a>
+    <div class="avatar-wrapper">
+      <a href="14-researcher-profile.html" class="avatar" style="text-decoration:none;">SJ</a>
+      <div class="avatar-menu">
+        <a href="14-researcher-profile.html">Profile</a>
+        <a href="13-analytics.html">Analytics</a>
+        <a href="15-settings.html">Settings</a>
+        <div class="menu-divider"></div>
+        <a href="16-admin-dashboard.html">Admin</a>
+        <a href="18-mobile-field.html">Mobile App</a>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="variant-tabs">
+  <a href="09-peer-review.html" class="variant-pill">Default</a>
+  <a href="09a-peer-review-arthropods.html" class="variant-pill">Arthropods</a>
+  <a href="09b-peer-review-edna-multimarker.html" class="variant-pill active">eDNA Multi-marker</a>
+  <a href="09c-peer-review-soil.html" class="variant-pill">Soil eDNA</a>
+  <a href="09d-peer-review-marine.html" class="variant-pill">Marine</a>
+</div>
+
+<!-- ===== Layout ===== -->
+<div class="layout">
+
+  <!-- Left Sidebar -->
+  <div class="sidebar-left">
+    <div class="sl-header">
+      <h2>Peer Review</h2>
+      <div class="sl-sub">Open, transparent, AI-assisted review</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="review-stats">
+      <div class="review-stat">
+        <div class="rs-num" style="color: var(--amber);">3</div>
+        <div class="rs-label">In Review</div>
+      </div>
+      <div class="review-stat">
+        <div class="rs-num" style="color: var(--emerald);">12</div>
+        <div class="rs-label">Completed</div>
+      </div>
+      <div class="review-stat">
+        <div class="rs-num" style="color: var(--blue);">5</div>
+        <div class="rs-label">My Reviews</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-tabs">
+      <div class="filter-tab active">All</div>
+      <div class="filter-tab">Awaiting</div>
+      <div class="filter-tab">Complete</div>
+    </div>
+
+    <!-- Manuscript List -->
+    <div class="ms-list">
+
+      <!-- Manuscript 1 -->
+      <div class="ms-item">
+        <div class="ms-badge in-review">In Review</div>
+        <div class="ms-title">Novel Glomeromycota Lineages in Southern California Chaparral Soils</div>
+        <div class="ms-authors">S. Jungbluth, A. Chen &middot; CIB Pilot</div>
+        <div class="ms-progress">
+          <div class="ms-progress-bar"><div class="ms-progress-fill" style="width: 66%;"></div></div>
+          <div class="ms-progress-label">
+            <span>2 of 3 reviews</span>
+            <span>66%</span>
+          </div>
+        </div>
+        <div class="ms-meta">
+          <span>2 AI + 1 Human</span>
+          <span class="ms-meta-dot"></span>
+          <span>Submitted 3d ago</span>
+        </div>
+      </div>
+
+      <!-- Manuscript 2 -->
+      <div class="ms-item">
+        <div class="ms-badge revision">Revision Requested</div>
+        <div class="ms-title">Arthropod Diversity Patterns Across California Elevation Gradients</div>
+        <div class="ms-authors">S. Jungbluth &middot; CIB-ATBI</div>
+        <div class="ms-progress">
+          <div class="ms-progress-bar"><div class="ms-progress-fill" style="width: 100%;"></div></div>
+          <div class="ms-progress-label">
+            <span>3 of 3 reviews</span>
+            <span>100%</span>
+          </div>
+        </div>
+        <div class="ms-meta">
+          <span>1 AI + 2 Human</span>
+          <span class="ms-meta-dot"></span>
+          <span>5d ago</span>
+        </div>
+      </div>
+
+      <!-- Manuscript 3 (active) -->
+      <div class="ms-item active">
+        <div class="ms-badge in-review">In Review</div>
+        <div class="ms-title">Multi-Marker eDNA Recovers 40% More Taxa Than Single-Marker Approaches</div>
+        <div class="ms-authors">S. Jungbluth, M. Lee &middot; CIB Pilot</div>
+        <div class="ms-progress">
+          <div class="ms-progress-bar"><div class="ms-progress-fill" style="width: 33%;"></div></div>
+          <div class="ms-progress-label">
+            <span>1 of 3 reviews</span>
+            <span>33%</span>
+          </div>
+        </div>
+        <div class="ms-meta">
+          <span>1 AI + 0 Human</span>
+          <span class="ms-meta-dot"></span>
+          <span>1d ago</span>
+        </div>
+      </div>
+
+      <!-- Manuscript 4 -->
+      <div class="ms-item">
+        <div class="ms-badge accepted">Accepted</div>
+        <div class="ms-title">Soil Microarthropod Communities as Indicators of Ecosystem Health</div>
+        <div class="ms-authors">S. Jungbluth &middot; Stillwater</div>
+        <div class="ms-progress">
+          <div class="ms-progress-bar"><div class="ms-progress-fill" style="width: 100%;"></div></div>
+          <div class="ms-progress-label">
+            <span>3 of 3 reviews</span>
+            <span>100%</span>
+          </div>
+        </div>
+        <div class="ms-meta">
+          <span>1 AI + 2 Human</span>
+          <span class="ms-meta-dot"></span>
+          <span>2w ago</span>
+        </div>
+      </div>
+
+      <!-- Manuscript 5 -->
+      <div class="ms-item">
+        <div class="ms-badge submitted">Submitted</div>
+        <div class="ms-title">Marine eDNA Survey of Okinawan Coral Reef Fish Communities</div>
+        <div class="ms-authors">S. Jungbluth, T. Yamada</div>
+        <div class="ms-progress">
+          <div class="ms-progress-bar"><div class="ms-progress-fill" style="width: 0%;"></div></div>
+          <div class="ms-progress-label">
+            <span>0 of 3 reviews</span>
+            <span>0%</span>
+          </div>
+        </div>
+        <div class="ms-meta">
+          <span>Awaiting reviewers</span>
+          <span class="ms-meta-dot"></span>
+          <span>4h ago</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer stats -->
+    <div class="sl-footer">
+      <div class="sl-footer-stat">
+        <span>Average review time: <strong>4.2 days</strong></span>
+      </div>
+      <div class="sl-footer-stat">
+        <span>AI pre-screen: <strong>&lt;2 hours</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Center Panel -->
+  <div class="center-panel">
+    <div class="center-header">
+      <div class="ch-left">
+        <button class="ch-back">&larr;</button>
+        <span class="ch-title">Multi-Marker eDNA Recovers 40% More Taxa Than Single-Marker Approaches</span>
+      </div>
+      <div class="ch-center">1 of 3 Reviews Complete</div>
+      <div class="ch-right">
+        <button class="btn-border">View Manuscript</button>
+        <button class="btn-primary">Submit Decision</button>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline">
+
+      <!-- Event 1: Submission -->
+      <div class="tl-event">
+        <div class="tl-dot blue"></div>
+        <div class="tl-time">Mar 8, 2026 &middot; 11:03 AM</div>
+        <div class="tl-desc">Manuscript submitted by <strong style="color: var(--fg);">@sjungbluth.bsky.social</strong></div>
+        <div class="tl-subdesc">Co-author @mlee_edna.bsky.social &middot; Auto-assigned to AI Reviewer and CIB editorial pool</div>
+      </div>
+
+      <!-- Event 2: AI Review -->
+      <div class="tl-event">
+        <div class="tl-dot purple"></div>
+        <div class="tl-time">
+          Mar 8, 2026 &middot; 11:06 AM
+          <span class="tl-time-speed">3 min</span>
+        </div>
+        <div class="review-card ai">
+          <div class="rc-header">
+            <div class="rc-reviewer">
+              <div class="rc-avatar ai-avatar">&#10022;</div>
+              <div class="rc-info">
+                <div class="rc-name">
+                  AI Reviewer
+                  <span class="ai-badge">&#10022; AI Reviewer</span>
+                </div>
+                <div class="rc-handle">Structural Analysis &middot; Claude</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rc-score-main">
+            <div>
+              <div class="score-big">8.4</div>
+              <div class="score-sublabel">/ 10</div>
+            </div>
+            <div>
+              <div class="score-label">Overall Score</div>
+              <div class="score-sublabel">Weighted average across 6 criteria</div>
+            </div>
+          </div>
+
+          <div class="score-grid">
+            <div class="score-item">
+              <div class="score-item-top">
+                <span class="score-item-label">Scientific Rigor</span>
+                <span class="score-item-num" style="color: var(--emerald);">8.8</span>
+              </div>
+              <div class="score-bar"><div class="score-bar-fill emerald" style="width: 88%;"></div></div>
+            </div>
+            <div class="score-item">
+              <div class="score-item-top">
+                <span class="score-item-label">Methodology</span>
+                <span class="score-item-num" style="color: var(--emerald);">8.5</span>
+              </div>
+              <div class="score-bar"><div class="score-bar-fill emerald" style="width: 85%;"></div></div>
+            </div>
+            <div class="score-item">
+              <div class="score-item-top">
+                <span class="score-item-label">Data Quality</span>
+                <span class="score-item-num" style="color: var(--emerald);">9.2</span>
+              </div>
+              <div class="score-bar"><div class="score-bar-fill emerald" style="width: 92%;"></div></div>
+            </div>
+            <div class="score-item">
+              <div class="score-item-top">
+                <span class="score-item-label">Novelty</span>
+                <span class="score-item-num" style="color: var(--emerald);">8.0</span>
+              </div>
+              <div class="score-bar"><div class="score-bar-fill emerald" style="width: 80%;"></div></div>
+            </div>
+            <div class="score-item">
+              <div class="score-item-top">
+                <span class="score-item-label">Reproducibility</span>
+                <span class="score-item-num" style="color: var(--emerald);">8.5</span>
+              </div>
+              <div class="score-bar"><div class="score-bar-fill emerald" style="width: 85%;"></div></div>
+            </div>
+            <div class="score-item">
+              <div class="score-item-top">
+                <span class="score-item-label">Presentation</span>
+                <span class="score-item-num" style="color: var(--blue);">7.4</span>
+              </div>
+              <div class="score-bar"><div class="score-bar-fill blue" style="width: 74%;"></div></div>
+            </div>
+          </div>
+
+          <div class="rc-summary ai-summary">
+            <div class="rc-summary-text">
+              Strong methodological paper comparing single vs. multi-marker eDNA approaches. The 40% increase in taxon recovery (COI+ITS1+ITS2 vs COI alone) across 8 sites is well-documented with 702 ASVs. The marker complementarity analysis showing minimal overlap between fungal (ITS1/ITS2) and metazoan (COI) markers is particularly valuable. Bioinformatic pipeline is well-documented and reproducible. Main weakness is the presentation &mdash; figures could be more informative.
+            </div>
+          </div>
+
+          <div class="rc-comments">
+            <div class="rc-comment-item">
+              <div class="rc-comment-flag minor">Minor</div>
+              <div class="rc-comment-body">
+                <div class="rc-comment-section">Methods</div>
+                <div class="rc-comment-text">PCR cycling conditions for ITS1 and ITS2 should be in main text, not supplements</div>
+              </div>
+            </div>
+            <div class="rc-comment-item">
+              <div class="rc-comment-flag major">Major</div>
+              <div class="rc-comment-body">
+                <div class="rc-comment-section">Results</div>
+                <div class="rc-comment-text">Rarefaction curves (Fig 2) suggest ITS2 sites haven't plateaued &mdash; note this caveat</div>
+              </div>
+            </div>
+            <div class="rc-comment-item">
+              <div class="rc-comment-flag minor">Minor</div>
+              <div class="rc-comment-body">
+                <div class="rc-comment-section">Discussion</div>
+                <div class="rc-comment-text">Compare with Djurhuus et al. 2020 multi-marker marine eDNA findings</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rc-checks">
+            <div class="rc-checks-label">Automated checks passed</div>
+            <div class="rc-check"><span style="color: var(--emerald);">&#10003;</span> Format</div>
+            <div class="rc-check"><span style="color: var(--emerald);">&#10003;</span> References</div>
+            <div class="rc-check"><span style="color: var(--emerald);">&#10003;</span> Data availability</div>
+            <div class="rc-check"><span style="color: var(--emerald);">&#10003;</span> Ethics</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event 3: Pending Reviewer 2 -->
+      <div class="tl-event">
+        <div class="tl-dot pending"></div>
+        <div class="tl-time" style="color: var(--fg-faint);">Awaiting</div>
+        <div class="tl-pending-card">
+          <div class="tl-pending-title">Waiting for Reviewer 2</div>
+          <div class="tl-pending-detail">
+            Assigned: Dr. Ryan Kelly (@rkelly_edna.bsky.social)<br>
+            Accepted invitation &middot; Estimated: 3&ndash;7 days
+          </div>
+        </div>
+      </div>
+
+      <!-- Event 4: Pending Reviewer 3 -->
+      <div class="tl-event">
+        <div class="tl-dot pending"></div>
+        <div class="tl-time" style="color: var(--fg-faint);">Awaiting</div>
+        <div class="tl-pending-card">
+          <div class="tl-pending-title">Waiting for Reviewer 3</div>
+          <div class="tl-pending-detail">
+            Assigned: CIB eDNA specialist pool<br>
+            Estimated: 5&ndash;10 days
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Consensus Section -->
+    <div class="consensus">
+      <div class="consensus-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--fg-faint);"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+        Current Consensus
+      </div>
+      <div class="consensus-score">8.4 <span style="font-size: 16px; font-weight: 500; -webkit-text-fill-color: var(--fg-faint); background: none;">/ 10</span></div>
+      <div class="consensus-dist">
+        <div class="consensus-dist-item">
+          <div class="cd-dot gray"></div>
+          Pending (2)
+        </div>
+        <div class="consensus-dist-item">
+          <div class="cd-dot amber"></div>
+          AI scored (1)
+        </div>
+      </div>
+      <div class="consensus-note">Preliminary &mdash; awaiting human reviewer assessments</div>
+    </div>
+
+  </div>
+
+  <!-- Right Sidebar -->
+  <div class="sidebar-right">
+
+    <!-- Manuscript Info -->
+    <div class="sr-section">
+      <div class="sr-section-title">Manuscript Info</div>
+      <div class="sr-field">
+        <div class="sr-field-label">Title</div>
+        <div class="sr-field-value" style="font-weight: 600; color: var(--fg);">Multi-Marker eDNA Recovers 40% More Taxa Than Single-Marker Approaches</div>
+      </div>
+      <div class="sr-field" style="margin-top: 10px;">
+        <div class="sr-field-label">DOI</div>
+        <div class="sr-field-value mono">10.agentis/cib-2026-003</div>
+      </div>
+      <div class="sr-field">
+        <div class="sr-field-label">Submitted</div>
+        <div class="sr-field-value">Mar 8, 2026</div>
+      </div>
+      <div class="sr-field">
+        <div class="sr-field-label">Status</div>
+        <div class="sr-field-value"><span class="sr-status-badge amber">In Review</span></div>
+      </div>
+      <div class="sr-field">
+        <div class="sr-field-label">Type</div>
+        <div class="sr-field-value">Methods Paper</div>
+      </div>
+      <div class="sr-field">
+        <div class="sr-field-label">Workspace</div>
+        <div class="sr-field-value">CIB Pilot</div>
+      </div>
+    </div>
+
+    <!-- Author & Identity -->
+    <div class="sr-section">
+      <div class="sr-section-title">Authors &amp; Identity</div>
+      <div class="sr-author">
+        <div class="sr-author-avatar">SJ</div>
+        <div class="sr-author-info">
+          <div class="sr-author-name">
+            Sean Jungbluth
+            <span class="sr-author-tag">Corresponding</span>
+          </div>
+          <div class="sr-author-handle">@sjungbluth.bsky.social</div>
+        </div>
+      </div>
+      <div class="sr-author">
+        <div class="sr-author-avatar" style="background: linear-gradient(135deg, var(--cyan), var(--blue));">ML</div>
+        <div class="sr-author-info">
+          <div class="sr-author-name">Min-Ji Lee</div>
+          <div class="sr-author-handle">@mlee_edna.bsky.social</div>
+        </div>
+      </div>
+      <div class="at-strip">
+        <div class="at-logo">@</div>
+        <div class="at-strip-text">Author identities verified via AT Protocol DID</div>
+      </div>
+    </div>
+
+    <!-- Review Panel -->
+    <div class="sr-section">
+      <div class="sr-section-title">Review Panel</div>
+      <div class="sr-reviewer-row">
+        <div class="sr-reviewer-left">
+          <div class="sr-reviewer-icon" style="background: linear-gradient(135deg, var(--purple), var(--pink)); font-size: 10px;">&#10022;</div>
+          <div class="sr-reviewer-name">AI Reviewer</div>
+        </div>
+        <div class="sr-reviewer-tag complete">Complete</div>
+      </div>
+      <div class="sr-reviewer-row">
+        <div class="sr-reviewer-left">
+          <div class="sr-reviewer-icon" style="background: linear-gradient(135deg, var(--blue), var(--purple));">RK</div>
+          <div class="sr-reviewer-name">Dr. Ryan Kelly</div>
+        </div>
+        <div class="sr-reviewer-tag pending">In Progress</div>
+      </div>
+      <div class="sr-reviewer-row">
+        <div class="sr-reviewer-left">
+          <div class="sr-reviewer-icon" style="background: var(--bg-elevated); border: 1px solid var(--border); color: var(--fg-faint);">CE</div>
+          <div class="sr-reviewer-name">CIB eDNA</div>
+        </div>
+        <div class="sr-reviewer-tag pending">Pending</div>
+      </div>
+    </div>
+
+    <!-- Linked Data -->
+    <div class="sr-section">
+      <div class="sr-section-title">Linked Data</div>
+      <div class="sr-link-item">
+        <div class="sr-link-left">
+          <div class="sr-link-icon" style="color: var(--blue);">&#9883;</div>
+          <div>
+            <div class="sr-link-text">CIB Multi-Marker eDNA</div>
+            <div class="sr-link-meta">StoryMap</div>
+          </div>
+        </div>
+      </div>
+      <div class="sr-link-item">
+        <div class="sr-link-left">
+          <div class="sr-link-icon" style="color: var(--cyan);">&#9672;</div>
+          <div>
+            <div class="sr-link-text">702 ASV nodes</div>
+            <div class="sr-link-meta">Knowledge Graph</div>
+          </div>
+        </div>
+      </div>
+      <div class="sr-link-item">
+        <div class="sr-link-left">
+          <div class="sr-link-icon" style="color: var(--purple);">&#9830;</div>
+          <div>
+            <div class="sr-link-text">4 claims, 15 evidence</div>
+            <div class="sr-link-meta">Discourse Graph</div>
+          </div>
+        </div>
+      </div>
+      <div class="sr-link-item">
+        <div class="sr-link-left">
+          <div class="sr-link-icon" style="color: var(--emerald);">&#10003;</div>
+          <div>
+            <div class="sr-link-text">FAIR deposit ready</div>
+            <div class="sr-link-meta" style="color: var(--emerald);">Data Package</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Review Transparency -->
+    <div class="sr-section">
+      <div class="sr-section-title">Review Transparency</div>
+      <div style="padding: 8px 10px; background: rgba(6,182,212,0.06); border: 1px solid rgba(6,182,212,0.15); border-radius: 8px; margin-bottom: 10px;">
+        <div style="font-size: 11px; font-weight: 600; color: var(--cyan); margin-bottom: 2px;">Open Review</div>
+        <div style="font-size: 10px; color: var(--fg-faint);">All reviews are public and signed</div>
+      </div>
+      <div class="sr-transparency-item">
+        <div class="sr-t-dot" style="background: var(--blue);"></div>
+        <div class="sr-t-text">Reviewer identity verified via AT Protocol</div>
+      </div>
+      <div class="sr-transparency-item">
+        <div class="sr-t-dot" style="background: var(--purple);"></div>
+        <div class="sr-t-text">Review history immutable on user PDS</div>
+      </div>
+      <div class="sr-transparency-item">
+        <div class="sr-t-dot" style="background: var(--emerald);"></div>
+        <div class="sr-t-text">Data availability via linked FAIR package</div>
+      </div>
+    </div>
+
+    <!-- Cross-links -->
+    <div class="sr-section">
+      <div class="sr-section-title">Explore</div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <a href="10-storymap-preview.html" class="cross-link">View StoryMap &rarr;</a>
+        <a href="11-fair-data-package.html" class="cross-link">View FAIR Package &rarr;</a>
+        <a href="07-knowledge-graph.html" class="cross-link">Explore in Graph &rarr;</a>
+        <a href="08-discourse-graph.html" class="cross-link">View Discourse &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="sr-actions">
+      <button class="btn-action border">Assign Reviewer</button>
+      <button class="btn-action primary">Editor Decision</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  // Manuscript list click handling
+  document.querySelectorAll('.ms-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.ms-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  // Filter tab click handling
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+
+  // Nav tab click handling
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+
+  // Comment item expand/collapse (toggle highlight)
+  document.querySelectorAll('.rc-comment-item').forEach(item => {
+    item.addEventListener('click', () => {
+      item.style.background = item.style.background ? '' : 'var(--bg-elevated)';
+    });
+  });
+</script>
+
+</body>
+</html>

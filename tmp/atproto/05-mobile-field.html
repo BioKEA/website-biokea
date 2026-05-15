@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentis — Mobile Field Collection</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #000000;
+    --card: #1c1c1e;
+    --secondary: #2c2c2e;
+    --fg: #ffffff;
+    --fg-secondary: #8e8e93;
+    --tint: #3b82f6;
+    --emerald: #10b981;
+    --amber: #f59e0b;
+    --cyan: #06b6d4;
+    --semble: #f97316;
+    --hypgen: #d946ef;
+    --separator: rgba(255,255,255,0.08);
+    --radius: 12px;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #111111;
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Background text behind phone */
+  .bg-label {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.04);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Device frame */
+  .device-frame {
+    position: relative;
+    z-index: 1;
+    width: 390px;
+    min-height: 844px;
+    border-radius: 48px;
+    border: 3px solid #3a3a3c;
+    background: var(--bg);
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.05),
+      0 25px 80px rgba(0,0,0,0.6),
+      0 10px 30px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Dynamic Island */
+  .dynamic-island {
+    position: absolute;
+    top: 11px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
+    height: 36px;
+    background: #000000;
+    border-radius: 20px;
+    z-index: 20;
+  }
+
+  /* Status Bar */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px 0 28px;
+    height: 54px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+  }
+  .status-bar .time {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    width: 54px;
+  }
+  .status-bar .spacer { flex: 1; }
+  .status-bar .icons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    width: 80px;
+    justify-content: flex-end;
+  }
+  .status-bar .icons svg { width: 16px; height: 16px; fill: var(--fg); }
+
+  /* Signal bars */
+  .signal-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 1.5px;
+    height: 12px;
+  }
+  .signal-bars .bar {
+    width: 3px;
+    background: var(--fg);
+    border-radius: 1px;
+  }
+  .signal-bars .bar:nth-child(1) { height: 4px; }
+  .signal-bars .bar:nth-child(2) { height: 6px; }
+  .signal-bars .bar:nth-child(3) { height: 8px; }
+  .signal-bars .bar:nth-child(4) { height: 11px; opacity: 0.3; }
+
+  /* Battery */
+  .battery {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .battery-icon {
+    width: 25px;
+    height: 12px;
+    border: 1.5px solid var(--fg);
+    border-radius: 3px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 1.5px;
+  }
+  .battery-icon::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    width: 2px;
+    height: 5px;
+    background: var(--fg);
+    border-radius: 0 1px 1px 0;
+  }
+  .battery-fill {
+    width: 87%;
+    height: 100%;
+    background: var(--fg);
+    border-radius: 1px;
+  }
+
+  /* Nav Bar */
+  .nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 16px 10px;
+    flex-shrink: 0;
+  }
+  .nav-back {
+    color: var(--tint);
+    font-size: 17px;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 80px;
+  }
+  .nav-back svg { width: 12px; height: 20px; fill: none; stroke: var(--tint); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-title {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+  .nav-right-action {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 80px;
+    justify-content: flex-end;
+    position: relative;
+  }
+  .sync-icon {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: var(--tint);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .sync-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 18px;
+    height: 18px;
+    background: #ff3b30;
+    color: var(--fg);
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Offline Banner */
+  .offline-banner {
+    background: rgba(245, 158, 11, 0.15);
+    border-top: 1px solid rgba(245, 158, 11, 0.3);
+    border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .offline-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--amber);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .offline-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--amber);
+  }
+
+  /* Scrollable Content */
+  .scroll-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 100px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .scroll-content::-webkit-scrollbar { display: none; }
+
+  /* Sections */
+  .section {
+    padding: 0 16px;
+    margin-top: 16px;
+  }
+  .section-header {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fg-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .card-inset {
+    padding: 14px 16px;
+  }
+
+  /* Active Workspace Card */
+  .workspace-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .workspace-title {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    margin-bottom: 2px;
+  }
+  .workspace-subtitle {
+    font-size: 13px;
+    color: var(--fg-secondary);
+    margin-bottom: 10px;
+  }
+  .workspace-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .workspace-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--fg-secondary);
+  }
+  .workspace-meta-row svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .gps-accuracy {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    color: var(--emerald);
+    background: rgba(16, 185, 129, 0.12);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 4px;
+  }
+  .sample-count {
+    color: var(--tint);
+    font-weight: 600;
+  }
+
+  /* Quick Actions Grid */
+  .actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .action-btn {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-height: 100px;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .action-btn:active {
+    transform: scale(0.96);
+    background: var(--secondary);
+  }
+  .action-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .action-icon svg { width: 24px; height: 24px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .action-icon.blue { background: rgba(59, 130, 246, 0.2); }
+  .action-icon.blue svg { stroke: var(--tint); }
+  .action-icon.cyan { background: rgba(6, 182, 212, 0.2); }
+  .action-icon.cyan svg { stroke: var(--cyan); }
+  .action-icon.emerald { background: rgba(16, 185, 129, 0.2); }
+  .action-icon.emerald svg { stroke: var(--emerald); }
+  .action-icon.amber { background: rgba(245, 158, 11, 0.2); }
+  .action-icon.amber svg { stroke: var(--amber); }
+  .action-label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.1px;
+  }
+  .action-desc {
+    font-size: 11px;
+    color: var(--fg-secondary);
+    margin-top: -4px;
+  }
+
+  /* Recent Captures horizontal scroll */
+  .captures-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 0 16px 4px;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+  .captures-scroll::-webkit-scrollbar { display: none; }
+  .capture-card {
+    flex-shrink: 0;
+    width: 140px;
+    background: var(--card);
+    border-radius: var(--radius);
+    overflow: hidden;
+    scroll-snap-align: start;
+  }
+  .capture-thumb {
+    width: 140px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    font-size: 28px;
+  }
+  .capture-thumb.soil { background: linear-gradient(135deg, #5b3a1a, #8b6914); }
+  .capture-thumb.micro { background: linear-gradient(135deg, #1a3a5b, #2a6090); }
+  .capture-thumb.habitat { background: linear-gradient(135deg, #1a5b2a, #3a9050); }
+  .capture-thumb.sample { background: linear-gradient(135deg, #3a1a5b, #6040a0); }
+  .capture-status {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+  }
+  .capture-status.uploaded { background: rgba(16, 185, 129, 0.3); color: var(--emerald); }
+  .capture-status.pending { background: rgba(245, 158, 11, 0.3); color: var(--amber); }
+  .capture-info {
+    padding: 8px 10px;
+  }
+  .capture-id {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: -0.1px;
+  }
+  .capture-detail {
+    font-size: 11px;
+    color: var(--fg-secondary);
+    margin-top: 2px;
+  }
+
+  /* iOS Form Styling */
+  .form-group {
+    background: var(--card);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .form-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    min-height: 44px;
+  }
+  .form-row + .form-row {
+    border-top: 1px solid var(--separator);
+  }
+  .form-label {
+    font-size: 15px;
+    color: var(--fg);
+    flex-shrink: 0;
+    min-width: 90px;
+  }
+  .form-value {
+    font-size: 15px;
+    color: var(--fg-secondary);
+    text-align: right;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .form-value.editable {
+    color: var(--fg);
+  }
+  .form-chevron {
+    margin-left: 6px;
+    color: var(--fg-secondary);
+    font-size: 14px;
+    opacity: 0.4;
+  }
+  .form-value-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--secondary);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    color: var(--fg);
+  }
+  .form-gps {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+  }
+  .form-gps-coord {
+    font-size: 14px;
+    color: var(--fg);
+    font-variant-numeric: tabular-nums;
+  }
+  .form-gps-accuracy {
+    font-size: 11px;
+    color: var(--emerald);
+  }
+
+  /* Notes text area row */
+  .form-notes {
+    padding: 12px 16px;
+    border-top: 1px solid var(--separator);
+  }
+  .form-notes-label {
+    font-size: 15px;
+    color: var(--fg);
+    margin-bottom: 6px;
+  }
+  .form-notes-text {
+    font-size: 14px;
+    color: var(--fg-secondary);
+    line-height: 1.4;
+    font-style: italic;
+  }
+
+  /* MIxS auto-populated */
+  .mixs-section {
+    padding: 10px 16px 12px;
+    border-top: 1px solid var(--separator);
+  }
+  .mixs-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--fg-secondary);
+    margin-bottom: 6px;
+  }
+  .mixs-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 13px;
+  }
+  .mixs-key { color: var(--fg-secondary); }
+  .mixs-val {
+    color: var(--fg);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .mixs-check { color: var(--emerald); font-size: 13px; }
+
+  /* Photo attachment */
+  .photo-attach {
+    padding: 12px 16px;
+    border-top: 1px solid var(--separator);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .photo-attach-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--secondary);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--tint);
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .photo-attach-btn svg { width: 16px; height: 16px; stroke: var(--tint); fill: none; stroke-width: 2; stroke-linecap: round; }
+
+  /* Save button */
+  .save-btn {
+    margin: 12px 16px;
+    padding: 16px;
+    background: var(--tint);
+    color: var(--fg);
+    font-size: 17px;
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.1s, opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    letter-spacing: -0.2px;
+  }
+  .save-btn:active {
+    transform: scale(0.98);
+    opacity: 0.85;
+  }
+
+  /* Progress card */
+  .progress-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .progress-title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .progress-count {
+    font-size: 14px;
+    color: var(--tint);
+    font-weight: 600;
+  }
+  .progress-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: var(--secondary);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--tint);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+  .progress-next {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--fg-secondary);
+    margin-bottom: 10px;
+  }
+  .progress-next svg { width: 14px; height: 14px; stroke: var(--tint); fill: none; stroke-width: 2; }
+  .mini-map {
+    width: 100%;
+    height: 60px;
+    background: var(--secondary);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .mini-map-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  .mini-map-dot {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: var(--tint);
+    border-radius: 50%;
+    top: 50%;
+    left: 40%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  }
+  .mini-map-next {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--amber);
+    border-radius: 50%;
+    top: 30%;
+    left: 65%;
+    transform: translate(-50%, -50%);
+    opacity: 0.7;
+  }
+  .mini-map-path {
+    position: absolute;
+    top: 45%;
+    left: 42%;
+    width: 60px;
+    height: 1px;
+    background: rgba(59, 130, 246, 0.3);
+    transform: rotate(-20deg);
+    transform-origin: left center;
+  }
+
+  /* Sync Card */
+  .sync-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .sync-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sync-title .ldc {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--cyan);
+    background: rgba(6, 182, 212, 0.12);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .sync-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    padding: 4px 0;
+  }
+  .sync-row .icon { font-size: 14px; }
+  .sync-row.uploaded .icon { color: var(--emerald); }
+  .sync-row.queued .icon { color: var(--amber); }
+  .sync-note {
+    font-size: 12px;
+    color: var(--fg-secondary);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--separator);
+  }
+
+  /* Semble Card */
+  .semble-card {
+    background: rgba(249, 115, 22, 0.08);
+    border: 1px solid rgba(249, 115, 22, 0.2);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .semble-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .semble-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--semble);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .semble-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--semble);
+  }
+  .semble-body {
+    font-size: 13px;
+    color: var(--fg-secondary);
+    line-height: 1.45;
+  }
+  .semble-handle { color: var(--semble); font-weight: 500; }
+
+  /* Bottom Tab Bar */
+  .tab-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 84px;
+    background: rgba(28, 28, 30, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--separator);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-around;
+    padding-top: 8px;
+    z-index: 15;
+  }
+  .tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    min-width: 56px;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+  }
+  .tab-item svg { width: 24px; height: 24px; fill: none; stroke: var(--fg-secondary); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tab-item.active svg { stroke: var(--tint); }
+  .tab-label {
+    font-size: 10px;
+    color: var(--fg-secondary);
+    font-weight: 500;
+  }
+  .tab-item.active .tab-label { color: var(--tint); }
+  .tab-item.camera-tab svg {
+    width: 28px;
+    height: 28px;
+  }
+  .tab-badge {
+    position: absolute;
+    top: -3px;
+    right: 6px;
+    width: 16px;
+    height: 16px;
+    background: #ff3b30;
+    color: var(--fg);
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Home indicator */
+  .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 3px;
+    z-index: 20;
+  }
+
+  /* Below phone text */
+  .footer-text {
+    margin-top: 28px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.25);
+    text-align: center;
+    letter-spacing: 0.3px;
+    z-index: 1;
+  }
+
+  /* WiFi icon bars */
+  .wifi-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+  }
+  .wifi-arc {
+    border: 1.5px solid var(--fg);
+    border-bottom: none;
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  }
+  .wifi-arc:nth-child(1) { width: 14px; height: 7px; opacity: 0.3; }
+  .wifi-arc:nth-child(2) { width: 10px; height: 5px; }
+  .wifi-arc:nth-child(3) { width: 5px; height: 3px; }
+  .wifi-dot {
+    width: 2.5px;
+    height: 2.5px;
+    background: var(--fg);
+    border-radius: 50%;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-label">Agentis Field Collection &middot; Mobile App Concept</div>
+
+<div class="device-frame">
+  <div class="dynamic-island"></div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <span class="spacer"></span>
+    <div class="icons">
+      <div class="signal-bars">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+      </div>
+      <div class="wifi-icon">
+        <div class="wifi-arc"></div>
+        <div class="wifi-arc"></div>
+        <div class="wifi-arc"></div>
+        <div class="wifi-dot"></div>
+      </div>
+      <div class="battery">
+        <span style="font-size: 12px; font-weight: 400;">87</span>
+        <div class="battery-icon"><div class="battery-fill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Bar -->
+  <div class="nav-bar">
+    <a href="01-dashboard.html" class="nav-back" style="text-decoration:none;">
+      <svg viewBox="0 0 12 20"><polyline points="10,2 2,10 10,18"/></svg>
+      Back
+    </a>
+    <div class="nav-title">Field Collection</div>
+    <div class="nav-right-action">
+      <svg class="sync-icon" viewBox="0 0 24 24">
+        <path d="M4 12a8 8 0 0 1 14.5-4.5"/>
+        <polyline points="18 2 18 8 12 8"/>
+        <path d="M20 12a8 8 0 0 1-14.5 4.5"/>
+        <polyline points="6 22 6 16 12 16"/>
+      </svg>
+      <span class="sync-badge">3</span>
+    </div>
+  </div>
+
+  <!-- Offline Banner -->
+  <div class="offline-banner">
+    <div class="offline-dot"></div>
+    <span class="offline-text">Offline Mode &middot; 3 samples queued for sync</span>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="scroll-content">
+
+    <!-- Active Workspace -->
+    <div class="section">
+      <div class="workspace-card">
+        <div class="workspace-title">CIB Pilot: Santa Monica Mtns Soil eDNA</div>
+        <div class="workspace-subtitle">Transect 7 &mdash; Oak Woodland</div>
+        <div class="workspace-meta">
+          <div class="workspace-meta-row">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>34.0259&#176;N, 118.7798&#176;W</span>
+            <span class="gps-accuracy">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+              &#177;3m
+            </span>
+          </div>
+          <div class="workspace-meta-row">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span><span class="sample-count">12</span> samples collected today</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section">
+      <div class="section-header">Quick Actions</div>
+      <div class="actions-grid">
+        <div class="action-btn">
+          <div class="action-icon blue">
+            <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </div>
+          <span class="action-label">Photo</span>
+          <span class="action-desc">Capture specimen photo</span>
+        </div>
+        <div class="action-btn">
+          <div class="action-icon cyan">
+            <svg viewBox="0 0 24 24"><path d="M9 2h6v10a3 3 0 0 1-6 0V2z"/><path d="M9 12h6"/><path d="M12 15v7"/><path d="M8 22h8"/></svg>
+          </div>
+          <span class="action-label">Sample</span>
+          <span class="action-desc">Log soil/water sample</span>
+        </div>
+        <div class="action-btn">
+          <div class="action-icon emerald">
+            <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </div>
+          <span class="action-label">Note</span>
+          <span class="action-desc">Voice observation</span>
+        </div>
+        <div class="action-btn">
+          <div class="action-icon amber">
+            <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <span class="action-label">GPS Mark</span>
+          <span class="action-desc">Mark waypoint</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Captures -->
+    <div class="section" style="padding-right: 0;">
+      <div class="section-header" style="padding-right: 16px;">Recent Captures</div>
+    </div>
+    <div class="captures-scroll">
+      <div class="capture-card">
+        <div class="capture-thumb soil">
+          <span>&#x1f9ea;</span>
+          <div class="capture-status uploaded">&#10003;</div>
+        </div>
+        <div class="capture-info">
+          <div class="capture-id">T7-S01</div>
+          <div class="capture-detail">14:23 &middot; GPS locked &#10003;</div>
+        </div>
+      </div>
+      <div class="capture-card">
+        <div class="capture-thumb micro">
+          <span>&#x1f52c;</span>
+          <div class="capture-status pending">&#9719;</div>
+        </div>
+        <div class="capture-info">
+          <div class="capture-id">T7-M01</div>
+          <div class="capture-detail">14:18 &middot; Pending upload</div>
+        </div>
+      </div>
+      <div class="capture-card">
+        <div class="capture-thumb habitat">
+          <span>&#x1f333;</span>
+          <div class="capture-status uploaded">&#10003;</div>
+        </div>
+        <div class="capture-info">
+          <div class="capture-id">T7-H01</div>
+          <div class="capture-detail">14:12 &middot; Uploaded &#10003;</div>
+        </div>
+      </div>
+      <div class="capture-card">
+        <div class="capture-thumb sample">
+          <span>&#x1f9ec;</span>
+          <div class="capture-status uploaded">&#10003;</div>
+        </div>
+        <div class="capture-info">
+          <div class="capture-id">T7-S02</div>
+          <div class="capture-detail">14:08 &middot; GPS locked &#10003;</div>
+        </div>
+      </div>
+      <div class="capture-card">
+        <div class="capture-thumb soil">
+          <span>&#x1f4f7;</span>
+          <div class="capture-status pending">&#9719;</div>
+        </div>
+        <div class="capture-info">
+          <div class="capture-id">T7-S03</div>
+          <div class="capture-detail">14:02 &middot; Pending upload</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Current Sample Form -->
+    <div class="section">
+      <div class="section-header">Current Sample</div>
+      <div class="form-group">
+        <div class="form-row">
+          <span class="form-label">Sample ID</span>
+          <span class="form-value editable" style="font-variant-numeric: tabular-nums; font-weight: 600; color: var(--tint);">T7-S03</span>
+        </div>
+        <div class="form-row">
+          <span class="form-label">Type</span>
+          <span class="form-value">
+            <span class="form-value-pill">Soil <span class="form-chevron">&#8250;</span></span>
+          </span>
+        </div>
+        <div class="form-row">
+          <span class="form-label">Depth</span>
+          <span class="form-value">
+            <span class="form-value-pill">0&ndash;15 cm <span class="form-chevron">&#8250;</span></span>
+          </span>
+        </div>
+        <div class="form-row">
+          <span class="form-label">GPS</span>
+          <div class="form-gps">
+            <span class="form-gps-coord">34.0259&#176;N, 118.7798&#176;W</span>
+            <span class="form-gps-accuracy">Auto &middot; Accuracy: &#177;3m</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <span class="form-label">Elevation</span>
+          <span class="form-value" style="color: var(--fg);">420m <span style="color: var(--fg-secondary); font-size: 12px;">(auto)</span></span>
+        </div>
+        <div class="form-row">
+          <span class="form-label">Habitat</span>
+          <span class="form-value">
+            <span class="form-value-pill">Oak woodland <span class="form-chevron">&#8250;</span></span>
+          </span>
+        </div>
+        <div class="form-notes">
+          <div class="form-notes-label">Notes</div>
+          <div class="form-notes-text">&ldquo;Near Quercus agrifolia, moderate leaf litter, slight slope&rdquo;</div>
+        </div>
+        <div class="mixs-section">
+          <div class="mixs-label">MIxS Fields (auto-populated)</div>
+          <div class="mixs-row">
+            <span class="mixs-key">env_broad_scale</span>
+            <span class="mixs-val">terrestrial biome <span class="mixs-check">&#10003;</span></span>
+          </div>
+          <div class="mixs-row">
+            <span class="mixs-key">env_local_scale</span>
+            <span class="mixs-val">Mediterranean shrubland <span class="mixs-check">&#10003;</span></span>
+          </div>
+          <div class="mixs-row">
+            <span class="mixs-key">env_medium</span>
+            <span class="mixs-val">soil <span class="mixs-check">&#10003;</span></span>
+          </div>
+        </div>
+        <div class="photo-attach">
+          <div class="photo-attach-btn">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Photo
+          </div>
+        </div>
+      </div>
+      <button class="save-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Save Sample
+      </button>
+    </div>
+
+    <!-- Transect Progress -->
+    <div class="section">
+      <div class="section-header">Transect Progress</div>
+      <div class="progress-card">
+        <div class="progress-header">
+          <span class="progress-title">Transect 7</span>
+          <span class="progress-count">8 / 12</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" style="width: 66%;"></div>
+        </div>
+        <div class="progress-next">
+          <svg viewBox="0 0 24 24"><path d="M3 12h18M13 6l6 6-6 6"/></svg>
+          Next waypoint: 240m NE
+        </div>
+        <div class="mini-map">
+          <div class="mini-map-grid"></div>
+          <div class="mini-map-path"></div>
+          <div class="mini-map-dot"></div>
+          <div class="mini-map-next"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sync Status -->
+    <div class="section">
+      <div class="section-header">Sync Status</div>
+      <div class="sync-card">
+        <div class="sync-title">
+          Sync to BioKEA LDC
+          <span class="ldc">Large Data Collider</span>
+        </div>
+        <div class="sync-row uploaded">
+          <span class="icon">&#10003;</span>
+          <span>9 samples uploaded</span>
+        </div>
+        <div class="sync-row queued">
+          <span class="icon">&#9719;</span>
+          <span>3 samples queued</span>
+        </div>
+        <div class="sync-note">
+          Will sync when connection restored &middot; Last sync: 13:45 today
+        </div>
+      </div>
+    </div>
+
+    <!-- Semble Community -->
+    <div class="section" style="margin-bottom: 20px;">
+      <div class="semble-card">
+        <div class="semble-header">
+          <div class="semble-icon">S</div>
+          <span class="semble-title">Semble Community</span>
+        </div>
+        <div class="semble-body">
+          3 other researchers active on SMM trail today<br>
+          <span class="semble-handle">@maria-santos</span> nearby (T5) &middot;
+          <span class="semble-handle">@chen-lab</span> at T9
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item active">
+      <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span class="tab-label">Collection</span>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      <span class="tab-label">Map</span>
+    </div>
+    <div class="tab-item camera-tab">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <span class="tab-label">Camera</span>
+    </div>
+    <div class="tab-item">
+      <svg viewBox="0 0 24 24"><path d="M9 2h6v10a3 3 0 0 1-6 0V2z"/><path d="M9 12h6"/><path d="M12 15v7"/><path d="M8 22h8"/></svg>
+      <span class="tab-label">Samples</span>
+    </div>
+    <div class="tab-item" style="position: relative;">
+      <svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+      <span class="tab-badge">3</span>
+      <span class="tab-label">Sync</span>
+    </div>
+  </div>
+
+  <!-- Home Indicator -->
+  <div class="home-indicator"></div>
+</div>
+
+<div class="footer-text">Agentis Field Collection &middot; iOS concept &middot; Syncs to BioKEA LDC &middot; Built on AT Protocol</div>
+
+</body>
+</html>

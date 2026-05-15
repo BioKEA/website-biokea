@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentis — Dashboard</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #09090b;
+    --bg-card: #111113;
+    --bg-elevated: #18181b;
+    --bg-hover: #1e1e21;
+    --fg: #fafafa;
+    --fg-muted: #a1a1aa;
+    --fg-faint: #52525b;
+    --border: #27272a;
+    --border-hover: #3f3f46;
+    --blue: #3b82f6;
+    --cyan: #06b6d4;
+    --emerald: #10b981;
+    --amber: #f59e0b;
+    --purple: #8b5cf6;
+    --gradient: linear-gradient(135deg, #3b82f6, #06b6d4);
+    --semble: #f97316;
+    --hypgen: #d946ef;
+    --atproto: #0085ff;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== Top Nav ===== */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 32px;
+    background: rgba(9, 9, 11, 0.85);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-left { display: flex; align-items: center; gap: 32px; }
+  .nav-logo {
+    font-size: 18px; font-weight: 600; letter-spacing: -0.5px;
+    background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    font-size: 13px; color: var(--fg-faint); padding: 6px 14px; border-radius: 6px;
+    text-decoration: none; transition: all 0.15s;
+  }
+  .nav-tab:hover { color: var(--fg-muted); background: var(--bg-elevated); }
+  .nav-tab.active { color: var(--fg); background: var(--bg-elevated); }
+
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-search {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px; background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 6px; font-size: 12px; color: var(--fg-faint); cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .nav-search:hover { border-color: var(--border-hover); }
+  .nav-search kbd {
+    font-family: inherit; font-size: 10px; color: var(--fg-faint);
+    background: var(--bg); border: 1px solid var(--border); border-radius: 3px;
+    padding: 1px 4px;
+  }
+
+  .avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--gradient); display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: white; cursor: pointer;
+  }
+  .avatar-wrapper { position: relative; }
+  .avatar-menu {
+    display: none; position: absolute; top: calc(100% + 6px); right: 0;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 6px; min-width: 180px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 200;
+  }
+  .avatar-menu::before { content: ''; position: absolute; top: -8px; left: 0; right: 0; height: 8px; }
+  .avatar-wrapper:hover .avatar-menu { display: block; }
+  .avatar-menu a {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: 6px; font-size: 13px;
+    color: var(--fg-muted); text-decoration: none; transition: all 0.12s;
+  }
+  .avatar-menu a:hover { background: var(--bg-elevated); color: var(--fg); }
+  .avatar-menu .menu-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+  /* === Nav Dropdowns === */
+  .nav-dropdown { position: relative; display: flex; align-items: center; }
+  .nav-dropdown-btn {
+    display: flex; align-items: center; gap: 4px; font-size: 13px;
+    color: var(--fg-faint); padding: 6px 10px; border-radius: 6px;
+    cursor: pointer; border: none; background: none; font-family: inherit;
+    transition: color 0.15s, background 0.15s;
+  }
+  .nav-dropdown-btn:hover { color: var(--fg-muted); background: var(--bg-elevated); }
+  .nav-dropdown.active .nav-dropdown-btn { color: var(--fg); background: var(--bg-elevated); }
+  .nav-dropdown-btn .chev { font-size: 10px; opacity: 0.5; }
+  .nav-dropdown-menu {
+    display: none; position: absolute; top: calc(100% + 6px); left: 0;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 6px; min-width: 180px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 300;
+  }
+  .nav-dropdown-menu::before { content: ''; position: absolute; top: -8px; left: 0; right: 0; height: 8px; }
+  .nav-dropdown:hover .nav-dropdown-menu { display: block; }
+  .nav-dropdown-menu a {
+    display: block; padding: 8px 12px; border-radius: 6px; font-size: 13px;
+    color: var(--fg-muted); text-decoration: none; transition: all 0.12s; white-space: nowrap;
+  }
+  .nav-dropdown-menu a:hover { background: var(--bg-elevated); color: var(--fg); }
+  .nav-dropdown-menu a.active { color: var(--fg); background: var(--bg-elevated); }
+  /* === Nav Bell === */
+  .nav-bell {
+    position: relative; display: flex; align-items: center; padding: 6px 8px;
+    border-radius: 6px; color: var(--fg-faint); transition: color 0.15s, background 0.15s;
+  }
+  .nav-bell:hover { color: var(--fg); background: var(--bg-elevated); }
+  .nav-bell.active { color: var(--fg); }
+  .nav-bell-badge {
+    position: absolute; top: 4px; right: 4px; width: 7px; height: 7px;
+    border-radius: 50%; background: #ef4444; border: 1.5px solid var(--bg);
+  }
+  .nav-search.active { color: var(--fg); background: var(--bg-elevated); }
+
+  /* ===== Main Layout ===== */
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 80px 32px 64px;
+  }
+
+  /* ===== Welcome Header ===== */
+  .welcome {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 32px; padding-top: 16px;
+  }
+
+  .welcome h1 {
+    font-size: 28px; font-weight: 600; letter-spacing: -0.5px;
+    color: var(--fg);
+  }
+
+  .welcome p {
+    font-size: 14px; color: var(--fg-muted); margin-top: 4px;
+  }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px; background: white; color: #09090b;
+    border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; text-decoration: none;
+    box-shadow: 0 0 16px rgba(59,130,246,0.08);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 24px rgba(59,130,246,0.15); }
+
+  /* ===== Connected Platforms Row ===== */
+  .platforms-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .platform-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px;
+    display: flex; align-items: center; gap: 14px;
+    transition: all 0.15s;
+  }
+  .platform-card:hover { border-color: var(--border-hover); }
+  .platform-card.atproto { border-left: 3px solid var(--atproto); }
+  .platform-card.semble { border-left: 3px solid var(--semble); }
+  .platform-card.hypgen { border-left: 3px solid var(--hypgen); }
+
+  .platform-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; flex-shrink: 0;
+  }
+
+  .platform-info { min-width: 0; }
+  .platform-info .platform-title {
+    font-size: 13px; font-weight: 600; color: var(--fg);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .platform-info .platform-stats {
+    font-size: 11px; color: var(--fg-muted); margin-top: 1px;
+  }
+  .platform-info .platform-sub {
+    font-size: 10px; color: var(--fg-faint); margin-top: 2px;
+  }
+
+  /* ===== Stats Row ===== */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px;
+  }
+
+  .stat-card .label {
+    font-size: 12px; color: var(--fg-faint); text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 8px;
+  }
+
+  .stat-card .value {
+    font-size: 24px; font-weight: 700; letter-spacing: -0.5px;
+  }
+
+  .stat-card .value.gradient {
+    background: var(--gradient); -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  .stat-card .value.fuchsia {
+    color: var(--hypgen);
+  }
+
+  .stat-card .sub {
+    font-size: 11px; color: var(--fg-faint); margin-top: 4px;
+  }
+
+  /* ===== GBIF Map ===== */
+  .map-section {
+    margin-bottom: 48px;
+  }
+
+  .map-tree-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .map-container, .tree-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  #gbif-map {
+    height: 380px;
+    width: 100%;
+    background: #09090b;
+  }
+
+  #tree-canvas {
+    width: 100%;
+    height: 380px;
+    display: block;
+  }
+
+  .tree-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
+    padding: 14px 18px;
+    background: linear-gradient(transparent, rgba(9,9,11,0.92) 40%);
+    pointer-events: none;
+  }
+  .tree-overlay h3 { font-size: 14px; font-weight: 600; color: var(--fg); margin-bottom: 2px; }
+  .tree-overlay p { font-size: 11px; color: var(--fg-faint); }
+
+  .tree-legend {
+    display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap;
+  }
+  .tree-legend span {
+    font-size: 9px; color: var(--fg-faint); display: flex; align-items: center; gap: 4px;
+  }
+
+  /* Override Leaflet styles for dark theme */
+  .leaflet-container { background: #09090b; }
+  .leaflet-control-zoom { border: 1px solid var(--border) !important; }
+  .leaflet-control-zoom a {
+    background: var(--bg-card) !important; color: var(--fg-muted) !important;
+    border-color: var(--border) !important;
+  }
+  .leaflet-control-zoom a:hover { background: var(--bg-elevated) !important; }
+  .leaflet-control-attribution { background: rgba(9,9,11,0.8) !important; color: var(--fg-faint) !important; font-size: 10px !important; }
+  .leaflet-control-attribution a { color: var(--fg-faint) !important; }
+
+  .map-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 500;
+    padding: 16px 20px;
+    background: linear-gradient(transparent, rgba(9,9,11,0.9) 40%);
+    display: flex; align-items: flex-end; justify-content: space-between;
+    pointer-events: none;
+  }
+
+  .map-overlay-left h3 {
+    font-size: 14px; font-weight: 600; color: var(--fg); margin-bottom: 2px;
+  }
+  .map-overlay-left p {
+    font-size: 11px; color: var(--fg-faint);
+  }
+
+  .map-legend {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 10px; color: var(--fg-faint);
+  }
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+    margin-right: 4px;
+  }
+
+  /* ===== Section Headers ===== */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .section-header h2 {
+    font-size: 16px; font-weight: 600; color: var(--fg);
+  }
+
+  .section-link {
+    font-size: 12px; color: var(--fg-faint); text-decoration: none;
+    transition: color 0.15s;
+  }
+  .section-link:hover { color: var(--fg-muted); }
+
+  /* ===== Workspace Cards ===== */
+  .workspaces-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .workspace-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px; transition: all 0.2s; cursor: pointer;
+  }
+  .workspace-card:hover { border-color: var(--border-hover); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+
+  .workspace-card .card-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .badge {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 4px;
+  }
+  .badge-draft { background: rgba(82, 82, 91, 0.3); color: var(--fg-muted); }
+  .badge-analyzing { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
+  .badge-ldc { background: rgba(6,182,212,0.15); color: #06b6d4; }
+  .badge-generating { background: rgba(139, 92, 246, 0.15); color: var(--purple); }
+  .badge-editing { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
+  .badge-submitted { background: rgba(16, 185, 129, 0.15); color: var(--emerald); }
+
+  .tier-badge {
+    font-size: 10px; font-weight: 600; color: var(--fg-faint);
+    border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px;
+  }
+
+  .workspace-card h3 {
+    font-size: 15px; font-weight: 600; color: var(--fg); margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .workspace-card .card-desc {
+    font-size: 12px; color: var(--fg-muted); line-height: 1.5; margin-bottom: 16px;
+  }
+
+  .card-meta {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 11px; color: var(--fg-faint);
+  }
+
+  .card-meta .dot { color: var(--border); }
+
+  .progress-bar {
+    width: 100%; height: 3px; background: var(--bg-elevated); border-radius: 2px;
+    margin-top: 14px; overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%; border-radius: 2px;
+    transition: width 0.3s;
+  }
+
+  .progress-fill.blue { background: var(--blue); }
+  .progress-fill.purple { background: var(--purple); }
+  .progress-fill.amber { background: var(--amber); }
+  .progress-fill.emerald { background: var(--emerald); }
+
+  /* ===== New Workspace Card ===== */
+  .new-workspace {
+    background: transparent; border: 2px dashed var(--border); border-radius: 14px;
+    padding: 24px; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; text-align: center; cursor: pointer;
+    transition: all 0.2s; min-height: 200px;
+  }
+  .new-workspace:hover { border-color: var(--border-hover); background: rgba(59,130,246,0.03); }
+
+  .new-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: var(--fg-faint); margin-bottom: 12px;
+  }
+
+  .new-workspace h3 { font-size: 14px; font-weight: 600; color: var(--fg-muted); margin-bottom: 4px; }
+  .new-workspace p { font-size: 11px; color: var(--fg-faint); }
+
+  /* ===== Platform Pulse ===== */
+  .pulse-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .pulse-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+    overflow: hidden; transition: all 0.2s;
+  }
+  .pulse-card:hover { border-color: var(--border-hover); }
+
+  .pulse-card-body {
+    padding: 20px;
+  }
+
+  .pulse-card canvas {
+    width: 100%; height: 200px; display: block;
+  }
+
+  .pulse-card-content {
+    padding: 16px 20px;
+    min-height: 200px;
+  }
+
+  .pulse-card-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .pulse-stats {
+    font-size: 11px; color: var(--fg-faint);
+  }
+
+  .pulse-link {
+    font-size: 12px; color: var(--fg-faint); text-decoration: none;
+    transition: color 0.15s;
+  }
+  .pulse-link:hover { color: var(--fg-muted); }
+
+  /* Discourse list items */
+  .discourse-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 0;
+  }
+  .discourse-item + .discourse-item {
+    border-top: 1px solid var(--border);
+  }
+
+  .discourse-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    margin-top: 5px; flex-shrink: 0;
+  }
+
+  .discourse-item p {
+    font-size: 12px; color: var(--fg-muted); line-height: 1.45;
+  }
+  .discourse-item .discourse-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;
+  }
+
+  /* Review status items */
+  .review-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 0;
+  }
+  .review-item + .review-item {
+    border-top: 1px solid var(--border);
+  }
+
+  .review-status-icon {
+    width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .review-item .review-title {
+    flex: 1; font-size: 12px; color: var(--fg); font-weight: 500;
+    min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .review-item .review-meta {
+    font-size: 11px; color: var(--fg-faint); white-space: nowrap;
+  }
+
+  /* ===== Two paths ===== */
+  .paths-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .path-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 28px; cursor: pointer; transition: all 0.2s;
+  }
+  .path-card:hover { border-color: var(--border-hover); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+
+  .path-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .path-card h3 { font-size: 16px; font-weight: 600; color: var(--fg); margin-bottom: 4px; }
+  .path-card .path-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 10px; font-weight: 600;
+  }
+  .path-card .path-label.primary { color: var(--cyan); }
+  .path-card .path-label.secondary { color: var(--fg-faint); }
+
+  .path-card p { font-size: 13px; color: var(--fg-muted); line-height: 1.5; }
+
+  .path-formats {
+    display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap;
+  }
+
+  .format-tag {
+    font-size: 10px; font-weight: 500; color: var(--fg-faint);
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    padding: 2px 8px; border-radius: 4px;
+  }
+
+  /* ===== Activity Feed ===== */
+  .activity-list {
+    display: flex; flex-direction: column; gap: 1px;
+    background: var(--border); border-radius: 12px; overflow: hidden;
+    margin-bottom: 48px;
+  }
+
+  .activity-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 20px; background: var(--bg-card);
+    transition: background 0.15s;
+  }
+  .activity-item:hover { background: var(--bg-hover); }
+
+  .activity-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 14px;
+  }
+  .activity-icon.blue { background: rgba(59, 130, 246, 0.12); }
+  .activity-icon.cyan { background: rgba(6, 182, 212, 0.12); }
+  .activity-icon.emerald { background: rgba(16, 185, 129, 0.12); }
+  .activity-icon.purple { background: rgba(139, 92, 246, 0.12); }
+  .activity-icon.amber { background: rgba(245, 158, 11, 0.12); }
+  .activity-icon.fuchsia { background: rgba(217, 70, 239, 0.12); }
+  .activity-icon.orange { background: rgba(249, 115, 22, 0.12); }
+
+  .activity-text { flex: 1; }
+  .activity-text p { font-size: 13px; color: var(--fg); line-height: 1.4; }
+  .activity-text p strong { font-weight: 600; }
+  .activity-text .time { font-size: 11px; color: var(--fg-faint); margin-top: 2px; }
+
+  /* ===== Footer ===== */
+  footer {
+    padding: 24px 32px;
+    text-align: center;
+    border-top: 1px solid var(--border);
+  }
+  footer p { font-size: 12px; color: var(--fg-faint); }
+  footer a { color: var(--blue); text-decoration: none; }
+
+  /* ===== Cross-link CTAs ===== */
+  .cross-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--fg-faint); text-decoration: none;
+    padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+    transition: all 0.15s;
+  }
+  .cross-link:hover { color: var(--fg-muted); border-color: var(--border-hover); background: var(--bg-elevated); }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 768px) {
+    nav { padding: 12px 16px; }
+    .nav-tabs { display: none; }
+    main { padding: 72px 16px 48px; }
+    .platforms-row { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .map-tree-row { grid-template-columns: 1fr; }
+    #gbif-map { height: 240px; }
+    #tree-canvas { height: 280px; }
+    .workspaces-grid { grid-template-columns: 1fr; }
+    .pulse-row { grid-template-columns: 1fr; }
+    .paths-row { grid-template-columns: 1fr; }
+    .welcome { flex-direction: column; gap: 16px; }
+  }
+
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .workspaces-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Nav ===== -->
+<nav>
+  <div class="nav-left">
+    <a href="../index.html" class="nav-logo" style="text-decoration:none;">agentis</a>
+    <div class="nav-tabs">
+      <a href="01-dashboard.html" class="nav-tab active">Dashboard</a>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn">Data <span class="chev">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="02-sample-management.html">Samples &amp; LIMS</a>
+          <a href="03-upload.html">Data Upload</a>
+          <a href="04-ldc-pipeline.html">LDC Pipeline</a>
+          <a href="20-qc-dashboard.html">QC Dashboard</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn">Analysis <span class="chev">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="07-knowledge-graph.html">Knowledge Graph</a>
+          <a href="08-discourse-graph.html">Discourse Graph</a>
+          <a href="19-taxonomy-browser.html">Taxonomy Browser</a>
+          <a href="22-phylogenetic-tree.html">Phylogenetic Tree</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn">Publishing <span class="chev">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="05-narrative-editor.html">Narrative Editor</a>
+          <a href="09-peer-review.html">Peer Review</a>
+          <a href="10-storymap-preview.html">StoryMap</a>
+          <a href="11-fair-data-package.html">FAIR Data Package</a>
+        </div>
+      </div>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-btn">Community <span class="chev">&#9662;</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="17-bluesky-feed.html">Bluesky Feed</a>
+          <a href="23-collaboration.html">Team Workspace</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-right">
+    <a href="21-notifications.html" class="nav-bell" style="text-decoration:none;" title="Notifications">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13.5a2 2 0 0 1-4 0"/><path d="M3.5 6.5a4.5 4.5 0 0 1 9 0c0 2.5 1 4 1.5 5H2c.5-1 1.5-2.5 1.5-5z"/></svg><span class="nav-bell-badge"></span>
+    </a>
+    <a href="12-search.html" class="nav-search" style="text-decoration:none;">Search <kbd>/</kbd></a>
+    <div class="avatar-wrapper">
+      <a href="14-researcher-profile.html" class="avatar" style="text-decoration:none;">SJ</a>
+      <div class="avatar-menu">
+        <a href="14-researcher-profile.html">Profile</a>
+        <a href="13-analytics.html">Analytics</a>
+        <a href="15-settings.html">Settings</a>
+        <div class="menu-divider"></div>
+        <a href="16-admin-dashboard.html">Admin</a>
+        <a href="18-mobile-field.html">Mobile App</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== Main Content ===== -->
+<main>
+
+  <!-- Welcome -->
+  <div class="welcome">
+    <div>
+      <h1>Welcome back, Sean</h1>
+      <p>3 active workspaces &middot; 2 pending review</p>
+    </div>
+    <a href="#" class="btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Workspace
+    </a>
+  </div>
+
+  <!-- Connected Platforms -->
+  <div class="platforms-row">
+    <div class="platform-card atproto">
+      <div class="platform-icon" style="background: rgba(0, 133, 255, 0.15); border-radius: 50%;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--atproto)" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M16 8l2-2"/><path d="M8 16l-2 2"/><path d="M16 16l2 2"/><path d="M8 8L6 6"/></svg>
+      </div>
+      <div class="platform-info">
+        <div class="platform-title">@sjungbluth.bsky.social</div>
+        <div class="platform-sub">DID verified &middot; Decentralized identity</div>
+      </div>
+    </div>
+
+    <div class="platform-card semble">
+      <div class="platform-icon" style="background: rgba(249, 115, 22, 0.15); border-radius: 6px;">
+        <span style="color: var(--semble); font-size: 15px; font-weight: 800;">S</span>
+      </div>
+      <div class="platform-info">
+        <div class="platform-title">Semble Community</div>
+        <div class="platform-stats" style="color: var(--fg-muted);">4 trails &middot; 47 researchers</div>
+        <div class="platform-sub">Active in CIB-ATBI network</div>
+      </div>
+    </div>
+
+    <div class="platform-card hypgen">
+      <div class="platform-icon" style="background: rgba(217, 70, 239, 0.15); border-radius: 6px;">
+        <span style="color: var(--hypgen); font-size: 13px; font-weight: 800; letter-spacing: -1px;">H<span style="font-size: 10px;">&infin;</span></span>
+      </div>
+      <div class="platform-info">
+        <div class="platform-title">HypGen Engine</div>
+        <div class="platform-stats" style="color: var(--fg-muted);">23 hypotheses &middot; 8 validated</div>
+        <div class="platform-sub">BeeARD Agent v3 active</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="label">Workspaces</div>
+      <div class="value gradient">5</div>
+      <div class="sub">2 drafts, 3 in progress</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Knowledge Graph</div>
+      <div class="value gradient">601K</div>
+      <div class="sub">Nodes across all workspaces</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Sequences</div>
+      <div class="value gradient">327K</div>
+      <div class="sub">18S + COI barcodes</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Peer Reviews</div>
+      <div class="value gradient">3</div>
+      <div class="sub">1 accepted, 1 in review, 1 revision</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">AI Hypotheses</div>
+      <div class="value fuchsia">23</div>
+      <div class="sub">8 validated by community</div>
+    </div>
+  </div>
+
+  <!-- GBIF Global Map + Tree of Life -->
+  <div class="section-header">
+    <h2>Global Biodiversity Observations</h2>
+    <a href="#" class="section-link">Powered by GBIF</a>
+  </div>
+
+  <div class="map-section">
+    <div class="map-tree-row">
+      <div class="map-container">
+        <div id="gbif-map"></div>
+        <div class="map-overlay">
+          <div class="map-overlay-left">
+            <h3>2.6B+ occurrence records</h3>
+            <p>Real-time GBIF data</p>
+          </div>
+          <div class="map-legend">
+            <span><span class="legend-dot" style="background: #ffff00;"></span>Low</span>
+            <span><span class="legend-dot" style="background: #ff8800;"></span>Med</span>
+            <span><span class="legend-dot" style="background: #cc0000;"></span>High</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tree-container">
+        <canvas id="tree-canvas"></canvas>
+        <div class="tree-overlay">
+          <h3>Tree of Life Coverage</h3>
+          <p>Observation density across major clades</p>
+          <div class="tree-legend">
+            <span><span class="legend-dot" style="background: #3b82f6;"></span>Animalia</span>
+            <span><span class="legend-dot" style="background: #06b6d4;"></span>Plantae</span>
+            <span><span class="legend-dot" style="background: #10b981;"></span>Fungi</span>
+            <span><span class="legend-dot" style="background: #8b5cf6;"></span>Protista</span>
+            <span><span class="legend-dot" style="background: #f59e0b;"></span>Bacteria</span>
+            <span><span class="legend-dot" style="background: #ef4444;"></span>Archaea</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workspaces -->
+  <div class="section-header">
+    <h2>Your Workspaces</h2>
+    <a href="#" class="section-link">View all</a>
+  </div>
+
+  <div class="workspaces-grid">
+
+    <div class="workspace-card">
+      <div class="card-top">
+        <span class="badge badge-editing">Editing</span>
+        <span class="tier-badge">Tier 2</span>
+      </div>
+      <h3>CIB Pilot: Santa Monica Mtns Soil eDNA</h3>
+      <p class="card-desc">18S metabarcoding from 12 soil transects. 89 OTUs identified, narrative draft generated.</p>
+      <div class="card-meta">
+        <span>Agentis Data</span>
+        <span class="dot">&middot;</span>
+        <span>Updated 2h ago</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill amber" style="width: 72%;"></div></div>
+      <div style="display: flex; gap: 8px; margin-top: 12px;">
+        <a href="05-narrative-editor.html" class="cross-link">Open Editor &rarr;</a>
+        <a href="04-ldc-pipeline.html" class="cross-link">View in LDC &rarr;</a>
+      </div>
+    </div>
+
+    <div class="workspace-card">
+      <div class="card-top">
+        <span class="badge badge-ldc">LDC Processing</span>
+        <span class="tier-badge">Tier 1</span>
+      </div>
+      <h3>Griffith Park Insect Inventory: Coleoptera</h3>
+      <p class="card-desc">428 specimen images from Malaise traps. Processing in BioKEA LDC — Claude Vision classifying to family level.</p>
+      <div class="card-meta">
+        <span>Agentis Biology</span>
+        <span class="dot">&middot;</span>
+        <span>Updated 15m ago</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill blue" style="width: 45%;"></div></div>
+      <div style="display: flex; gap: 8px; margin-top: 12px;">
+        <a href="04-ldc-pipeline.html" class="cross-link">View LDC Progress &rarr;</a>
+      </div>
+    </div>
+
+    <div class="workspace-card">
+      <div class="card-top">
+        <span class="badge badge-submitted">In Review</span>
+        <span class="tier-badge">Tier 3</span>
+      </div>
+      <h3>Ballona Wetlands eDNA Biodiversity Assessment</h3>
+      <p class="card-desc">Full hypothesis paper on wetland restoration impacts. AI + 2 human reviewers assigned.</p>
+      <div class="card-meta">
+        <span>Agentis Biology</span>
+        <span class="dot">&middot;</span>
+        <span>Submitted 3d ago</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill emerald" style="width: 90%;"></div></div>
+      <div style="display: flex; gap: 8px; margin-top: 12px;">
+        <a href="09-peer-review.html" class="cross-link">View Review &rarr;</a>
+        <a href="10-storymap-preview.html" class="cross-link">View StoryMap &rarr;</a>
+      </div>
+    </div>
+
+    <div class="new-workspace">
+      <div class="new-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+      <h3>New Workspace</h3>
+      <p>Start from scratch or import data</p>
+    </div>
+
+  </div>
+
+  <!-- Quick Access -->
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:48px;">
+    <a href="02-sample-management.html" class="cross-link">Samples &amp; LIMS</a>
+    <a href="21-notifications.html" class="cross-link">Notifications</a>
+    <a href="23-collaboration.html" class="cross-link">Team Workspace</a>
+    <a href="10-storymap-preview.html" class="cross-link">View StoryMap</a>
+    <a href="19-taxonomy-browser.html" class="cross-link">Taxonomy Browser</a>
+    <a href="20-qc-dashboard.html" class="cross-link">QC Dashboard</a>
+    <a href="22-phylogenetic-tree.html" class="cross-link">Phylogenetic Tree</a>
+  </div>
+
+  <!-- Platform Pulse -->
+  <div class="section-header">
+    <h2>Platform Pulse</h2>
+    <a href="#" class="section-link">Explore all &rarr;</a>
+  </div>
+
+  <div class="pulse-row">
+
+    <!-- Knowledge Graph Preview -->
+    <div class="pulse-card">
+      <div style="padding: 0;">
+        <canvas id="kg-preview-canvas" style="width: 100%; height: 200px; display: block;"></canvas>
+      </div>
+      <div class="pulse-card-footer">
+        <div class="pulse-stats">601K nodes &middot; 2.1M edges &middot; 6 communities</div>
+        <a href="07-knowledge-graph.html" class="pulse-link">Open Graph &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Discourse Graph Preview -->
+    <div class="pulse-card">
+      <div class="pulse-card-content">
+        <div class="discourse-item">
+          <div class="discourse-dot" style="background: var(--emerald);"></div>
+          <div>
+            <div class="discourse-label" style="color: var(--emerald);">Supported</div>
+            <p>Glomeromycota lineages indicate undisturbed soil</p>
+          </div>
+        </div>
+        <div class="discourse-item">
+          <div class="discourse-dot" style="background: var(--amber);"></div>
+          <div>
+            <div class="discourse-label" style="color: var(--amber);">Contested</div>
+            <p>Coleoptera diversity correlates with canopy density</p>
+          </div>
+        </div>
+        <div class="discourse-item">
+          <div class="discourse-dot" style="background: var(--blue);"></div>
+          <div>
+            <div class="discourse-label" style="color: var(--blue);">New claim</div>
+            <p>eDNA detection sensitivity varies by substrate</p>
+          </div>
+        </div>
+        <div class="discourse-item">
+          <div class="discourse-dot" style="background: var(--hypgen);"></div>
+          <div>
+            <div class="discourse-label" style="color: var(--hypgen);">HypGen</div>
+            <p>Multi-marker approach outperforms single-locus</p>
+          </div>
+        </div>
+      </div>
+      <div class="pulse-card-footer">
+        <div class="pulse-stats">34 claims &middot; 89 evidence nodes &middot; 12 questions</div>
+        <a href="08-discourse-graph.html" class="pulse-link">Open Discourse &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Peer Review Summary -->
+    <div class="pulse-card">
+      <div class="pulse-card-content">
+        <div class="review-item">
+          <div class="review-status-icon" style="background: rgba(16, 185, 129, 0.15);">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--emerald)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span class="review-title">Soil Mycorrhizae</span>
+          <span class="review-meta">Accepted &middot; 8.57</span>
+        </div>
+        <div class="review-item">
+          <div class="review-status-icon" style="background: rgba(245, 158, 11, 0.15);">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="5"/></svg>
+          </div>
+          <span class="review-title">Arthropod Inventory</span>
+          <span class="review-meta">Revision &middot; 7.17</span>
+        </div>
+        <div class="review-item">
+          <div class="review-status-icon" style="background: rgba(59, 130, 246, 0.15);">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="5"/></svg>
+          </div>
+          <span class="review-title">eDNA Multi-marker</span>
+          <span class="review-meta">In Review &middot; 8.4</span>
+        </div>
+        <div class="review-item">
+          <div class="review-status-icon" style="background: rgba(82, 82, 91, 0.15);">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--fg-faint)" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="5"/></svg>
+          </div>
+          <span class="review-title">Marine Vertebrate</span>
+          <span class="review-meta" style="color: var(--fg-faint);">Submitted &middot; &mdash;</span>
+        </div>
+      </div>
+      <div class="pulse-card-footer">
+        <div class="pulse-stats">4 papers &middot; Avg 8.05 &middot; 2 AI + 5 human reviews</div>
+        <a href="09-peer-review.html" class="pulse-link">Open Reviews &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Create New -->
+  <div class="section-header">
+    <h2>Start Something New</h2>
+  </div>
+
+  <div class="paths-row">
+    <div class="path-card">
+      <div class="path-icon" style="background: rgba(6, 182, 212, 0.12);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <div class="path-label primary">Primary path</div>
+      <h3>Upload Data</h3>
+      <p>Start with raw data — FASTA sequences, specimen images, CSV metadata. The BioKEA LDC analyzes everything and generates a narrative.</p>
+      <div class="path-formats">
+        <span class="format-tag">FASTA</span>
+        <span class="format-tag">FASTQ</span>
+        <span class="format-tag">Images</span>
+        <span class="format-tag">CSV</span>
+        <span class="format-tag">DwC-A</span>
+      </div>
+    </div>
+
+    <div class="path-card">
+      <div class="path-icon" style="background: rgba(59, 130, 246, 0.12);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+      <div class="path-label secondary">Alternative path</div>
+      <h3>Submit Manuscript</h3>
+      <p>Already have a paper? Upload PDF, LaTeX, or DOCX. AI extracts structure, links data sources, and enriches with discourse analysis.</p>
+      <div class="path-formats">
+        <span class="format-tag">PDF</span>
+        <span class="format-tag">LaTeX</span>
+        <span class="format-tag">DOCX</span>
+        <span class="format-tag">Jupyter</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import from sources -->
+  <div class="section-header">
+    <h2>Import from External Sources</h2>
+    <a href="#" class="section-link">See all 14 sources</a>
+  </div>
+
+  <div style="display: flex; gap: 10px; margin-bottom: 48px; flex-wrap: wrap;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--fg-muted);" onmouseover="this.style.borderColor='#3f3f46'" onmouseout="this.style.borderColor='#27272a'">
+      <span style="font-size: 16px;">🌍</span> GBIF
+    </div>
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--fg-muted);" onmouseover="this.style.borderColor='#3f3f46'" onmouseout="this.style.borderColor='#27272a'">
+      <span style="font-size: 16px;">🦎</span> iNaturalist
+    </div>
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--fg-muted);" onmouseover="this.style.borderColor='#3f3f46'" onmouseout="this.style.borderColor='#27272a'">
+      <span style="font-size: 16px;">🧬</span> NCBI SRA
+    </div>
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--fg-muted);" onmouseover="this.style.borderColor='#3f3f46'" onmouseout="this.style.borderColor='#27272a'">
+      <span style="font-size: 16px;">🗂️</span> DataONE
+    </div>
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--fg-muted);" onmouseover="this.style.borderColor='#3f3f46'" onmouseout="this.style.borderColor='#27272a'">
+      <span style="font-size: 16px;">🔬</span> BOLD Systems
+    </div>
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--fg-muted);" onmouseover="this.style.borderColor='#3f3f46'" onmouseout="this.style.borderColor='#27272a'">
+      <span style="font-size: 16px;">🏛️</span> Smithsonian
+    </div>
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; color: var(--fg-muted);" onmouseover="this.style.borderColor='#3f3f46'" onmouseout="this.style.borderColor='#27272a'">
+      <span style="color: var(--fg-faint);">+7 more</span>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="section-header">
+    <h2>Recent Activity</h2>
+  </div>
+
+  <div class="activity-list">
+    <div class="activity-item">
+      <div class="activity-icon purple">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="activity-text">
+        <p><strong>BioKEA LDC analysis complete</strong> for Griffith Park Coleoptera — 23 families, 87 morphospecies identified</p>
+        <div class="time">15 minutes ago</div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-icon fuchsia">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d946ef" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44A2.5 2.5 0 0 1 2 17.5v0A2.5 2.5 0 0 1 4.5 15H12"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44A2.5 2.5 0 0 0 22 17.5v0a2.5 2.5 0 0 0-2.5-2.5H12"/></svg>
+      </div>
+      <div class="activity-text">
+        <p><strong>HypGen hypothesis generated</strong> — "Soil fungal diversity inversely correlates with urbanization gradient in SMM" &middot; Confidence: 0.84 &middot; BeeARD Agent v3</p>
+        <div class="time">45 minutes ago</div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-icon amber">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </div>
+      <div class="activity-text">
+        <p><strong>Narrative section edited</strong> — Santa Monica Mtns &middot; Results &amp; Discussion updated</p>
+        <div class="time">2 hours ago</div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-icon orange">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19l4-4"/><path d="M8 19h-4v-4"/><path d="M20 5l-4 4"/><path d="M16 5h4v4"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+      <div class="activity-text">
+        <p><strong>Semble trail updated</strong> — "Santa Monica Mountains Mycorrhizae" trail received 3 new field observations from @maria-santos.bsky.social</p>
+        <div class="time">6 hours ago</div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-icon emerald">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="activity-text">
+        <p><strong>New review received</strong> — Ballona Wetlands &middot; Dr. Martinez (CIB) submitted human review</p>
+        <div class="time">1 day ago</div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-icon cyan">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="activity-text">
+        <p><strong>AI review complete</strong> — Ballona Wetlands &middot; 12 discourse nodes extracted, 3 knowledge gaps flagged</p>
+        <div class="time">2 days ago</div>
+      </div>
+    </div>
+    <div class="activity-item">
+      <div class="activity-icon blue">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </div>
+      <div class="activity-text">
+        <p><strong>FAIR deposit queued</strong> — Ballona Wetlands DwC-A &rarr; GBIF IPT sandbox</p>
+        <div class="time">3 days ago</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p>Built on the <a href="https://atproto.com" target="_blank">AT Protocol</a> &middot; Connected to Semble &middot; Powered by HypGen &middot; &copy; 2026 Agentis</p>
+</footer>
+
+<script>
+  // ===== Tree of Life (circular dendrogram) =====
+  (function() {
+    var canvas = document.getElementById('tree-canvas');
+    var rect = canvas.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    var W = rect.width, H = rect.height;
+    var cx = W / 2, cy = H / 2 - 10;
+    var maxR = Math.min(W, H) / 2 - 30;
+
+    // Kingdom data: name, color, angular span (proportional to # of species/observations), subclades
+    var kingdoms = [
+      { name: 'Animalia', color: '#3b82f6', span: 0.38, clades: [
+        { name: 'Insecta', w: 0.30 }, { name: 'Aves', w: 0.14 }, { name: 'Mammalia', w: 0.08 },
+        { name: 'Reptilia', w: 0.06 }, { name: 'Amphibia', w: 0.05 }, { name: 'Fish', w: 0.12 },
+        { name: 'Mollusca', w: 0.08 }, { name: 'Arachnida', w: 0.07 }, { name: 'Crustacea', w: 0.05 },
+        { name: 'Annelida', w: 0.03 }, { name: 'Cnidaria', w: 0.02 }
+      ]},
+      { name: 'Plantae', color: '#06b6d4', span: 0.28, clades: [
+        { name: 'Angiosperms', w: 0.45 }, { name: 'Gymnosperms', w: 0.08 }, { name: 'Ferns', w: 0.12 },
+        { name: 'Mosses', w: 0.10 }, { name: 'Algae', w: 0.15 }, { name: 'Liverworts', w: 0.05 },
+        { name: 'Hornworts', w: 0.05 }
+      ]},
+      { name: 'Fungi', color: '#10b981', span: 0.14, clades: [
+        { name: 'Ascomycota', w: 0.40 }, { name: 'Basidiomycota', w: 0.35 },
+        { name: 'Zygomycota', w: 0.10 }, { name: 'Chytrids', w: 0.08 }, { name: 'Glomeromycota', w: 0.07 }
+      ]},
+      { name: 'Protista', color: '#8b5cf6', span: 0.10, clades: [
+        { name: 'Amoebozoa', w: 0.25 }, { name: 'Ciliophora', w: 0.20 }, { name: 'Diatoms', w: 0.30 },
+        { name: 'Foraminifera', w: 0.15 }, { name: 'Dinoflagellata', w: 0.10 }
+      ]},
+      { name: 'Bacteria', color: '#f59e0b', span: 0.07, clades: [
+        { name: 'Proteobacteria', w: 0.30 }, { name: 'Firmicutes', w: 0.25 },
+        { name: 'Actinobacteria', w: 0.20 }, { name: 'Cyanobacteria', w: 0.15 }, { name: 'Bacteroidetes', w: 0.10 }
+      ]},
+      { name: 'Archaea', color: '#ef4444', span: 0.03, clades: [
+        { name: 'Euryarchaeota', w: 0.45 }, { name: 'Crenarchaeota', w: 0.35 }, { name: 'Thaumarchaeota', w: 0.20 }
+      ]}
+    ];
+
+    var gap = 0.008; // gap between kingdoms in radians fraction of 2PI
+    var totalGap = gap * kingdoms.length;
+    var totalSpan = 1.0 - totalGap;
+    var startAngle = -Math.PI / 2; // start from top
+
+    // Radii for rings
+    var r0 = maxR * 0.12; // center
+    var r1 = maxR * 0.30; // kingdom ring inner
+    var r2 = maxR * 0.50; // subclade branch ends
+    var r3 = maxR * 0.72; // leaf tips
+    var r4 = maxR * 0.88; // observation dots
+
+    function angleAt(frac) { return startAngle + frac * Math.PI * 2; }
+
+    // Draw center circle
+    ctx.beginPath();
+    ctx.arc(cx, cy, r0, 0, Math.PI * 2);
+    ctx.fillStyle = '#18181b';
+    ctx.fill();
+    ctx.strokeStyle = '#27272a';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Center label
+    ctx.fillStyle = '#52525b';
+    ctx.font = '600 9px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('LUCA', cx, cy);
+
+    var currentFrac = 0;
+
+    kingdoms.forEach(function(k) {
+      var kSpan = k.span * totalSpan;
+      var kStart = currentFrac;
+      var kEnd = currentFrac + kSpan;
+      var kMid = (kStart + kEnd) / 2;
+
+      var a1 = angleAt(kStart);
+      var a2 = angleAt(kEnd);
+      var aMid = angleAt(kMid);
+
+      // Kingdom arc (thick colored arc from r0 to r1)
+      ctx.beginPath();
+      ctx.arc(cx, cy, (r0 + r1) / 2, a1, a2);
+      ctx.strokeStyle = k.color;
+      ctx.lineWidth = (r1 - r0) * 0.6;
+      ctx.globalAlpha = 0.25;
+      ctx.stroke();
+      ctx.globalAlpha = 1.0;
+
+      // Branch from center to kingdom ring
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(aMid) * r0, cy + Math.sin(aMid) * r0);
+      ctx.lineTo(cx + Math.cos(aMid) * r1, cy + Math.sin(aMid) * r1);
+      ctx.strokeStyle = k.color;
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.5;
+      ctx.stroke();
+      ctx.globalAlpha = 1.0;
+
+      // Subclades
+      var subStart = kStart;
+      k.clades.forEach(function(clade) {
+        var cSpan = clade.w * kSpan;
+        var cMid = subStart + cSpan / 2;
+        var cAngle = angleAt(cMid);
+
+        // Branch: kingdom ring -> subclade level
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(cAngle) * r1, cy + Math.sin(cAngle) * r1);
+        ctx.lineTo(cx + Math.cos(cAngle) * r2, cy + Math.sin(cAngle) * r2);
+        ctx.strokeStyle = k.color;
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.35;
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+
+        // Further split into 2-4 leaf tips
+        var leafCount = 2 + Math.floor(Math.random() * 3);
+        var leafSpan = cSpan * 0.8;
+        var leafStart = cMid - leafSpan / 2;
+        for (var i = 0; i < leafCount; i++) {
+          var lFrac = leafStart + (leafSpan / (leafCount - 1 || 1)) * i;
+          var lAngle = angleAt(lFrac);
+
+          // Branch: subclade -> leaf
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(cAngle) * r2, cy + Math.sin(cAngle) * r2);
+          ctx.lineTo(cx + Math.cos(lAngle) * r3, cy + Math.sin(lAngle) * r3);
+          ctx.strokeStyle = k.color;
+          ctx.lineWidth = 0.6;
+          ctx.globalAlpha = 0.25;
+          ctx.stroke();
+          ctx.globalAlpha = 1.0;
+
+          // Leaf tip dot
+          ctx.beginPath();
+          ctx.arc(cx + Math.cos(lAngle) * r3, cy + Math.sin(lAngle) * r3, 1.2, 0, Math.PI * 2);
+          ctx.fillStyle = k.color;
+          ctx.globalAlpha = 0.4;
+          ctx.fill();
+          ctx.globalAlpha = 1.0;
+
+          // Observation dots (outer ring, variable density = observation coverage)
+          var obsCount = Math.floor(Math.random() * 4) + 1;
+          for (var j = 0; j < obsCount; j++) {
+            var oR = r4 + (Math.random() - 0.5) * maxR * 0.12;
+            var oA = lAngle + (Math.random() - 0.5) * 0.02;
+            var dotR = 1 + Math.random() * 2;
+            ctx.beginPath();
+            ctx.arc(cx + Math.cos(oA) * oR, cy + Math.sin(oA) * oR, dotR, 0, Math.PI * 2);
+            ctx.fillStyle = k.color;
+            ctx.globalAlpha = 0.15 + Math.random() * 0.35;
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+          }
+        }
+
+        subStart += cSpan;
+      });
+
+      // Kingdom label (along outer edge)
+      var labelR = r3 + 18;
+      var labelAngle = aMid;
+      ctx.save();
+      ctx.translate(cx + Math.cos(labelAngle) * labelR, cy + Math.sin(labelAngle) * labelR);
+      var rot = labelAngle + Math.PI / 2;
+      if (labelAngle > Math.PI / 2 && labelAngle < Math.PI * 1.5) {
+        rot += Math.PI;
+      }
+      // Only label if enough space
+      if (kSpan > 0.05) {
+        ctx.rotate(rot);
+        ctx.fillStyle = k.color;
+        ctx.globalAlpha = 0.6;
+        ctx.font = '500 8px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(k.name, 0, 0);
+        ctx.globalAlpha = 1.0;
+      }
+      ctx.restore();
+
+      currentFrac = kEnd + gap;
+    });
+
+    // Faint concentric guide rings
+    [r1, r2, r3].forEach(function(r) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = '#27272a';
+      ctx.lineWidth = 0.5;
+      ctx.globalAlpha = 0.3;
+      ctx.stroke();
+      ctx.globalAlpha = 1.0;
+    });
+  })();
+</script>
+
+<script>
+  // Initialize GBIF map with dark basemap + real occurrence density tiles
+  var map = L.map('gbif-map', {
+    center: [20, 0],
+    zoom: 2,
+    minZoom: 2,
+    maxZoom: 10,
+    zoomControl: true,
+    attributionControl: true
+  });
+
+  // Dark basemap (CartoDB Dark Matter)
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 20
+  }).addTo(map);
+
+  // Subtle country borders / labels
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd',
+    maxZoom: 20,
+    opacity: 0.4
+  }).addTo(map);
+
+  // GBIF occurrence density overlay (real data!)
+  L.tileLayer('https://api.gbif.org/v2/map/occurrence/density/{z}/{x}/{y}@1x.png?style=classic.point&bin=hex&hexPerTile=30', {
+    attribution: '<a href="https://www.gbif.org/">GBIF</a>',
+    maxZoom: 14,
+    opacity: 0.85
+  }).addTo(map);
+</script>
+
+<script>
+  // ===== Knowledge Graph Preview (force-directed) =====
+  (function() {
+    var canvas = document.getElementById('kg-preview-canvas');
+    var rect = canvas.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    var W = rect.width, H = rect.height;
+
+    // Node types with colors
+    var types = [
+      { type: 'taxa', color: '#3b82f6', count: 6 },
+      { type: 'sequences', color: '#06b6d4', count: 5 },
+      { type: 'traits', color: '#10b981', count: 4 },
+      { type: 'hypotheses', color: '#d946ef', count: 3 },
+      { type: 'semble', color: '#f97316', count: 2 }
+    ];
+
+    // Seed a simple PRNG for deterministic layout
+    var seed = 42;
+    function seededRandom() {
+      seed = (seed * 16807 + 0) % 2147483647;
+      return (seed - 1) / 2147483646;
+    }
+
+    // Create nodes
+    var nodes = [];
+    var id = 0;
+    types.forEach(function(t) {
+      for (var i = 0; i < t.count; i++) {
+        nodes.push({
+          id: id++,
+          type: t.type,
+          color: t.color,
+          x: W * 0.2 + seededRandom() * W * 0.6,
+          y: H * 0.2 + seededRandom() * H * 0.6,
+          vx: 0, vy: 0,
+          r: 3 + seededRandom() * 3
+        });
+      }
+    });
+
+    // Create edges (connect nodes with some structure)
+    var edges = [];
+    // Connect within types
+    for (var i = 0; i < nodes.length; i++) {
+      for (var j = i + 1; j < nodes.length; j++) {
+        if (nodes[i].type === nodes[j].type && seededRandom() < 0.4) {
+          edges.push([i, j]);
+        } else if (nodes[i].type !== nodes[j].type && seededRandom() < 0.12) {
+          edges.push([i, j]);
+        }
+      }
+    }
+
+    var iteration = 0;
+    var maxIterations = 120;
+    var damping = 0.92;
+
+    function simulate() {
+      // Repulsion between all nodes
+      for (var i = 0; i < nodes.length; i++) {
+        for (var j = i + 1; j < nodes.length; j++) {
+          var dx = nodes[j].x - nodes[i].x;
+          var dy = nodes[j].y - nodes[i].y;
+          var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          var force = 800 / (dist * dist);
+          var fx = (dx / dist) * force;
+          var fy = (dy / dist) * force;
+          nodes[i].vx -= fx;
+          nodes[i].vy -= fy;
+          nodes[j].vx += fx;
+          nodes[j].vy += fy;
+        }
+      }
+
+      // Attraction along edges
+      edges.forEach(function(e) {
+        var a = nodes[e[0]], b = nodes[e[1]];
+        var dx = b.x - a.x;
+        var dy = b.y - a.y;
+        var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        var force = (dist - 60) * 0.01;
+        var fx = (dx / dist) * force;
+        var fy = (dy / dist) * force;
+        a.vx += fx;
+        a.vy += fy;
+        b.vx -= fx;
+        b.vy -= fy;
+      });
+
+      // Center gravity
+      nodes.forEach(function(n) {
+        n.vx += (W / 2 - n.x) * 0.002;
+        n.vy += (H / 2 - n.y) * 0.002;
+      });
+
+      // Apply velocities
+      nodes.forEach(function(n) {
+        n.vx *= damping;
+        n.vy *= damping;
+        n.x += n.vx;
+        n.y += n.vy;
+        // Keep in bounds
+        n.x = Math.max(n.r + 10, Math.min(W - n.r - 10, n.x));
+        n.y = Math.max(n.r + 10, Math.min(H - n.r - 10, n.y));
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      // Draw edges
+      edges.forEach(function(e) {
+        var a = nodes[e[0]], b = nodes[e[1]];
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = '#27272a';
+        ctx.lineWidth = 0.8;
+        ctx.globalAlpha = 0.25;
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+      });
+
+      // Draw nodes
+      nodes.forEach(function(n) {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = n.color;
+        ctx.globalAlpha = 0.7;
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+
+        // Subtle glow
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r + 2, 0, Math.PI * 2);
+        ctx.fillStyle = n.color;
+        ctx.globalAlpha = 0.08;
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+      });
+    }
+
+    function tick() {
+      simulate();
+      draw();
+      iteration++;
+      if (iteration < maxIterations) {
+        requestAnimationFrame(tick);
+      } else {
+        draw(); // final frame
+      }
+    }
+
+    tick();
+  })();
+</script>
+
+</body>
+</html>

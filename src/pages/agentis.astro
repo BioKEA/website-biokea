@@ -2,7 +2,64 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
 import CtaBand from '@/components/sections/CtaBand.astro';
+import { Image } from 'astro:assets';
 import { stringifyJsonLd } from '@/lib/json-ld';
+import previewGallery from '@/assets/images/agentis-previews/gallery.webp';
+import previewLanding from '@/assets/images/agentis-previews/landing.webp';
+import previewDashboard from '@/assets/images/agentis-previews/dashboard.webp';
+import previewPeerReview from '@/assets/images/agentis-previews/peer-review.webp';
+import previewBlueskyFeed from '@/assets/images/agentis-previews/bluesky-feed.webp';
+import previewMobileField from '@/assets/images/agentis-previews/mobile-field.webp';
+
+const previews = [
+  {
+    img: previewGallery,
+    eyebrow: '00 · OVERVIEW',
+    title: 'Five surfaces, one sequenced flow',
+    caption: 'A tour of how a researcher moves through Agentis — from landing to field collection.',
+    mobile: false,
+  },
+  {
+    img: previewLanding,
+    eyebrow: '01 · LANDING',
+    title: 'AT-Protocol entry',
+    caption:
+      'Dark-bold marketing entry. Sign in with your AT Protocol identity; the knowledge graph greets you.',
+    mobile: false,
+  },
+  {
+    img: previewDashboard,
+    eyebrow: '02 · WORKSPACE',
+    title: 'Connected platforms dashboard',
+    caption:
+      'GBIF biodiversity map, Tree-of-Life canvas, AT Proto / Semble / HypGen connections, Platform Pulse, activity feed.',
+    mobile: false,
+  },
+  {
+    img: previewPeerReview,
+    eyebrow: '03 · PEER REVIEW',
+    title: 'Multi-marker eDNA review',
+    caption:
+      'AI pre-screen plus verified-human checks. Weighted transparent scoring; review signed to an AT-Protocol record.',
+    mobile: false,
+  },
+  {
+    img: previewBlueskyFeed,
+    eyebrow: '04 · DISTRIBUTION',
+    title: 'Agentis Science · Bluesky feed',
+    caption:
+      'Publications surface alongside reviewer commentary and data-package references on a custom Bluesky feed.',
+    mobile: false,
+  },
+  {
+    img: previewMobileField,
+    eyebrow: '05 · FIELD',
+    title: 'Mobile sample collection',
+    caption:
+      'Phone-first capture: location, environmental conditions, photos — streamed straight into the data package.',
+    mobile: true,
+  },
+];
 
 const concepts = [
   {
@@ -54,8 +111,8 @@ const concepts = [
           >
             Get early access updates
           </a>
-          <a href="/pipeline" class="text-[var(--color-teal)] text-sm font-medium">
-            See it in the pipeline →
+          <a href="#design-previews" class="text-[var(--color-teal)] text-sm font-medium">
+            See design previews →
           </a>
         </div>
       </div>
@@ -87,6 +144,50 @@ const concepts = [
         ))
       }
     </div>
+  </section>
+
+  <section id="design-previews" class="max-w-6xl mx-auto px-6 py-12 scroll-mt-24">
+    <Eyebrow>DESIGN PREVIEWS</Eyebrow>
+    <h2
+      class="mt-3 text-2xl font-semibold tracking-[-0.015em] max-w-[34ch] text-[var(--color-ink)]"
+    >
+      Five surfaces in the working prototype.
+    </h2>
+    <p class="mt-3 max-w-[62ch] text-slate-600 leading-relaxed">
+      Static screenshots of the in-progress Agentis interface. Visual direction only — the live
+      product will iterate from here.
+    </p>
+    <div class="mt-8 grid md:grid-cols-2 gap-6">
+      {
+        previews.map((p) => (
+          <article class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden flex flex-col">
+            <div
+              class={`relative bg-[#09090b] ${p.mobile ? 'flex items-center justify-center py-6' : ''}`}
+            >
+              <Image
+                src={p.img}
+                alt={p.title}
+                widths={p.mobile ? [260, 360] : [600, 900, 1200]}
+                sizes={p.mobile ? '260px' : '(min-width: 768px) 50vw, 100vw'}
+                loading="lazy"
+                class={p.mobile ? 'h-auto max-h-[420px] w-auto' : 'block w-full h-auto'}
+              />
+            </div>
+            <div class="p-5">
+              <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-teal)]">
+                {p.eyebrow}
+              </div>
+              <h3 class="mt-1.5 text-base font-semibold text-[var(--color-ink)]">{p.title}</h3>
+              <p class="mt-2 text-sm text-slate-600 leading-relaxed">{p.caption}</p>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+    <p class="mt-6 text-xs text-slate-500 italic">
+      These are design previews captured from interactive HTML mockups, not the live product. The
+      final Agentis experience may differ.
+    </p>
   </section>
 
   <section class="max-w-6xl mx-auto px-6 py-12">

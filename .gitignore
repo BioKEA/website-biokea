@@ -59,6 +59,14 @@ old/
 # Superpowers brainstorm artifacts
 .superpowers/
 
+# Claude / agent local state
+.claude/
+
+# Local scratch — only tmp/atproto/ (Agentis mockups, source for
+# scripts/capture-agentis-previews.mjs) is tracked.
+/tmp/*
+!/tmp/atproto/
+
 # Cloudflare specific
 .cloudflare/
 .wrangler/
