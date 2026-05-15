@@ -1,0 +1,255 @@
+---
+// src/components/ui/PageNav.astro
+//
+// "Bench rail" — sticky scroll-spy nav for long marketing pages
+// (lab, mission, services, agentis, pipeline). The host page passes
+// a list of `{ id, label }` sections and adds the matching `id` to
+// each section element. We render:
+//
+//   • a thin gold reading-progress sliver across the top edge
+//   • a horizontal mono-pill strip styled like an Eyebrow row
+//   • a teal cursor underline that smoothly slides between active
+//     pills as the reader scrolls — the "scanner crossing lanes"
+//     motif that ties the whole thing to BioKEA's lab vocabulary
+//
+// The rail stays hidden while the hero is on screen (so it doesn't
+// fight the headline) and slides into view once we cross the first
+// tracked section. Mobile horizontally scrolls inside the strip.
+
+interface Section {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  sections: Section[];
+  ariaLabel?: string;
+}
+
+const { sections, ariaLabel = 'On-page navigation' } = Astro.props;
+---
+
+<nav class="page-nav" aria-label={ariaLabel} data-page-nav>
+  <span class="page-nav-progress" aria-hidden="true"></span>
+  <div class="page-nav-track">
+    {
+      sections.map((s) => (
+        <a href={`#${s.id}`} data-page-nav-link={s.id} class="page-nav-pill">
+          {s.label}
+        </a>
+      ))
+    }
+    <span class="page-nav-cursor" aria-hidden="true"></span>
+  </div>
+</nav>
+
+<style>
+  .page-nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--color-cream) 92%, transparent);
+    -webkit-backdrop-filter: saturate(160%) blur(8px);
+    backdrop-filter: saturate(160%) blur(8px);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    transform: translateY(-100%);
+    transition:
+      transform 260ms cubic-bezier(0.2, 0.7, 0.2, 1),
+      opacity 200ms ease-out;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .page-nav[data-visible] {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .page-nav-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, var(--color-gold) 0%, var(--color-gold-soft) 100%);
+    transform-origin: left;
+    transform: scaleX(var(--page-progress, 0));
+    transition: transform 80ms linear;
+  }
+
+  .page-nav-track {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 0.6rem 1.5rem 0.75rem;
+    max-width: 72rem;
+    margin: 0 auto;
+  }
+  .page-nav-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .page-nav-pill {
+    position: relative;
+    flex-shrink: 0;
+    font-family: 'SF Mono', ui-monospace, 'Fira Code', 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(100 116 139);
+    padding: 0.25rem 0.55rem 0.45rem;
+    transition: color 220ms ease;
+    text-decoration: none;
+    border-radius: 2px;
+  }
+  .page-nav-pill:hover {
+    color: var(--color-ink);
+  }
+  .page-nav-pill[data-active] {
+    color: var(--color-teal);
+  }
+
+  /* Pulsing cursor mark sits just before the active label — small
+     “▮” that mimics the cursor on a chromatograph readout. */
+  .page-nav-pill[data-active]::before {
+    content: '▸';
+    margin-right: 0.35rem;
+    color: var(--color-teal);
+    opacity: 0.85;
+    animation: page-nav-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes page-nav-pulse {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  .page-nav-cursor {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    width: 0;
+    background: var(--color-teal);
+    transform: translateX(0);
+    transition:
+      transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1),
+      width 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page-nav,
+    .page-nav-cursor,
+    .page-nav-progress {
+      transition: none;
+    }
+    .page-nav-pill[data-active]::before {
+      animation: none;
+    }
+  }
+</style>
+
+<script is:inline>
+  (() => {
+    const nav = document.querySelector('[data-page-nav]');
+    if (!nav) return;
+    const track = nav.querySelector('.page-nav-track');
+    const links = Array.from(nav.querySelectorAll('[data-page-nav-link]'));
+    const cursor = nav.querySelector('.page-nav-cursor');
+    const progress = nav.querySelector('.page-nav-progress');
+    if (!track || !cursor || links.length === 0) return;
+
+    const targets = links
+      .map((a) => {
+        const id = a.getAttribute('data-page-nav-link');
+        return id ? document.getElementById(id) : null;
+      })
+      .filter(Boolean);
+    if (targets.length === 0) return;
+
+    const NAV_OFFSET = 56; // sticky nav height + a little breathing room
+
+    const updateCursor = (link) => {
+      if (!(link instanceof HTMLElement)) return;
+      cursor.style.transform = `translateX(${link.offsetLeft}px)`;
+      cursor.style.width = `${link.offsetWidth}px`;
+      // Keep the active pill in view on mobile horizontal scroll.
+      const t = track;
+      const linkLeft = link.offsetLeft;
+      const linkRight = linkLeft + link.offsetWidth;
+      if (linkLeft < t.scrollLeft) {
+        t.scrollTo({ left: Math.max(0, linkLeft - 12), behavior: 'smooth' });
+      } else if (linkRight > t.scrollLeft + t.clientWidth) {
+        t.scrollTo({
+          left: linkRight - t.clientWidth + 12,
+          behavior: 'smooth',
+        });
+      }
+    };
+
+    const refresh = () => {
+      const probe = window.scrollY + NAV_OFFSET + 8;
+      let activeIdx = -1;
+      for (let i = 0; i < targets.length; i++) {
+        if (targets[i].offsetTop <= probe) activeIdx = i;
+      }
+      if (activeIdx >= 0) {
+        links.forEach((l, i) => {
+          if (i === activeIdx) l.setAttribute('data-active', '');
+          else l.removeAttribute('data-active');
+        });
+        updateCursor(links[activeIdx]);
+      } else {
+        links.forEach((l) => l.removeAttribute('data-active'));
+      }
+
+      // Reveal the rail once we approach the first tracked section.
+      if (window.scrollY > targets[0].offsetTop - 240) {
+        nav.setAttribute('data-visible', '');
+      } else {
+        nav.removeAttribute('data-visible');
+      }
+
+      // Reading progress (0 → 1).
+      if (progress) {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+        progress.style.setProperty('--page-progress', String(p));
+      }
+    };
+
+    links.forEach((a) => {
+      a.addEventListener('click', (e) => {
+        const id = a.getAttribute('data-page-nav-link');
+        const t = id && document.getElementById(id);
+        if (!t) return;
+        e.preventDefault();
+        const top = t.getBoundingClientRect().top + window.scrollY - NAV_OFFSET;
+        window.scrollTo({ top, behavior: 'smooth' });
+        if (id) history.replaceState(null, '', `#${id}`);
+      });
+    });
+
+    refresh();
+    let queued = false;
+    const onScroll = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        refresh();
+        queued = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', refresh);
+  })();
+</script>

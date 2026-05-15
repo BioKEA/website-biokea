@@ -24,6 +24,9 @@ const badge = {
 const isLive = project.status === 'live';
 const isComingSoon = project.status === 'coming-soon';
 const hasHero = !!project.hero || (project.heroes && project.heroes.length > 0);
+// Internal links (e.g. /agentis) get a same-tab in-arrow and a friendly
+// label; external links keep the existing host-stripped "↗" treatment.
+const isInternalLink = !!project.link && project.link.startsWith('/');
 ---
 
 <article
@@ -212,9 +215,13 @@ const hasHero = !!project.hero || (project.heroes && project.heroes.length > 0);
     }
 
     {
-      ((isLive && project.link) || !isLive) && (
+      (project.link || !isLive) && (
         <div class="mt-5 pt-4 border-t border-slate-900/10">
-          {isLive && project.link ? (
+          {project.link && isInternalLink ? (
+            <a href={project.link} class="font-mono text-[12px] text-[var(--color-pink)]">
+              Visit project page →
+            </a>
+          ) : isLive && project.link ? (
             <a
               href={project.link}
               rel="noopener"

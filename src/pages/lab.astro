@@ -3,10 +3,19 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
 import PhotoCard from '@/components/ui/PhotoCard.astro';
 import StatPill from '@/components/ui/StatPill.astro';
+import PageNav from '@/components/ui/PageNav.astro';
 import CtaBand from '@/components/sections/CtaBand.astro';
 import { labStats, capabilityLines } from '@/data/stats';
 import { equipmentByStage } from '@/data/equipment';
 import { stringifyJsonLd } from '@/lib/json-ld';
+
+const labSections = [
+  { id: 'lab-overview', label: 'Overview' },
+  { id: 'lab-location', label: 'Bay Area' },
+  { id: 'lab-operational', label: 'Operational' },
+  { id: 'lab-hardware', label: 'Hardware' },
+  { id: 'lab-diversityscanner', label: 'DiversityScanner' },
+];
 ---
 
 <BaseLayout
@@ -16,7 +25,9 @@ import { stringifyJsonLd } from '@/lib/json-ld';
   preloadImage="/assets/images/lab-warehouse-before.jpg"
   preloadImageType="image/jpeg"
 >
-  <section class="max-w-6xl mx-auto px-6 pt-16 pb-8">
+  <PageNav sections={labSections} ariaLabel="Lab page sections" />
+
+  <section id="lab-overview" class="max-w-6xl mx-auto px-6 pt-16 pb-8">
     <Eyebrow>BIOKEA LAB · BERKELEY, CA</Eyebrow>
     <h1
       class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[22ch]"
@@ -138,7 +149,7 @@ import { stringifyJsonLd } from '@/lib/json-ld';
     </figure>
   </section>
 
-  <section class="max-w-6xl mx-auto px-6 py-14">
+  <section id="lab-location" class="max-w-6xl mx-auto px-6 py-14 scroll-mt-20">
     <Eyebrow>WHERE WE ARE · BAY AREA</Eyebrow>
     <figure class="mt-5">
       <img
@@ -167,7 +178,7 @@ import { stringifyJsonLd } from '@/lib/json-ld';
     </p>
   </section>
 
-  <section class="max-w-6xl mx-auto px-6 py-16">
+  <section id="lab-operational" class="max-w-6xl mx-auto px-6 py-16 scroll-mt-20">
     <Eyebrow>OPERATIONAL</Eyebrow>
     <h2 class="mt-3 text-2xl font-semibold">Current state</h2>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-6">
@@ -187,7 +198,7 @@ import { stringifyJsonLd } from '@/lib/json-ld';
     </div>
   </section>
 
-  <section class="max-w-6xl mx-auto px-6 pb-16">
+  <section id="lab-hardware" class="max-w-6xl mx-auto px-6 pb-16 scroll-mt-20">
     <Eyebrow>HARDWARE</Eyebrow>
     <h2 class="mt-3 text-2xl font-semibold max-w-[30ch]">
       A full extraction-to-sequencing pipeline, stage by stage.
@@ -253,7 +264,10 @@ import { stringifyJsonLd } from '@/lib/json-ld';
       </figcaption>
     </figure>
 
-    <figure class="mt-14 grid md:grid-cols-[1.2fr_1fr] gap-8 items-start">
+    <figure
+      id="lab-diversityscanner"
+      class="mt-14 grid md:grid-cols-[1.2fr_1fr] gap-8 items-start scroll-mt-24"
+    >
       <img
         src="/assets/images/lab-diversityscanner.jpg"
         alt="DiversityScanner — a roboticized specimen-imaging platform"

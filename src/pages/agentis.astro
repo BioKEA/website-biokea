@@ -162,16 +162,25 @@ const concepts = [
         previews.map((p) => (
           <article class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden flex flex-col">
             <div
-              class={`relative bg-[#09090b] ${p.mobile ? 'flex items-center justify-center py-6' : ''}`}
+              class={`agentis-zoom group relative bg-[#09090b] overflow-hidden ${p.mobile ? 'flex items-center justify-center py-6' : ''}`}
+              data-mobile={p.mobile ? 'true' : 'false'}
             >
               <Image
                 src={p.img}
                 alt={p.title}
-                widths={p.mobile ? [260, 360] : [600, 900, 1200]}
-                sizes={p.mobile ? '260px' : '(min-width: 768px) 50vw, 100vw'}
+                widths={p.mobile ? [400, 600, 780] : [900, 1400, 2000, 2560]}
+                sizes={
+                  p.mobile ? '(min-width: 768px) 560px, 100vw' : '(min-width: 768px) 1120px, 100vw'
+                }
                 loading="lazy"
-                class={p.mobile ? 'h-auto max-h-[420px] w-auto' : 'block w-full h-auto'}
+                class={`agentis-zoom-img ${p.mobile ? 'h-auto max-h-[460px] w-auto' : 'block w-full h-auto'}`}
               />
+              <span
+                aria-hidden="true"
+                class="pointer-events-none absolute top-2 right-2 font-mono text-[9px] tracking-[0.14em] uppercase text-[var(--color-cream)]/70 bg-black/40 border border-white/10 rounded-sm px-1.5 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                Hover · pan to zoom
+              </span>
             </div>
             <div class="p-5">
               <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-teal)]">
@@ -251,4 +260,54 @@ const concepts = [
       ],
     })}
   />
+
+  <style is:global>
+    /* Cursor-tracked pan-zoom for the Agentis design previews.
+       The container sets --zx / --zy on pointer move (0% – 100%);
+       transform-origin reads them so the zoomed image pans toward
+       the cursor. Falls back to centered scale when not hovered. */
+    .agentis-zoom-img {
+      transform: scale(1);
+      transform-origin: var(--zx, 50%) var(--zy, 50%);
+      transition:
+        transform 200ms ease-out,
+        transform-origin 80ms linear;
+      will-change: transform;
+    }
+    .agentis-zoom:hover .agentis-zoom-img {
+      transform: scale(2);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .agentis-zoom-img {
+        transition: none;
+      }
+      .agentis-zoom:hover .agentis-zoom-img {
+        transform: scale(1);
+      }
+    }
+    .agentis-zoom {
+      cursor: zoom-in;
+    }
+  </style>
+
+  <script is:inline>
+    (() => {
+      const containers = document.querySelectorAll('.agentis-zoom');
+      containers.forEach((el) => {
+        const onMove = (e) => {
+          const rect = el.getBoundingClientRect();
+          const x = ((e.clientX - rect.left) / rect.width) * 100;
+          const y = ((e.clientY - rect.top) / rect.height) * 100;
+          el.style.setProperty('--zx', x + '%');
+          el.style.setProperty('--zy', y + '%');
+        };
+        const onLeave = () => {
+          el.style.setProperty('--zx', '50%');
+          el.style.setProperty('--zy', '50%');
+        };
+        el.addEventListener('pointermove', onMove);
+        el.addEventListener('pointerleave', onLeave);
+      });
+    })();
+  </script>
 </BaseLayout>

@@ -176,6 +176,24 @@ export const projects: Project[] = [
       "Originated and maintained independently by Sunit Jain on GitHub; surfaced here through Sunit's advisor role, not authored by BioKEA.",
   },
   {
+    slug: 'agentis',
+    title: 'Agentis — AI-first scientific journal on the AT Protocol',
+    summary:
+      'An AI-first open-access scientific journal built on the AT Protocol. Multi-agent AI pre-screen plus verified human peer review with transparent weighted scoring. Publications render as interactive StoryMaps tethered to their FAIR data packages (GBIF, NCBI SRA, Zenodo). Design previews available now.',
+    type: 'Scientific publishing platform',
+    year: '2026–2027',
+    tags: ['AT Protocol', 'peer review', 'publishing', 'FAIR data', 'AI', 'StoryMaps'],
+    status: 'coming-soon',
+    revealTarget: 'agentis.science',
+    link: '/agentis',
+    hero: '/assets/images/agentis-discourse-graph.webp',
+    heroAlt:
+      'A lattice of interconnected signed publication nodes illustrating verifiable peer review and transparent scientific discourse.',
+    heroWidth: 1200,
+    heroHeight: 1200,
+    team: [{ name: 'Sean', lead: true }],
+  },
+  {
     slug: 'sequoia-foundation-model',
     title: 'Sequoia™ — a foundation model for global biodiversity',
     summary:
