@@ -5,7 +5,9 @@ test('lab page renders hero, photos, stats, hardware stages', async ({ page }) =
   await expect(page.getByRole('heading', { level: 1 })).toContainText('5,000+ sq ft');
   await expect(page.locator('img[alt="Warehouse interior before buildout"]')).toBeVisible();
   await expect(page.locator('img[alt="Lab interior, operational"]')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Current state' })).toBeVisible();
+  // After the Operational + Hardware merge, "Current state" is a
+  // mono sub-eyebrow above the stats block, not a heading.
+  await expect(page.getByText('Current state', { exact: true }).first()).toBeVisible();
   await expect(page.getByText(/extraction-to-sequencing pipeline/i)).toBeVisible();
   await expect(page.getByText(/KingFisher/).first()).toBeVisible();
   await expect(page.getByText(/Oxford Nanopore Promethion 2/).first()).toBeVisible();
