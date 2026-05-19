@@ -1,0 +1,681 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+
+const conceptImages = [
+  {
+    src: '/assets/images/sdl-moonshot-modular-enrichment-family.webp',
+    title: 'Modular enrichment device family',
+    caption:
+      "A concept rendering of SDL Moonshot's modular enrichment device family. Transparent chambers, interchangeable cartridges, tubing manifolds, sensors, and open control electronics are arranged as a connectable benchtop platform for soil, water, sediment, plant, and biofilm experiments.",
+    alt: 'Transparent modular environmental enrichment chambers connected by tubing, valves, cartridges, and open electronics on a laboratory bench.',
+  },
+  {
+    src: '/assets/images/sdl-moonshot-exploded-module-architecture.webp',
+    title: 'Exploded module architecture',
+    caption:
+      'An exploded technical view of the platform. Each chamber is designed as a stack of inspectable parts: sample chamber, lid, gasket, sensor ports, injection ports, tubing manifold, docking interface, and control electronics.',
+    alt: 'Exploded engineering diagram of transparent enrichment chambers showing lids, gaskets, ports, cartridges, sensors, valves, and modular docking rails.',
+  },
+  {
+    src: '/assets/images/sdl-moonshot-ai-lab-workflow.webp',
+    title: 'AI-enabled lab workflow',
+    caption:
+      'SDL Moonshot integrated into an automation-ready lab environment. Robotic handling, open controllers, reagent delivery, sensor feedback, and experimental dashboards connect environmental samples to adaptive AI-guided workflows.',
+    alt: 'Automated laboratory workstation with transparent enrichment chambers, robotic pipetting, reagent bottles, controller boards, tubing, and a software dashboard.',
+  },
+  {
+    src: '/assets/images/sdl-moonshot-platform-schema-map.webp',
+    title: 'Platform schema map',
+    caption:
+      'A system map of the SDL Moonshot architecture. Sample intake cartridges, enrichment chambers, treatment modules, physical controls, sensors, control electronics, automation interfaces, omics outputs, and the AI experiment engine connect through a modular backbone.',
+    alt: 'Technical schema map showing a modular environmental enrichment platform with sample cartridges, enrichment chambers, treatment modules, sensors, omics outputs, automation, and AI experiment design.',
+  },
+];
+
+const heroImage = {
+  src: '/assets/images/sdl-moonshot-ai-platform-map-hero.webp',
+  title: 'AI platform map',
+  caption:
+    'An illustrated system map of modular environmental enrichment devices, sensor controls, automation tools, AI experiment design, and omics dashboards connected through a central experiment engine.',
+  alt: 'Illustrated system map of modular environmental enrichment devices, sensor controls, automation tools, AI experiment design, and omics dashboards connected through a central experiment engine.',
+};
+
+const carouselImages = conceptImages;
+
+const designPrinciples = [
+  {
+    title: 'Transparent',
+    body: 'The sample and process can be observed instead of hidden inside a sealed proprietary box.',
+  },
+  {
+    title: 'Connectable',
+    body: 'Multiple modules can form a true experiment across treatments, controls, sensors, and timepoints.',
+  },
+  {
+    title: 'Open',
+    body: 'Hardware and software can be inspected, repaired, extended, and forked by the labs that use it.',
+  },
+  {
+    title: 'Automation-ready',
+    body: 'Future self-driving labs can select, run, and revise experiments through standard interfaces.',
+  },
+  {
+    title: 'Statistically usable',
+    body: 'Replication and controls are designed into the system from the start, not bolted on afterward.',
+  },
+];
+
+const modules = [
+  {
+    title: 'Sample intake cartridges',
+    body: 'Interchangeable cartridges accept soils, sediments, water, plant material, biomass, biofilms, and small biological specimens. The design goal is to make sample loading boring, repeatable, sterile when needed, and compatible with downstream extraction and sequencing.',
+  },
+  {
+    title: 'Enrichment chambers',
+    body: 'Transparent reactors hold the environmental sample during incubation. Chamber families may include soil and sediment reactors, aquatic reactors, plant and biomass reactors, and column or filtration reactors.',
+  },
+  {
+    title: 'Treatment modules',
+    body: 'Plug-and-play treatment modules introduce substrates, polymers, gases, chemicals, nutrients, inhibitors, isotope-labeled materials, pH shifts, redox changes, and physical pressures through standardized ports and manifolds.',
+  },
+  {
+    title: 'Physical controls',
+    body: 'Environmental conditions can be manipulated directly: temperature, moisture, pressure, oxygen, redox state, mixing, light, radiation, drying and rewetting, and other field-relevant regimes.',
+  },
+  {
+    title: 'Sensor suite',
+    body: 'Real-time sensors track pH, oxygen, carbon dioxide, conductivity, temperature, optical density, pressure, moisture, and other experimental variables. The aim is to capture the conditions that produced the biological response.',
+  },
+  {
+    title: 'Sampling and omics outputs',
+    body: 'Depending on the experiment, SDL modules feed DNA sequencing, RNA sequencing, amplicons, metagenomes, long-read assemblies, metatranscriptomes, organism recovery, consortium recovery, enzyme triage, or heterologous expression.',
+  },
+];
+
+const applications = [
+  'Cellulose and lignin degradation',
+  'Plastic and polymer transformation',
+  'Soil carbon turnover',
+];
+
+const responseReadouts = [
+  'DNA',
+  'RNA',
+  'Amplicons',
+  'Metagenomes',
+  'Long-read assemblies',
+  'Metatranscriptomes',
+  'Sensors',
+  'Recovery attempts',
+];
+---
+
+<BaseLayout
+  title="SDL Moonshot - BioKEA"
+  description="BioKEA's proposal for an open, modular, AI-guided perturbation layer for environmental genomics."
+  ogImage="/assets/images/sdl-moonshot-ai-platform-map-hero.webp"
+  preloadImage="/assets/images/sdl-moonshot-ai-platform-map-hero.webp"
+  preloadImageType="image/webp"
+  noindex
+>
+  <section class="max-w-6xl mx-auto px-6 pt-14 pb-10">
+    <div class="grid lg:grid-cols-[minmax(0,0.82fr)_minmax(440px,1.18fr)] gap-10 items-center">
+      <div>
+        <Eyebrow>PROJECT · SDL MOONSHOT</Eyebrow>
+        <h1
+          class="mt-3 text-4xl md:text-6xl font-semibold tracking-[-0.025em] leading-[1.02] text-[var(--color-ink)] max-w-[12ch]"
+        >
+          Self-driving environmental enrichment
+        </h1>
+        <p class="mt-5 max-w-[62ch] text-lg text-slate-700 leading-relaxed">
+          A modular, open, AI-guided platform for turning soil, water, sediment, plants, biofilms,
+          and biological specimens into controlled perturbation-response datasets.
+        </p>
+        <p class="mt-5 max-w-[64ch] text-slate-600 leading-relaxed">
+          BioKEA's SDL Moonshot is our proposal to build the missing experimental layer for
+          environmental genomics.
+        </p>
+        <div class="mt-7 flex flex-wrap gap-3">
+          <a
+            href="/contact?topic=partnership"
+            class="inline-flex items-center rounded-sm bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-3 text-sm font-semibold hover:bg-[var(--color-teal)] transition"
+          >
+            Collaborate with us
+          </a>
+          <a
+            href="/contact?topic=funding"
+            class="inline-flex items-center rounded-sm border border-[var(--color-ink)]/20 bg-[var(--color-cream-warm)] px-4 py-3 text-sm font-semibold text-[var(--color-ink)] hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] transition"
+          >
+            Support the moonshot
+          </a>
+        </div>
+      </div>
+
+      <figure class="bg-white border border-slate-900/10 rounded-md overflow-hidden lg:-mr-8">
+        <img
+          src={heroImage.src}
+          alt={heroImage.alt}
+          width="1672"
+          height="941"
+          class="w-full h-full object-cover"
+          loading="eager"
+          fetchpriority="high"
+        />
+      </figure>
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 pb-12">
+    <figure
+      class="relative mx-auto max-w-5xl rounded-md overflow-hidden border border-slate-900/10 aspect-[16/9] bg-white"
+      data-sdl-slider
+      role="region"
+      aria-label="SDL Moonshot concept image sequence"
+      aria-roledescription="carousel"
+    >
+      {
+        carouselImages.map((image, index) => (
+          <img
+            src={image.src}
+            alt={image.alt}
+            width="1672"
+            height="941"
+            loading={index === 0 ? 'eager' : 'lazy'}
+            class:list={[
+              'absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out',
+              index === 0 ? 'opacity-100' : 'opacity-0',
+            ]}
+            data-sdl-slide={index}
+            data-caption={image.title}
+          />
+        ))
+      }
+
+      <figcaption
+        class="absolute bottom-3 left-3 right-24 bg-black/50 text-[var(--color-cream)] px-3 py-2 rounded-sm font-mono text-[10px] tracking-[0.12em] uppercase z-10 transition-opacity duration-300"
+        data-sdl-slider-caption
+      >
+        {carouselImages[0].title}
+      </figcaption>
+
+      <div
+        class="absolute bottom-3 right-3 flex gap-1.5 z-10"
+        role="tablist"
+        aria-label="Choose SDL Moonshot concept image"
+      >
+        {
+          carouselImages.map((image, index) => (
+            <button
+              type="button"
+              data-sdl-slider-dot={index}
+              aria-label={`Show ${image.title}`}
+              aria-selected={index === 0 ? 'true' : 'false'}
+              class:list={[
+                'w-2 h-2 rounded-full bg-[var(--color-cream)] transition-opacity',
+                index !== 0 && 'opacity-50',
+              ]}
+            />
+          ))
+        }
+      </div>
+    </figure>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-10">
+    <div class="grid lg:grid-cols-[0.78fr_1fr] gap-10 items-start">
+      <div class="lg:sticky lg:top-8">
+        <Eyebrow>THE BOTTLENECK</Eyebrow>
+        <h2 class="mt-3 text-3xl font-semibold tracking-[-0.015em] leading-tight">
+          Sequencing made environmental biology readable.
+        </h2>
+      </div>
+      <div class="space-y-5 text-slate-600 leading-relaxed">
+        <p>
+          Sequencing can read the biosphere. It can tell us which DNA, RNA, organisms, and genes are
+          present in a sample. But sequencing alone is mostly observational. It does not
+          automatically tell us which organisms respond to a substrate, which genes activate under a
+          stressor, which consortia transform a polymer, or which enzymes matter in the real
+          environmental context where they evolved.
+        </p>
+        <p class="text-xl font-semibold text-[var(--color-ink)]">The bottleneck is perturbation.</p>
+        <p>
+          We need a way to expose natural samples to defined experimental treatments, at small
+          scale, with replication, controls, sensors, omics readouts, and AI-guided iteration. SDL
+          Moonshot is BioKEA's concept for that system.
+        </p>
+        <blockquote
+          class="border-l-4 border-[var(--color-teal)] pl-5 text-2xl font-semibold tracking-[-0.015em] leading-tight text-[var(--color-ink)]"
+        >
+          Sequencing made environmental biology readable. SDL Moonshot makes it experimentally
+          searchable.
+        </blockquote>
+      </div>
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <div class="grid lg:grid-cols-2 gap-10">
+      <article
+        class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-6 md:p-8"
+      >
+        <Eyebrow>WHY THIS MATTERS</Eyebrow>
+        <h2 class="mt-3 text-2xl font-semibold tracking-[-0.015em]">
+          Environmental biology is full of hidden function.
+        </h2>
+        <div class="mt-5 space-y-4 text-slate-600 leading-relaxed">
+          <p>
+            A soil sample may contain cellulolytic microbes, lignin transformers, polymer degraders,
+            carbon-cycling consortia, dormant spores, rare organisms, and uncataloged enzymes. But
+            in a raw sample, those signals are buried inside a complex community.
+          </p>
+          <p>
+            Enrichment changes the question. Instead of asking only "what is here?", we ask what
+            responds when we add this substrate, change this condition, or impose this environmental
+            pressure.
+          </p>
+          <p>
+            Even when an organism or enzyme is difficult to isolate, the enrichment creates
+            actionable signal: genomes, transcripts, pathways, candidate enzyme families, and next
+            experiments.
+          </p>
+        </div>
+      </article>
+
+      <article class="bg-[var(--color-ink)] text-[var(--color-cream)] rounded-md p-6 md:p-8">
+        <div
+          class="font-mono text-[10px] tracking-[0.18em] uppercase text-[var(--color-teal-bright)]"
+        >
+          Perturbation-response readouts
+        </div>
+        <ul class="mt-6 grid grid-cols-2 gap-3">
+          {
+            responseReadouts.map((item) => (
+              <li class="rounded-sm border border-white/10 bg-white/5 px-3 py-2 font-mono text-[11px] tracking-[0.08em] uppercase text-[var(--color-cream)]/86">
+                {item}
+              </li>
+            ))
+          }
+        </ul>
+        <p class="mt-6 text-sm leading-relaxed text-[var(--color-cream)]/72">
+          The output is not a one-off observation. It is a structured dataset linking treatments,
+          conditions, sensor traces, omics measurements, and follow-up experiments.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <div class="grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-10 items-start">
+      <div>
+        <Eyebrow>FROM ECOPOD-SCALE TO AI-SCALE</Eyebrow>
+        <h2 class="mt-3 text-3xl font-semibold tracking-[-0.015em] leading-tight">
+          A scalable experimental interface between the field, wet lab, sequencing, and AI.
+        </h2>
+      </div>
+      <div class="space-y-5 text-slate-600 leading-relaxed">
+        <p>
+          Large controlled ecosystem chambers, such as LBNL's EcoPODs, helped show the value of
+          manipulating environmental systems under monitored conditions. They bridge lab and
+          field-scale experiments by controlling and measuring plant-soil-microbe-atmosphere
+          interactions.
+        </p>
+        <p>
+          SDL Moonshot asks what comes next. Instead of a few large, expensive, bespoke chambers,
+          BioKEA imagines small, modular, transparent enrichment devices that can be deployed
+          widely, connected to existing lab equipment, and operated by AI-guided experimental
+          systems.
+        </p>
+        <p>
+          The goal is not to replace field ecology. It is to create a scalable experimental
+          interface between the field, the wet lab, sequencing, and AI.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <div class="grid lg:grid-cols-[0.85fr_1fr] gap-10 items-start">
+      <div>
+        <Eyebrow>THE PLATFORM</Eyebrow>
+        <h2 class="mt-3 text-3xl font-semibold tracking-[-0.015em] leading-tight">
+          A modular backbone for controlled environmental enrichment.
+        </h2>
+        <p class="mt-4 text-slate-600 leading-relaxed">
+          Sample cartridges, enrichment chambers, treatment modules, sensors, physical controls,
+          automation interfaces, and omics outputs connect through standardized mechanical, fluidic,
+          electrical, and software interfaces.
+        </p>
+        <div class="mt-6">
+          <div class="font-mono text-[10px] tracking-[0.18em] uppercase text-[var(--color-ochre)]">
+            First target applications
+          </div>
+          <ul class="mt-3 flex flex-wrap gap-2">
+            {
+              applications.map((item) => (
+                <li class="rounded-sm bg-white/70 border border-slate-900/10 px-3 py-2 text-xs font-mono uppercase tracking-[0.08em] text-slate-600">
+                  {item}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        {
+          designPrinciples.map((principle) => (
+            <article class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-5">
+              <h3 class="text-base font-semibold text-[var(--color-ink)]">{principle.title}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-slate-600">{principle.body}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <Eyebrow>WHAT THE MODULES DO</Eyebrow>
+    <h2 class="mt-3 text-3xl font-semibold tracking-[-0.015em] max-w-[28ch]">
+      Small experimental worlds, controlled enough to compare and natural enough to matter.
+    </h2>
+    <div class="mt-8 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {
+        modules.map((module) => (
+          <article class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-6">
+            <h3 class="text-lg font-semibold text-[var(--color-ink)]">{module.title}</h3>
+            <p class="mt-3 text-sm leading-relaxed text-slate-600">{module.body}</p>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <div class="grid lg:grid-cols-2 gap-10">
+      <article>
+        <Eyebrow>OPEN LABORATORY AUTOMATION</Eyebrow>
+        <h2 class="mt-3 text-2xl font-semibold tracking-[-0.015em]">
+          Built around open hardware and open software.
+        </h2>
+        <div class="mt-5 space-y-4 text-slate-600 leading-relaxed">
+          <p>
+            The control layer should interoperate with Arduino-class controllers, open sensor buses,
+            open valve and pump control, and transparent metadata standards.
+          </p>
+          <p>
+            The automation layer should be compatible with PyLabRobot-style laboratory control,
+            liquid handlers, plate movement, reagent addition, sample transfer, and future
+            autonomous workflows.
+          </p>
+          <p>
+            This matters because environmental biology should not be trapped inside proprietary
+            boxes. The platform should be inspectable, reproducible, forkable, repairable, and
+            expandable by the labs that use it.
+          </p>
+        </div>
+      </article>
+
+      <article>
+        <Eyebrow>AI-GUIDED EXPERIMENTATION</Eyebrow>
+        <h2 class="mt-3 text-2xl font-semibold tracking-[-0.015em]">
+          The real moonshot is not the chamber. It is the loop.
+        </h2>
+        <div class="mt-5 space-y-4 text-slate-600 leading-relaxed">
+          <p>
+            An AI system should be able to propose a hypothesis, choose modules, select treatments,
+            design the experimental array, assign controls, schedule timepoints, ingest sensor and
+            omics data, rank biological signals, and decide the next experiment.
+          </p>
+          <p>
+            This is how enzyme discovery becomes scalable. Not by screening random genes in
+            isolation, but by asking natural samples what responds to real substrates under
+            controlled, interpretable conditions.
+          </p>
+        </div>
+        <div
+          class="mt-6 rounded-md bg-[var(--color-ink)] text-[var(--color-cream)] px-5 py-4 font-mono text-xs uppercase tracking-[0.12em] leading-relaxed"
+        >
+          Learn -> design -> test -> sequence -> analyze -> perturb again
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <Eyebrow>CONCEPT IMAGES</Eyebrow>
+    <h2 class="mt-3 text-3xl font-semibold tracking-[-0.015em] max-w-[28ch]">
+      A visual draft of the device family, module architecture, lab workflow, and platform map.
+    </h2>
+    <div class="mt-8 grid lg:grid-cols-2 gap-6">
+      {
+        conceptImages.map((image) => (
+          <figure class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden">
+            <div class="sdl-zoom relative aspect-[16/9] overflow-hidden bg-white border-b border-slate-900/10">
+              <img
+                src={image.src}
+                alt={image.alt}
+                width="1672"
+                height="941"
+                loading="lazy"
+                class="sdl-zoom-img w-full h-full object-cover"
+              />
+            </div>
+            <figcaption class="p-5">
+              <div class="font-mono text-[10px] tracking-[0.14em] uppercase text-[var(--color-teal)]">
+                {image.title}
+              </div>
+              <p class="mt-2 text-sm leading-relaxed text-slate-600">{image.caption}</p>
+            </figcaption>
+          </figure>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <div class="grid lg:grid-cols-[0.8fr_1fr] gap-10 items-start">
+      <div>
+        <Eyebrow>WHAT SUCCESS LOOKS LIKE</Eyebrow>
+        <h2 class="mt-3 text-3xl font-semibold tracking-[-0.015em] leading-tight">
+          Not one device on a bench. A reproducible experimental standard.
+        </h2>
+      </div>
+      <div class="space-y-5 text-slate-600 leading-relaxed">
+        <p>
+          In five years, success is not one device on a bench. Success is a reproducible
+          experimental standard for environmental perturbation biology.
+        </p>
+        <p>
+          SDL Moonshot would aim to deliver validated chamber families, open control interfaces,
+          standardized enrichment protocols, beta deployments across partner labs, thousands of
+          perturbation-response datasets, and an open atlas linking environmental treatments to
+          organisms, genomes, transcripts, consortia, and candidate enzymes.
+        </p>
+        <p>
+          The near-term applications are enzyme discovery and environmental functional genomics. The
+          larger goal is infrastructure for public-interest biology: a shared experimental layer
+          that helps scientists move from environmental samples to verifiable biological function.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <div class="grid lg:grid-cols-2 gap-6">
+      <article class="bg-[var(--color-ink)] text-[var(--color-cream)] rounded-md p-6 md:p-8">
+        <div
+          class="font-mono text-[10px] tracking-[0.18em] uppercase text-[var(--color-teal-bright)]"
+        >
+          One-line version
+        </div>
+        <p class="mt-4 text-2xl font-semibold tracking-[-0.015em] leading-tight">
+          SDL Moonshot is BioKEA's proposal to build the open, modular, AI-guided perturbation layer
+          for environmental genomics.
+        </p>
+      </article>
+      <article
+        class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-6 md:p-8"
+      >
+        <div class="font-mono text-[10px] tracking-[0.18em] uppercase text-[var(--color-ochre)]">
+          Short version for project cards
+        </div>
+        <p class="mt-4 text-slate-600 leading-relaxed">
+          SDL Moonshot is a modular enrichment platform for self-driving environmental biology.
+          Transparent, connectable chambers expose soil, water, sediment, plant, biofilm, and
+          specimen samples to controlled treatments, then route the response into sensors,
+          sequencing, omics analysis, and AI-guided follow-up experiments. The goal is to make
+          enzyme discovery and environmental functional genomics scalable, reproducible, and open.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 pt-8 pb-16">
+    <div
+      class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-5"
+    >
+      <div>
+        <div class="font-mono text-[10px] tracking-[0.18em] uppercase text-[var(--color-teal)]">
+          SDL Moonshot
+        </div>
+        <h2 class="mt-2 text-2xl font-semibold tracking-[-0.015em]">
+          Help build the perturbation layer for environmental genomics.
+        </h2>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <a
+          href="/contact?topic=partnership"
+          class="inline-flex items-center rounded-sm bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-3 text-sm font-semibold hover:bg-[var(--color-teal)] transition"
+        >
+          Collaborate with us
+        </a>
+        <a
+          href="/contact?topic=funding"
+          class="inline-flex items-center rounded-sm border border-[var(--color-ink)]/20 bg-white/60 px-4 py-3 text-sm font-semibold text-[var(--color-ink)] hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] transition"
+        >
+          Support the moonshot
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <style is:global>
+    .sdl-zoom {
+      cursor: zoom-in;
+    }
+
+    .sdl-zoom-img {
+      transform: scale(1);
+      transform-origin: var(--zx, 50%) var(--zy, 50%);
+      transition:
+        transform 200ms ease-out,
+        transform-origin 80ms linear;
+      will-change: transform;
+    }
+
+    .sdl-zoom:hover .sdl-zoom-img {
+      transform: scale(2.2);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .sdl-zoom-img {
+        transition: none;
+      }
+
+      .sdl-zoom:hover .sdl-zoom-img {
+        transform: scale(1);
+      }
+    }
+  </style>
+
+  <script is:inline>
+    (() => {
+      const slider = document.querySelector('[data-sdl-slider]');
+      if (!slider) return;
+      const slides = Array.from(slider.querySelectorAll('[data-sdl-slide]'));
+      const dots = Array.from(slider.querySelectorAll('[data-sdl-slider-dot]'));
+      const caption = slider.querySelector('[data-sdl-slider-caption]');
+      if (slides.length === 0) return;
+
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const INTERVAL_MS = 4500;
+      let current = 0;
+      let timer = null;
+      let paused = false;
+
+      const show = (index) => {
+        slides.forEach((img, i) => {
+          img.style.opacity = i === index ? '1' : '0';
+        });
+        dots.forEach((dot, i) => {
+          dot.setAttribute('aria-selected', i === index ? 'true' : 'false');
+          dot.style.opacity = i === index ? '1' : '0.5';
+        });
+        const next = slides[index];
+        if (caption && next) {
+          caption.textContent = next.getAttribute('data-caption') || '';
+        }
+        current = index;
+      };
+
+      const advance = () => show((current + 1) % slides.length);
+
+      const start = () => {
+        if (reduceMotion || paused || timer) return;
+        timer = window.setInterval(advance, INTERVAL_MS);
+      };
+      const stop = () => {
+        if (timer) {
+          window.clearInterval(timer);
+          timer = null;
+        }
+      };
+
+      dots.forEach((dot) => {
+        dot.addEventListener('click', () => {
+          const target = Number(dot.getAttribute('data-sdl-slider-dot'));
+          if (Number.isFinite(target)) show(target);
+          stop();
+          start();
+        });
+      });
+
+      slider.addEventListener('mouseenter', () => {
+        paused = true;
+        stop();
+      });
+      slider.addEventListener('mouseleave', () => {
+        paused = false;
+        start();
+      });
+      slider.addEventListener('focusin', () => {
+        paused = true;
+        stop();
+      });
+      slider.addEventListener('focusout', () => {
+        paused = false;
+        start();
+      });
+
+      start();
+
+      const zoomContainers = document.querySelectorAll('.sdl-zoom');
+      zoomContainers.forEach((el) => {
+        const onMove = (e) => {
+          const rect = el.getBoundingClientRect();
+          const x = ((e.clientX - rect.left) / rect.width) * 100;
+          const y = ((e.clientY - rect.top) / rect.height) * 100;
+          el.style.setProperty('--zx', x + '%');
+          el.style.setProperty('--zy', y + '%');
+        };
+        const onLeave = () => {
+          el.style.setProperty('--zx', '50%');
+          el.style.setProperty('--zy', '50%');
+        };
+        el.addEventListener('pointermove', onMove);
+        el.addEventListener('pointerleave', onLeave);
+      });
+    })();
+  </script>
+</BaseLayout>
