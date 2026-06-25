@@ -147,6 +147,35 @@ function injectGoldenSampleOverlay(indexHtmlPath) {
   return true;
 }
 
+// Injects the shared Google Analytics (gtag.js) snippet into every game so
+// /mission/games/<slug>/ traffic is tracked under the same G-WYL7J2D7SG
+// property as the rest of biokea.ai (the marketing site loads it from
+// src/layouts/BaseLayout.astro). Prefers <head>; falls back to after
+// <body> for any game whose index.html lacks a head. Idempotent.
+const GA_MEASUREMENT_ID = 'G-WYL7J2D7SG';
+const GA_SNIPPET =
+  `<!-- Google tag (gtag.js) -->` +
+  `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}"></script>` +
+  `<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}` +
+  `gtag('js',new Date());gtag('config','${GA_MEASUREMENT_ID}');</script>`;
+
+function injectAnalytics(indexHtmlPath) {
+  let html;
+  try {
+    html = readFileSync(indexHtmlPath, 'utf-8');
+  } catch {
+    return false;
+  }
+  if (html.includes(`gtag/js?id=${GA_MEASUREMENT_ID}`)) return true;
+  let next = html.replace(/<\/head>/i, `${GA_SNIPPET}</head>`);
+  if (next === html) {
+    next = html.replace(/<body([^>]*)>/i, (match, attrs) => `<body${attrs}>${GA_SNIPPET}`);
+  }
+  if (next === html) return false;
+  writeFileSync(indexHtmlPath, next);
+  return true;
+}
+
 function getToken() {
   if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN;
   try {
@@ -221,6 +250,7 @@ for (const game of games) {
     injectBackButton(indexHtml);
     injectSubscribeLink(indexHtml, game.slug);
     injectGoldenSampleOverlay(indexHtml);
+    injectAnalytics(indexHtml);
     console.log(`[games-build] ${game.slug}: ✓ built from ${game.repo}`);
     okCount++;
   } catch (err) {
