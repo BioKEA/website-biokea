@@ -40,7 +40,7 @@ export const pipelineStages: PipelineStage[] = [
   {
     number: '06',
     title: 'Amplify',
-    subtitle: 'ATProto / Bluesky',
-    body: 'Publishing is the starting line. Seamless AT Protocol integration pushes verifiable scientific artifacts into decentralized social graphs.',
+    subtitle: 'Press · human-approved',
+    body: 'Publishing is the starting line, not the finish. Once a result is live, Press can coordinate a human-approved, platform-neutral share campaign for that release — never automatically, and only after publication.',
   },
 ];
