@@ -101,14 +101,11 @@ const flow = ['Atlas', 'Studio', 'BioInfoOS', 'Studio', 'Scribe', 'Press', 'Atla
                 </li>
               ))}
             </ul>
-            <a
-              href={`https://${p.subdomain}`}
-              target="_blank"
-              rel="noopener"
-              class="mt-4 inline-block font-mono text-[12px] text-[var(--color-pink)]"
-            >
-              {p.subdomain} ↗
-            </a>
+            {/* TODO: restore as a live link once the product subdomains are actually serving (they currently 502) — was:
+              <a href={`https://${p.subdomain}`} target="_blank" rel="noopener">{p.subdomain} ↗</a> */}
+            <span class="mt-4 inline-block font-mono text-[12px] text-slate-500">
+              {p.subdomain}
+            </span>
           </article>
         ))
       }

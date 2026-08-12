@@ -17,16 +17,12 @@ test('coming-soon section names Droplet and Sequoia with no feature claims', asy
   await expect(page.getByText('Sequoia', { exact: true })).toBeVisible();
 });
 
-test('every product card links out to its gated subdomain', async ({ page }) => {
+test('every product card shows its subdomain as plain text (not yet linked — subdomains are down)', async ({
+  page,
+}) => {
   await page.goto('/works');
-  await expect(page.getByRole('link', { name: 'atlas.biokea.ai ↗' })).toHaveAttribute(
-    'href',
-    'https://atlas.biokea.ai',
-  );
-  await expect(page.getByRole('link', { name: 'press.biokea.ai ↗' })).toHaveAttribute(
-    'href',
-    'https://press.biokea.ai',
-  );
+  await expect(page.getByText('atlas.biokea.ai', { exact: true })).toBeVisible();
+  await expect(page.getByText('press.biokea.ai', { exact: true })).toBeVisible();
 });
 
 test('request access CTA routes to contact with the works topic', async ({ page }) => {
