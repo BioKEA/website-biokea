@@ -25,3 +25,8 @@ test('form shows error when endpoint returns error', async ({ page }) => {
   await page.getByRole('button', { name: /Send/ }).click();
   await expect(page.getByText('Invalid input')).toBeVisible();
 });
+
+test('contact form preselects BioKEA Works topic when ?topic=works', async ({ page }) => {
+  await page.goto('/contact?topic=works');
+  await expect(page.getByLabel('Topic')).toHaveValue('BioKEA Works — request access');
+});

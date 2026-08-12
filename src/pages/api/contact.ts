@@ -30,7 +30,7 @@ const ContactSchema = z.object({
     'Funding',
     'Press / media',
     'Hiring',
-    'Agentis — early access',
+    'BioKEA Works — request access',
     'Something else',
   ]),
   message: z.string().trim().min(1).max(5000),

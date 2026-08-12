@@ -6,7 +6,7 @@ const requestedTopic = Astro.url.searchParams.get('topic');
 // Short URL keys map to canonical topic labels so links like
 // /contact?topic=hiring or /contact?topic=sequencing preset cleanly.
 const TOPIC_PRESET_MAP: Record<string, string> = {
-  agentis: 'Agentis — early access',
+  works: 'BioKEA Works — request access',
   sequencing: 'Sequencing service inquiry',
   partnership: 'Partnership / collaboration',
   funding: 'Funding',
@@ -93,8 +93,8 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | u
           <option selected={presetTopic === 'Funding'}>Funding</option>
           <option selected={presetTopic === 'Press / media'}>Press / media</option>
           <option selected={presetTopic === 'Hiring'}>Hiring</option>
-          <option selected={presetTopic === 'Agentis — early access'}>
-            Agentis — early access
+          <option selected={presetTopic === 'BioKEA Works — request access'}>
+            BioKEA Works — request access
           </option>
           <option selected={presetTopic === 'Something else'}>Something else</option>
         </select>
