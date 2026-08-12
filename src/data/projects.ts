@@ -175,39 +175,4 @@ export const projects: Project[] = [
     originNote:
       "Originated and maintained independently by Sunit Jain on GitHub; surfaced here through Sunit's advisor role, not authored by BioKEA.",
   },
-  {
-    slug: 'agentis',
-    title: 'Agentis — AI-first scientific journal on the AT Protocol',
-    summary:
-      'An AI-first open-access scientific journal built on the AT Protocol. Multi-agent AI pre-screen plus verified human peer review with transparent weighted scoring. Publications render as interactive StoryMaps tethered to their FAIR data packages (GBIF, NCBI SRA, Zenodo). Design previews available now.',
-    type: 'Scientific publishing platform',
-    year: '2026–2027',
-    tags: ['AT Protocol', 'peer review', 'publishing', 'FAIR data', 'AI', 'StoryMaps'],
-    status: 'coming-soon',
-    revealTarget: 'agentis.science',
-    link: '/agentis',
-    hero: '/assets/images/agentis-discourse-graph.webp',
-    heroAlt:
-      'A lattice of interconnected signed publication nodes illustrating verifiable peer review and transparent scientific discourse.',
-    heroWidth: 1200,
-    heroHeight: 1200,
-    team: [{ name: 'Sean', lead: true }],
-  },
-  {
-    slug: 'sequoia-foundation-model',
-    title: 'Sequoia™ — a foundation model for global biodiversity',
-    summary:
-      "BioKEA's multimodal foundation model: it learns biology from DNA, images, and the spatial environment all at once — what an organism is, what it looks like, and where it lives. Reads partial DNA, fragmentary photographs, and habitat maps as one signal. Two tiers: the Seed (a small, single-file model that runs on a laptop, for education and open collaboration) and the Forest (the production engine that processes hundreds of millions of biodiversity datapoints).",
-    type: 'AI foundation model',
-    year: '2026–2027',
-    tags: ['AI', 'foundation model', 'multimodal', 'biodiversity', 'computer vision', 'DNA'],
-    status: 'coming-soon',
-    revealTarget: '2027',
-    hero: '/assets/images/sequoia-foundation-model.jpg',
-    heroAlt:
-      'Sequoia title slide — a redwood canopy seen from below, with a stylized golden tree-ring icon at the center, and the words "Introducing Sequoia: BioKEA\'s Foundation Model for Global Biodiversity. A Living Brain for the Natural World."',
-    heroWidth: 1600,
-    heroHeight: 893,
-    team: [{ name: 'Sean', lead: true }],
-  },
 ];

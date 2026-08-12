@@ -179,6 +179,14 @@ describe('projects data — DaKineDiving', () => {
   });
 });
 
+describe('projects data — no Works-suite overlap', () => {
+  it('does not include agentis or sequoia-foundation-model as case-study slugs', () => {
+    const slugs = projects.map((p) => p.slug);
+    expect(slugs).not.toContain('agentis');
+    expect(slugs).not.toContain('sequoia-foundation-model');
+  });
+});
+
 describe('credentials data — Sean has two credentials', () => {
   it('credentialsFor returns 2 entries for Sean Jungbluth', () => {
     const found = credentialsFor('Sean Jungbluth');
