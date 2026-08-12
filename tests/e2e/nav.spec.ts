@@ -36,13 +36,16 @@ test('"What we do" dropdown reveals Services and Lab', async ({ page }) => {
   await expect(desktop.getByRole('link', { name: 'Lab', exact: true })).toBeVisible();
 });
 
-test('"Our work" dropdown reveals Projects, Agentis, and Press', async ({ page }) => {
+test('"Our work" dropdown reveals Projects, Works, and Press', async ({ page }) => {
   await page.goto('/');
   const nav = page.getByRole('navigation', { name: 'Primary' });
   const desktop = nav.locator('div.hidden.md\\:flex').first();
   await desktop.getByText('Our work', { exact: true }).click();
   await expect(desktop.getByRole('link', { name: 'Projects', exact: true })).toBeVisible();
-  await expect(desktop.getByRole('link', { name: 'Agentis', exact: true })).toBeVisible();
+  await expect(desktop.getByRole('link', { name: 'Works', exact: true })).toHaveAttribute(
+    'href',
+    '/works',
+  );
   await expect(desktop.getByRole('link', { name: 'Press', exact: true })).toBeVisible();
 });
 
@@ -108,9 +111,9 @@ test('footer renders logo, copyright, demoted links, and Hiring callout', async 
     'href',
     '/pipeline',
   );
-  await expect(footer.getByRole('link', { name: 'Agentis', exact: true })).toHaveAttribute(
+  await expect(footer.getByRole('link', { name: 'Works', exact: true })).toHaveAttribute(
     'href',
-    '/agentis',
+    '/works',
   );
   await expect(footer.getByRole('link', { name: 'Press', exact: true })).toHaveAttribute(
     'href',
