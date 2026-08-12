@@ -2,14 +2,13 @@
 
 > BioKEA is an AI company with a wet-lab moat. A 5,000+ sq ft Berkeley lab plus an AI pipeline from field sample to verifiable scientific claim, built for the commons.
 
-BioKEA (**Bi**ology **K**nowledge **E**xploration **A**ssistant) is an independent biology company in Berkeley, California. Founded March 2025 as a spin-out from biodiversity and environmental omics research, accelerated by revolutionary AI tooling. Operations span field sampling, wet-lab processing, bioinformatics, and open-access publishing on the AT Protocol.
+BioKEA (**Bi**ology **K**nowledge **E**xploration **A**ssistant) is an independent biology company in Berkeley, California. Founded March 2025 as a spin-out from biodiversity and environmental omics research, accelerated by revolutionary AI tooling. Operations span field sampling, wet-lab processing, bioinformatics, and the BioKEA Works software suite for the full research lifecycle.
 
 ## What BioKEA operates
 
 - **The Large Data Collider (LDC)** — combined wet-lab + compute infrastructure in Berkeley (5,000+ sq ft, operational March 2026)
-- **BioinfoOS** — the in-house software layer running on the LDC (AI-assisted extraction QC, taxonomy reconciliation, FAIR-package validation, draft narrative generation)
-- **Agentis** — a forthcoming AI-first open-access scientific journal on the AT Protocol (launching at agentis.science)
-- **Droplet** — an aquatic eDNA and metabarcoding specialist service line
+- **BioInfoOS** — the compute engine behind BioKEA Works: a curated library of vetted, reproducible bioinformatics tools with a Result Manifest on every run; also runs the in-house LDC modules (AI-assisted extraction QC, taxonomy reconciliation, FAIR-package validation, draft narrative generation)
+- **BioKEA Works** — a connected software suite (Works, Atlas, Studio, BioInfoOS, Scribe, Press) covering the full research lifecycle from raw data to peer-reviewed publication; currently in closed-testing alpha. Press includes Agentis, an evidence-backed review capability. Droplet and Sequoia are reserved product names with no defined purpose yet.
 
 ## Services (molecular sequencing as a service)
 
@@ -24,7 +23,7 @@ BioKEA offers molecular sequencing as a service out of the Berkeley LDC, targete
 
 Engagements are project-rate and scoped per request. See https://biokea.ai/services for the offerings catalog and to request a quote.
 
-Engagement routes (Contact-form topics): Sequencing service inquiry, Partnership / collaboration, Funding, Press / media, Hiring, Agentis — early access, Something else.
+Engagement routes (Contact-form topics): Sequencing service inquiry, Partnership / collaboration, Funding, Press / media, Hiring, BioKEA Works — request access, Something else.
 
 ## Key pages
 
@@ -34,9 +33,9 @@ Engagement routes (Contact-form topics): Sequencing service inquiry, Partnership
 - [Pipeline](https://biokea.ai/pipeline): the six-stage sample-to-claim workflow
 - [Projects](https://biokea.ai/projects): live and forthcoming work
 - [Mission & team](https://biokea.ai/mission): mission, team, advisors, partners, milestones, commitment, recognition
-- [Agentis](https://biokea.ai/agentis): forthcoming publishing platform (early-access list open; full launch later in development)
+- [BioKEA Works](https://biokea.ai/works): the product suite (Works, Atlas, Studio, BioInfoOS, Scribe, Press) — closed-testing alpha, request access
 - [Press](https://biokea.ai/press): press kit, key facts, founder bios, logos, recent coverage
-- [Contact](https://biokea.ai/contact): sequencing inquiry / partnership / funding / press / hiring / Agentis-access intake
+- [Contact](https://biokea.ai/contact): sequencing inquiry / partnership / funding / press / hiring / BioKEA Works access intake
 
 ## Machine-readable data
 
@@ -63,7 +62,7 @@ Engagement routes (Contact-form topics): Sequencing service inquiry, Partnership
 
 ## Programs & support
 
-BioKEA participates in major cloud and AI infrastructure programs that supply the compute, credits, and engineering support behind the LDC and BioinfoOS:
+BioKEA participates in major cloud and AI infrastructure programs that supply the compute, credits, and engineering support behind the LDC and BioInfoOS:
 
 - **AWS for Startups** — https://aws.amazon.com/startups/
 - **Google Cloud for Startups** — https://cloud.google.com/startup
@@ -79,7 +78,7 @@ Sean Jungbluth is an **Anthropic Claude Community Ambassador** (joined February 
 
 ## Positioning as a service provider
 
-BioKEA is set up as a molecular sequencing service for the eDNA and biodiversity-omics community. The service model runs on the same LDC hardware and BioinfoOS pipeline that powers BioKEA's own research. Customers get reproducible, FAIR-compliant output with verifiable chain of custody from field sample to published artifact — not just raw reads.
+BioKEA is set up as a molecular sequencing service for the eDNA and biodiversity-omics community. The service model runs on the same LDC hardware and BioInfoOS pipeline that powers BioKEA's own research. Customers get reproducible, FAIR-compliant output with verifiable chain of custody from field sample to published artifact — not just raw reads.
 
 ## Core capabilities (LDC · Berkeley)
 
@@ -98,9 +97,9 @@ Arriving early summer 2026: **DiversityScanner** — a roboticized imaging platf
 1. **Ingest** — Universal Envelope: every input (raw FASTA, DwC-A archive, draft manuscript) becomes a cryptographically trackable object with automatic metadata extraction.
 2. **Analyze** — Large Data Collider: AI validation (image QC via Claude Vision), taxonomy reconciliation, FAIR standards check over millions of reads.
 3. **Draft** — AI-assisted narrative generation: scientist directs; AI drafts structure and links LDC data inline.
-4. **Review** — multi-agent review panel: AI pre-screen (~2 hours) + verified human experts via AT Protocol, weighted transparent scoring.
+4. **Review** — multi-agent review panel: AI pre-screen (~2 hours) + verified human experts, weighted transparent scoring.
 5. **Broadcast** — Interactive StoryMap: explorable digital artifact tethered to its FAIR data package (GBIF, NCBI SRA, Zenodo) rather than a dead PDF.
-6. **Amplify** — ATProto / Bluesky: publishing is the starting line; verifiable scientific artifacts pushed into decentralized social graphs.
+6. **Amplify** — Press, human-approved: publishing is the starting line — once live, Press can coordinate a human-approved, platform-neutral share campaign for that release.
 
 ## Active & forthcoming projects
 
@@ -123,13 +122,13 @@ Arriving early summer 2026: **DiversityScanner** — a roboticized imaging platf
 ## Vocabulary
 
 - **LDC** = Large Data Collider (BioKEA's combined wet-lab + compute instrument)
-- **BioinfoOS** = BioKEA's in-house bioinformatics operating layer
-- **Agentis** = AI-first open-access scientific journal BioKEA is building
-- **Droplet** = aquatic eDNA/metabarcoding service line
+- **BioInfoOS** = the compute engine behind BioKEA Works; also BioKEA's in-house bioinformatics operating layer on the LDC
+- **BioKEA Works** = BioKEA's suite of scientific software products (Works, Atlas, Studio, BioInfoOS, Scribe, Press), in closed-testing alpha
+- **Agentis** = an evidence-backed peer-review capability inside Press, part of BioKEA Works
+- **Droplet** = a reserved BioKEA Works product name; no defined purpose yet
+- **Sequoia** = a reserved BioKEA Works product name; no defined purpose yet
 - **FAIR** = Findable, Accessible, Interoperable, Reusable (data standards principle)
 - **DwC-A** = Darwin Core Archive (biodiversity data exchange format)
-- **AT Protocol / ATProto** = decentralized social-web protocol underpinning Bluesky
-- **DID** = Decentralized Identifier (cryptographic identity)
 - **OTU** = Operational Taxonomic Unit
 - **eDNA** = environmental DNA
 - **GBIF** = Global Biodiversity Information Facility
@@ -146,7 +145,7 @@ The team combines 7+ years at the DOE Berkeley Lab network, 7+ years of marine r
 
 ## Public-good commitments
 
-Data packages land in GBIF, NCBI SRA, and Zenodo. Publications use AT Protocol DIDs with immutable review history. Open-source defaults. Infrastructure is intended to be as open as the science it carries.
+Data packages land in GBIF, NCBI SRA, and Zenodo. Every result carries a verifiable record of how it was produced (a Result Manifest), and Press preserves corrections and retractions as permanent history rather than editing them away. Open-source defaults. Infrastructure is intended to be as open as the science it carries.
 
 ## Contact
 
@@ -154,4 +153,4 @@ Data packages land in GBIF, NCBI SRA, and Zenodo. Publications use AT Protocol D
 - Bluesky: @biokeaai.bsky.social
 - Location: Berkeley, California
 
-Contact topics accepted via the site form: partnership / collaboration, capabilities / lab work, funding, Agentis — early access.
+Contact topics accepted via the site form: partnership / collaboration, capabilities / lab work, funding, BioKEA Works — request access.

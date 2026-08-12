@@ -44,3 +44,13 @@ test('llms-full.txt describes BioKEA Works instead of standalone Agentis', async
   expect(body).not.toContain('forthcoming AI-first open-access scientific journal');
   expect(body).not.toContain('aquatic eDNA and metabarcoding specialist service line');
 });
+
+test('llms.txt describes BioKEA Works instead of standalone Agentis/Droplet', async ({ page }) => {
+  const response = await page.goto('/llms.txt');
+  const body = (await response?.text()) ?? '';
+  expect(body).toContain('BioKEA Works');
+  expect(body).toContain('BioInfoOS');
+  expect(body).not.toContain('forthcoming AI-first open-access scientific journal');
+  expect(body).not.toContain('aquatic eDNA/metabarcoding service line');
+  expect(body).not.toContain('AT Protocol');
+});
