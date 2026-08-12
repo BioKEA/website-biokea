@@ -23,4 +23,4 @@ export const features = [
       'Our platform continuously learns from your data, optimizing performance and ensuring the highest accuracy.',
     icon: '🔍',
   },
-]
+];
