@@ -1,0 +1,161 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import CtaBand from '@/components/sections/CtaBand.astro';
+import { worksProducts, worksReserved } from '@/data/works';
+import { stringifyJsonLd } from '@/lib/json-ld';
+
+const flow = ['Atlas', 'Studio', 'BioInfoOS', 'Studio', 'Scribe', 'Press', 'Atlas'];
+---
+
+<BaseLayout
+  title="BioKEA Works — the product suite"
+  description="BioKEA Works is a connected suite of scientific software products for the full lifecycle of a research project — currently in closed-testing alpha."
+>
+  <section class="max-w-6xl mx-auto px-6 pt-16 pb-8">
+    <Eyebrow>BIOKEA WORKS · CLOSED-TESTING ALPHA</Eyebrow>
+    <h1
+      class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[26ch]"
+    >
+      One identity. One compute engine. Six independent products.
+    </h1>
+    <p class="mt-5 max-w-[62ch] text-slate-600 leading-relaxed">
+      BioKEA Works is a connected suite of tools for the full lifecycle of a scientific research
+      project — from raw data to analysis to writing to peer review to public discovery. Every
+      product shares one identity and one secure compute engine, but each is usable entirely on its
+      own.
+    </p>
+    <ul class="mt-6 space-y-2 max-w-[62ch] text-sm text-slate-600 leading-relaxed">
+      <li>· Every result carries a verifiable record of exactly how it was produced.</li>
+      <li>· If an analysis fails, the system never quietly substitutes a fake result.</li>
+      <li>· Computation runs only pre-approved, vetted, versioned tools.</li>
+      <li>· Where AI assists, a human confirms before anything is treated as fact.</li>
+      <li>· Start anywhere — there's a suggested path, but it's not a forced funnel.</li>
+    </ul>
+    <p
+      class="mt-6 inline-block font-mono text-[11px] tracking-[0.14em] uppercase text-[var(--color-ochre)] bg-[rgba(146,64,14,0.1)] px-3 py-1.5 rounded-sm"
+    >
+      In closed-testing alpha — by invitation
+    </p>
+    <div class="mt-6 flex items-center gap-4">
+      <a
+        href="/contact?topic=works"
+        class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium"
+      >
+        Request access
+      </a>
+      <a href="#products" class="text-[var(--color-teal)] text-sm font-medium">
+        See the products →
+      </a>
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-8">
+    <Eyebrow>HOW IT FITS TOGETHER</Eyebrow>
+    <div class="mt-5 flex flex-wrap items-center gap-2">
+      {
+        flow.map((step, i) => (
+          <>
+            <span class="font-mono text-[11px] tracking-[0.1em] uppercase bg-[var(--color-cream-warm)] border border-slate-900/10 px-3 py-1.5 rounded-sm text-[var(--color-ink)]">
+              {step}
+            </span>
+            {i < flow.length - 1 && (
+              <span class="text-slate-400" aria-hidden="true">
+                →
+              </span>
+            )}
+          </>
+        ))
+      }
+    </div>
+    <p class="mt-4 max-w-[62ch] text-sm text-slate-600 leading-relaxed">
+      The suggested path — not mandatory. Every product can be entered independently; a researcher
+      doesn't have to visit Atlas first to use Studio.
+    </p>
+  </section>
+
+  <section id="products" class="max-w-6xl mx-auto px-6 py-12 scroll-mt-24">
+    <Eyebrow>PRODUCTS</Eyebrow>
+    <h2 class="mt-3 text-2xl font-semibold tracking-tight text-[var(--color-ink)]">
+      Six products, one identity.
+    </h2>
+    <div class="mt-8 grid md:grid-cols-2 gap-6">
+      {
+        worksProducts.map((p) => (
+          <article
+            id={p.slug}
+            class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-6 scroll-mt-24"
+          >
+            <div class="flex items-baseline justify-between gap-4">
+              <h3 class="text-lg font-semibold text-[var(--color-ink)]">{p.name}</h3>
+              <span class="font-mono text-[9.5px] font-semibold tracking-[0.14em] uppercase px-2 py-1 rounded-sm bg-[rgba(71,85,105,0.12)] text-slate-600 shrink-0">
+                Closed testing
+              </span>
+            </div>
+            <p class="mt-2 text-sm text-slate-600 leading-relaxed">{p.tagline}</p>
+            <ul class="mt-4 space-y-1.5 text-sm text-slate-600 leading-relaxed">
+              {p.capabilities.map((c) => (
+                <li class="flex items-baseline gap-2">
+                  <span class="font-mono text-[10px] text-[var(--color-teal)] shrink-0">·</span>
+                  <span>{c}</span>
+                </li>
+              ))}
+            </ul>
+            <a
+              href={`https://${p.subdomain}`}
+              target="_blank"
+              rel="noopener"
+              class="mt-4 inline-block font-mono text-[12px] text-[var(--color-pink)]"
+            >
+              {p.subdomain} ↗
+            </a>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-12">
+    <Eyebrow>COMING SOON</Eyebrow>
+    <p class="mt-3 max-w-[62ch] text-sm text-slate-600 leading-relaxed">
+      Two more product names are reserved. No features yet — we'll say more when there's something
+      real to describe.
+    </p>
+    <ul class="mt-4 flex gap-3 flex-wrap">
+      {
+        worksReserved.map((r) => (
+          <li class="font-mono text-sm tracking-[0.04em] text-slate-500 bg-white/70 border border-slate-900/10 px-3 py-1.5 rounded-sm">
+            {r.name}
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <CtaBand
+    title="Request access to BioKEA Works."
+    subtitle="Every product is in closed-testing alpha, by invitation."
+    cta={{ href: '/contact?topic=works', label: 'Request access' }}
+  />
+
+  <script
+    type="application/ld+json"
+    is:inline
+    set:html={stringifyJsonLd({
+      '@context': 'https://schema.org',
+      '@graph': worksProducts.map((p) => ({
+        '@type': 'SoftwareApplication',
+        '@id': `https://biokea.ai/works#${p.slug}`,
+        name: p.name,
+        applicationCategory: 'Scientific research software',
+        operatingSystem: 'Web',
+        url: `https://${p.subdomain}`,
+        description: p.tagline,
+        creator: { '@id': 'https://biokea.ai/#org' },
+        provider: { '@id': 'https://biokea.ai/#org' },
+        releaseNotes: 'In closed-testing alpha.',
+        featureList: p.capabilities,
+      })),
+    })}
+  />
+</BaseLayout>
