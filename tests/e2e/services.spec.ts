@@ -91,3 +91,9 @@ test('contact form preselects Sequencing service inquiry topic when ?topic=seque
   await page.goto('/contact?topic=sequencing');
   await expect(page.getByLabel('Topic')).toHaveValue('Sequencing service inquiry');
 });
+
+test('services FAQ links BioInfoOS to BioKEA Works', async ({ page }) => {
+  await page.goto('/services');
+  const link = page.getByRole('link', { name: 'BioKEA Works' }).last();
+  await expect(link).toHaveAttribute('href', '/works#bioinfoos');
+});
