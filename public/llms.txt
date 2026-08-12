@@ -2,7 +2,7 @@
 
 > BioKEA is an AI company with a wet-lab moat. A 5,000+ sq ft Berkeley lab plus an AI pipeline from field sample to verifiable scientific claim, built for the commons.
 
-BioKEA (**Bi**ology **K**nowledge **E**xploration **A**ssistant) is an independent biology company in Berkeley, California. Founded March 2025 as a spin-out from biodiversity and environmental omics research, accelerated by revolutionary AI tooling. Operations span field sampling, wet-lab processing, bioinformatics, and the BioKEA Works software suite for the full research lifecycle.
+BioKEA (**Bi**ology **K**nowledge **E**xploration **A**ssistant) is an independent biology company in Berkeley, California. Founded March 2025 as a spin-out from biodiversity and environmental omics research, accelerated by revolutionary AI tooling. Operations span field sampling, wet-lab processing, bioinformatics, and the BioKEA Works software suite (closed-testing alpha) for the full research lifecycle.
 
 ## What BioKEA operates
 
