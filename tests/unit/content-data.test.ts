@@ -6,6 +6,7 @@ import { milestones } from '@/data/milestones';
 import { homepageStats, labStats } from '@/data/stats';
 import { programs, personalCredentials, credentialsFor } from '@/data/credentials';
 import { projects } from '@/data/projects';
+import { worksProducts, worksReserved } from '@/data/works';
 
 describe('team data', () => {
   it('has three core team members and two advisors', () => {
@@ -193,5 +194,31 @@ describe('credentials data — Sean has two credentials', () => {
   it('Challenge credential has a public url', () => {
     const challenge = credentialsFor('Sean Jungbluth').find((c) => c.label.includes('Challenge'));
     expect(challenge?.url).toMatch(/^https:\/\/x\.com\//);
+  });
+});
+
+describe('works data', () => {
+  it('has exactly 6 real products', () => {
+    expect(worksProducts).toHaveLength(6);
+  });
+  it('lists Works, Atlas, Studio, BioInfoOS, Scribe, and Press in that order', () => {
+    expect(worksProducts.map((p) => p.name)).toEqual([
+      'Works',
+      'Atlas',
+      'Studio',
+      'BioInfoOS',
+      'Scribe',
+      'Press',
+    ]);
+  });
+  it('every product has a *.biokea.ai subdomain, a tagline, and at least 2 capabilities', () => {
+    for (const p of worksProducts) {
+      expect(p.subdomain).toMatch(/^[a-z]+\.biokea\.ai$/);
+      expect(p.tagline).toBeTruthy();
+      expect(p.capabilities.length).toBeGreaterThanOrEqual(2);
+    }
+  });
+  it('has exactly 2 reserved names: Droplet and Sequoia', () => {
+    expect(worksReserved.map((r) => r.name)).toEqual(['Droplet', 'Sequoia']);
   });
 });
