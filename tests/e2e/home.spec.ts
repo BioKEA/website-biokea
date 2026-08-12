@@ -15,10 +15,10 @@ test('home renders hero, thesis, evidence, ecosystem, origin, CTA band', async (
   );
 });
 
-test('ecosystem tile for Agentis links to the internal coming-soon page', async ({ page }) => {
+test('ecosystem tile for BioKEA Works links to the /works page', async ({ page }) => {
   await page.goto('/');
-  const link = page.getByRole('link', { name: /agentis\.science/ }).first();
-  await expect(link).toHaveAttribute('href', '/agentis');
+  const link = page.getByRole('link', { name: /See BioKEA Works/ }).first();
+  await expect(link).toHaveAttribute('href', '/works');
 });
 
 test('home exposes Organization structured data', async ({ page }) => {
@@ -83,7 +83,7 @@ test('home FAQPage JSON-LD includes all 6 expected questions', async ({ page }) 
   expect(questions).toContain('What services does BioKEA offer?');
   expect(questions).toContain("Where is BioKEA's lab?");
   expect(questions).toContain('How do I engage BioKEA for a sequencing project?');
-  expect(questions).toContain('What is Agentis?');
+  expect(questions).toContain('What is BioKEA Works?');
   expect(questions).toContain('Who supports BioKEA?');
 });
 

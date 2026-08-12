@@ -14,9 +14,9 @@ import { stringifyJsonLd } from '@/lib/json-ld';
 const ecosystemTiles = [
   {
     image: '/assets/images/Pillar3-Droplet.webp',
-    imageAlt: 'Droplet — aquatic eDNA and metabarcoding specialist',
-    label: 'Field to species',
-    name: 'Droplet',
+    imageAlt: 'Aquatic eDNA and metabarcoding specialist illustration',
+    label: 'Aquatic eDNA',
+    name: 'Field to species',
     description:
       'An aquatic eDNA specialist — sample collection, metabarcoding, and taxonomic identification.',
     href: '/services',
@@ -36,15 +36,15 @@ const ecosystemTiles = [
     linkLabel: 'See the lab →',
   },
   {
-    image: '/assets/images/Pillar2-Agentis.webp',
-    imageAlt: 'Agentis — publishing',
-    label: 'Publish (later)',
-    name: 'Agentis',
+    image: '/assets/images/Pillar4-Labhus.webp',
+    imageAlt: 'BioKEA Works — placeholder illustration',
+    label: 'The suite',
+    name: 'BioKEA Works',
     description:
-      'AI-first open-access publishing on AT Protocol. Early-access list open; full launch later in development.',
-    href: '/agentis',
+      'A connected suite of scientific software products for the full research lifecycle — in closed-testing alpha.',
+    href: '/works',
     external: false,
-    linkLabel: 'agentis.science',
+    linkLabel: 'See BioKEA Works →',
   },
 ];
 ---
@@ -136,8 +136,6 @@ const ecosystemTiles = [
             'Oxford Nanopore Promethion 2',
             'FAIR data',
             'Darwin Core Archive',
-            'AT Protocol',
-            'Open-access publishing',
           ],
           memberOf: programs.map((p) => ({
             '@type': 'Organization',
@@ -230,15 +228,15 @@ const ecosystemTiles = [
           name: 'How do I engage BioKEA for a sequencing project?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Reach out via the contact form at biokea.ai/contact. Engagement routes include partnership/collaboration, capabilities/lab work, funding, and Agentis early access.',
+            text: 'Reach out via the contact form at biokea.ai/contact. Engagement routes include partnership/collaboration, capabilities/lab work, funding, and BioKEA Works access.',
           },
         },
         {
           '@type': 'Question',
-          name: 'What is Agentis?',
+          name: 'What is BioKEA Works?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: "Agentis is BioKEA's forthcoming AI-first open-access scientific journal on the AT Protocol, launching at agentis.science. Publication is structured as interactive StoryMaps tied to FAIR data packages, not dead PDFs.",
+            text: "BioKEA Works is BioKEA's suite of scientific software products — Works, Atlas, Studio, BioInfoOS, Scribe, and Press — covering the full lifecycle of a research project, from raw data to peer-reviewed publication. Currently in closed-testing alpha.",
           },
         },
         {
