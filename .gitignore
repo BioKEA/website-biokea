@@ -108,3 +108,6 @@ logs
 # Cloudflare
 .wrangler/
 dist/test-results/
+
+# Git worktrees for isolated plan execution
+.worktrees/
