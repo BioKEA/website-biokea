@@ -35,3 +35,12 @@ test('llms-full.txt is served and contains long-form sections', async ({ page })
   expect(body).toContain('## Milestones');
   expect(body).toContain('https://x.com/alexalbert__/status/1978220407716245581');
 });
+
+test('llms-full.txt describes BioKEA Works instead of standalone Agentis', async ({ page }) => {
+  const response = await page.goto('/llms-full.txt');
+  const body = (await response?.text()) ?? '';
+  expect(body).toContain('BioKEA Works');
+  expect(body).toContain('BioInfoOS');
+  expect(body).not.toContain('forthcoming AI-first open-access scientific journal');
+  expect(body).not.toContain('aquatic eDNA and metabarcoding specialist service line');
+});

@@ -109,9 +109,8 @@ Sitemap: ${SITE}/sitemap-index.xml
 ## Operations
 
 - **The Large Data Collider (LDC)** — combined wet-lab + compute infrastructure in Berkeley (5,000+ sq ft, operational March 2026). Houses an Oxford Nanopore Promethion 2 and ~80 instruments across extraction, prep, quantification, and sequencing stages.
-- **BioinfoOS** — the in-house software layer running on the LDC: AI-assisted extraction QC, taxonomy reconciliation, FAIR-package validation, draft narrative generation.
-- **Agentis** — a forthcoming AI-first open-access scientific journal on the AT Protocol. Launching at agentis.science. Publication is structured as interactive StoryMaps tied to FAIR data packages, not dead PDFs.
-- **Droplet** — an aquatic eDNA and metabarcoding specialist service line.
+- **BioInfoOS** — the compute engine behind BioKEA Works: a curated library of vetted, reproducible bioinformatics tools with a Result Manifest on every run. Also runs the in-house LDC modules (AI-assisted extraction QC, taxonomy reconciliation, FAIR-package validation, draft narrative generation).
+- **BioKEA Works** — a connected suite of software (Works, Atlas, Studio, BioInfoOS, Scribe, Press) for the full research lifecycle, currently in closed-testing alpha. Press includes Agentis, an evidence-backed review capability. Droplet and Sequoia are reserved product names with no defined purpose yet. See ${SITE}/works.
 
 ## Services (molecular sequencing as a service)
 
@@ -135,7 +134,7 @@ ${renderTeam()}
 
 ## Programs & support
 
-BioKEA participates in major cloud and AI infrastructure programs that supply compute, credits, and engineering support behind the LDC and BioinfoOS:
+BioKEA participates in major cloud and AI infrastructure programs that supply compute, credits, and engineering support behind the LDC and BioInfoOS:
 
 ${renderPrograms()}
 
@@ -190,7 +189,7 @@ ${renderMilestones()}
 
 ## Contact
 
-biokea.ai/contact — partnership / capabilities / funding / Agentis early access.
+biokea.ai/contact — partnership / capabilities / funding / BioKEA Works access.
 `;
 
 export const GET: APIRoute = () =>
