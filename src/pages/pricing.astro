@@ -1,0 +1,252 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import CtaBand from '@/components/sections/CtaBand.astro';
+import PriceLadder from '@/components/ui/PriceLadder.astro';
+import { pricedServices } from '@/data/pricing';
+import { stringifyJsonLd } from '@/lib/json-ld';
+
+const comparisonRows = [
+  {
+    label: 'What it tells you',
+    barcoding: 'Specimen-level confirmation — one confirmed species ID per physical specimen.',
+    metabarcoding:
+      'Whole-assemblage detection — which taxa in your group(s) of interest are present, based on the marker(s) applied.',
+  },
+  {
+    label: 'Input required',
+    barcoding: 'Physical specimens, sorted or bulk-collected.',
+    metabarcoding: 'An already-collected water, soil, sediment, or air sample/filter.',
+  },
+  {
+    label: 'Resolution',
+    barcoding: 'Individual specimen, with a preserved voucher & image.',
+    metabarcoding:
+      'Community-wide presence/absence across many taxa at once — not individual counts.',
+  },
+  {
+    label: 'Best for',
+    barcoding:
+      'Bulk-sorted bycatch, biodiversity surveys, museum & collection backlogs, reference-library building.',
+    metabarcoding:
+      'Rapid biodiversity screening, monitoring cryptic or elusive species, sites where physical collection is impractical.',
+  },
+];
+
+const jsonLdServices = pricedServices.map((s) => ({
+  '@type': 'Service',
+  name: s.title,
+  description: s.description,
+  provider: { '@id': 'https://biokea.ai/#org' },
+  offers: s.tiers.map((t) => ({
+    '@type': 'Offer',
+    name: `${t.range} ${s.unitLabel}s`,
+    eligibleQuantity: {
+      '@type': 'QuantitativeValue',
+      minValue: t.minQty,
+      ...(t.maxQty ? { maxValue: t.maxQty } : {}),
+      unitText: s.unitLabel,
+    },
+    priceSpecification: [
+      {
+        '@type': 'UnitPriceSpecification',
+        name: 'Academic & nonprofit',
+        price: t.academicPrice,
+        priceCurrency: 'USD',
+        unitText: s.unitLabel,
+      },
+      {
+        '@type': 'UnitPriceSpecification',
+        name: 'Commercial',
+        price: t.commercialPrice,
+        priceCurrency: 'USD',
+        unitText: s.unitLabel,
+      },
+    ],
+  })),
+}));
+---
+
+<BaseLayout
+  title="Pricing — BioKEA"
+  description="Transparent, volume-tiered pricing for DNA barcoding and environmental DNA (eDNA) metabarcoding services."
+>
+  <section class="max-w-6xl mx-auto px-6 pt-16 pb-8">
+    <Eyebrow>PRICING · MOLECULAR SEQUENCING</Eyebrow>
+    <h1
+      class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[26ch]"
+    >
+      Pricing for specimen barcoding &amp; environmental DNA services.
+    </h1>
+    <p class="mt-5 max-w-[62ch] text-slate-600 leading-relaxed">
+      High-throughput species identification and biodiversity monitoring, built on non-destructive
+      extraction, Nanopore sequencing, and a lab workflow designed to get cheaper as your project
+      scales.
+    </p>
+    <div class="mt-6 flex items-center gap-4 flex-wrap">
+      <a
+        href="/contact?topic=sequencing"
+        class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium"
+      >
+        Request a quote
+      </a>
+      <a href="/services" class="text-[var(--color-teal)] text-sm font-medium">
+        Need something else? See our full service catalog →
+      </a>
+    </div>
+    <p class="mt-6 text-sm text-slate-500 leading-relaxed">
+      Rates reflect equipment sourced through Bay Area biotech auctions at roughly one-tenth retail
+      —
+      <a href="/lab" class="underline decoration-slate-400 hover:text-[var(--color-teal)]"
+        >see the lab →</a
+      >.
+    </p>
+  </section>
+
+  {
+    pricedServices.map((service) => (
+      <section class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-900/10" id={service.slug}>
+        <div class="max-w-[680px] mb-8">
+          <span class="inline-flex items-center gap-2 font-mono text-[11.5px] tracking-[0.1em] uppercase text-[var(--color-teal)] bg-[rgba(15,118,110,0.08)] border border-[rgba(15,118,110,0.2)] px-3 py-1 rounded-full font-semibold">
+            {service.serviceTag}
+          </span>
+          <h2 class="mt-4 text-3xl md:text-4xl font-semibold tracking-[-0.01em] text-[var(--color-ink)]">
+            {service.title}
+          </h2>
+          <p class="mt-2 font-semibold text-[var(--color-teal)]">{service.tagline}</p>
+          <p class="mt-3 text-sm text-slate-600 leading-relaxed">{service.description}</p>
+        </div>
+
+        {service.advantages.length > 0 && (
+          <div class="grid sm:grid-cols-3 gap-3.5 mb-8">
+            {service.advantages.map((a) => (
+              <div class="bg-white border border-slate-900/10 border-t-[3px] border-t-[var(--color-teal)] rounded-md p-4">
+                <strong class="block text-sm text-[var(--color-ink)] mb-1">{a.title}</strong>
+                <span class="text-[13px] text-slate-500 leading-relaxed">{a.body}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div class="grid md:grid-cols-[1fr_1.35fr] gap-10">
+          <div>
+            <h3 class="font-mono text-[13px] tracking-[0.08em] uppercase text-[var(--color-teal)] font-bold mb-4">
+              What's included
+            </h3>
+            <ul class="flex flex-col">
+              {service.included.map((item, i) => (
+                <li
+                  class:list={[
+                    'flex gap-2.5 items-start text-[15px] text-[var(--color-ink)] leading-relaxed py-2.5',
+                    i > 0 && 'border-t border-slate-900/10',
+                  ]}
+                >
+                  <span class="mt-1 shrink-0 w-4 h-4 rounded-full bg-[var(--color-teal)] flex items-center justify-center text-white text-[10px]">
+                    ✓
+                  </span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p class="font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500 mb-1.5">
+              Price by volume tier
+            </p>
+            <p class="text-[13px] text-slate-500 mb-4 leading-relaxed">
+              Every number below is the rate{' '}
+              <strong class="text-[var(--color-ink)]">per {service.unitLabel}</strong> at that tier
+              — not a total for the whole batch.
+            </p>
+            <PriceLadder tiers={service.tiers} unitLabel={service.unitLabel} />
+            <div class="mt-4 text-[13.5px] text-slate-500 bg-[var(--color-cream)] border border-dashed border-slate-900/15 rounded-md px-4 py-3 leading-relaxed">
+              {service.addonNote}
+            </div>
+          </div>
+        </div>
+      </section>
+    ))
+  }
+
+  <section class="max-w-6xl mx-auto px-6 py-14 border-t border-slate-900/10">
+    <h2 class="text-2xl md:text-3xl font-semibold text-[var(--color-ink)] text-center">
+      Which service fits your project?
+    </h2>
+    <p class="mt-2 text-sm text-slate-500 text-center max-w-[560px] mx-auto">
+      A first look at how the two services complement each other — many programs use both.
+    </p>
+    <div class="mt-8 overflow-x-auto">
+      <table
+        class="w-full min-w-[640px] border-collapse bg-white rounded-lg overflow-hidden shadow-sm"
+      >
+        <thead>
+          <tr>
+            <th
+              class="bg-[var(--color-ink)] text-white text-left text-[13.5px] font-semibold px-5 py-4"
+            >
+              &nbsp;
+            </th>
+            <th
+              class="bg-[var(--color-ink)] text-white text-left text-[13.5px] font-semibold px-5 py-4"
+            >
+              Specimen DNA Barcoding
+            </th>
+            <th
+              class="bg-[var(--color-ink)] text-white text-left text-[13.5px] font-semibold px-5 py-4"
+            >
+              eDNA Metabarcoding
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            comparisonRows.map((row) => (
+              <tr class="border-t border-slate-900/10">
+                <th
+                  scope="row"
+                  class="font-mono text-[11.5px] tracking-[0.04em] uppercase text-slate-500 bg-[var(--color-cream)] text-left px-5 py-4 whitespace-nowrap align-top"
+                >
+                  {row.label}
+                </th>
+                <td class="text-sm text-[var(--color-ink)] px-5 py-4 align-top">{row.barcoding}</td>
+                <td class="text-sm text-[var(--color-ink)] bg-[rgba(15,118,110,0.06)] px-5 py-4 align-top">
+                  {row.metabarcoding}
+                </td>
+              </tr>
+            ))
+          }
+          <tr class="border-t border-slate-900/10">
+            <td
+              colspan="3"
+              class="bg-[var(--color-cream)] text-slate-600 italic text-[13.5px] px-5 py-4"
+            >
+              Many programs run both: eDNA for broad, fast screening across a site — barcoding to
+              confirm and voucher the specimens that matter most.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <CtaBand
+    title="Not sure which service — or need a project-specific number?"
+    subtitle="Every project is a little different. Send us your sample count and goals and we'll put together a project-specific quote."
+    cta={{ href: '/contact?topic=sequencing', label: 'Request a quote' }}
+  />
+
+  <p class="max-w-6xl mx-auto px-6 pb-12 text-xs text-slate-500 leading-relaxed">
+    Pricing reflects standard turnaround and workflow as of 2026 and is provided as a general guide
+    — final quotes may vary based on sample condition, marker selection, and project timeline.
+  </p>
+
+  <script
+    type="application/ld+json"
+    is:inline
+    set:html={stringifyJsonLd({
+      '@context': 'https://schema.org',
+      '@graph': jsonLdServices,
+    })}
+  />
+</BaseLayout>

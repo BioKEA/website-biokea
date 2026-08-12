@@ -7,6 +7,7 @@ import { homepageStats, labStats } from '@/data/stats';
 import { programs, personalCredentials, credentialsFor } from '@/data/credentials';
 import { projects } from '@/data/projects';
 import { worksProducts, worksReserved } from '@/data/works';
+import { pricedServices } from '@/data/pricing';
 
 describe('team data', () => {
   it('has three core team members and two advisors', () => {
@@ -228,5 +229,39 @@ describe('works data', () => {
   });
   it('has exactly 2 reserved names: Droplet and Sequoia', () => {
     expect(worksReserved.map((r) => r.name)).toEqual(['Droplet', 'Sequoia']);
+  });
+});
+
+describe('pricing data', () => {
+  it('has exactly 2 priced services: barcoding and metabarcoding', () => {
+    expect(pricedServices.map((s) => s.slug)).toEqual(['barcoding', 'metabarcoding']);
+  });
+  it('barcoding has 4 tiers and metabarcoding has 3', () => {
+    const barcoding = pricedServices.find((s) => s.slug === 'barcoding');
+    const metabarcoding = pricedServices.find((s) => s.slug === 'metabarcoding');
+    expect(barcoding!.tiers).toHaveLength(4);
+    expect(metabarcoding!.tiers).toHaveLength(3);
+  });
+  it('academic price strictly decreases as volume increases, for every service', () => {
+    for (const s of pricedServices) {
+      const academicPrices = s.tiers.map((t) => t.academicPrice);
+      for (let i = 1; i < academicPrices.length; i++) {
+        expect(academicPrices[i]).toBeLessThan(academicPrices[i - 1]);
+      }
+    }
+  });
+  it('commercial price is always higher than academic price, for every tier', () => {
+    for (const s of pricedServices) {
+      for (const t of s.tiers) {
+        expect(t.commercialPrice).toBeGreaterThan(t.academicPrice);
+      }
+    }
+  });
+  it('only the top (highest-volume) tier of each service is marked best', () => {
+    for (const s of pricedServices) {
+      const bestTiers = s.tiers.filter((t) => t.best);
+      expect(bestTiers).toHaveLength(1);
+      expect(bestTiers[0]).toBe(s.tiers[s.tiers.length - 1]);
+    }
   });
 });

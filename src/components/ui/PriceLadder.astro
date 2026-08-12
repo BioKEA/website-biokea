@@ -1,0 +1,64 @@
+---
+// src/components/ui/PriceLadder.astro
+import type { PriceTier } from '@/data/pricing';
+
+interface Props {
+  tiers: PriceTier[];
+  unitLabel: string;
+}
+const { tiers, unitLabel } = Astro.props;
+---
+
+<div class="flex flex-col gap-3">
+  <div class="flex gap-4 font-mono text-[11px] text-slate-500">
+    <span class="flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-[var(--color-teal)]"></span>
+      Academic &amp; nonprofit — per {unitLabel}
+    </span>
+    <span class="flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-[var(--color-ink)]"></span>
+      Commercial — per {unitLabel}
+    </span>
+  </div>
+  {
+    tiers.map((t) => (
+      <div
+        class:list={[
+          'relative flex flex-wrap items-center justify-between gap-4 bg-white border rounded-md px-5 py-3.5 border-l-4',
+          t.best
+            ? 'border-slate-900/10 border-l-[var(--color-ochre)] bg-[var(--color-cream-warm)]'
+            : 'border-slate-900/10 border-l-[var(--color-teal)]',
+        ]}
+      >
+        {t.best && (
+          <span class="absolute -top-2.5 right-4 bg-[var(--color-ochre)] text-white font-mono text-[10px] tracking-[0.08em] uppercase px-2.5 py-0.5 rounded-full font-semibold">
+            Best rate
+          </span>
+        )}
+        <div class="flex flex-col gap-0.5 min-w-[150px]">
+          <span class="font-mono text-[13px] font-bold text-[var(--color-ink)]">{t.range}</span>
+          <span class="text-[12.5px] text-slate-500">{t.description}</span>
+        </div>
+        <div class="flex items-stretch gap-4">
+          <div class="flex flex-col items-end min-w-[70px]">
+            <span class="font-semibold text-[22px] leading-none text-[var(--color-teal)]">
+              ${t.academicPrice}
+            </span>
+            <span class="font-medium text-[10.5px] text-slate-500 mt-1 whitespace-nowrap">
+              academic/nonprofit
+            </span>
+          </div>
+          <div class="w-px bg-slate-900/10" />
+          <div class="flex flex-col items-end min-w-[70px]">
+            <span class="font-semibold text-[22px] leading-none text-[var(--color-ink)]">
+              ${t.commercialPrice}
+            </span>
+            <span class="font-medium text-[10.5px] text-slate-500 mt-1 whitespace-nowrap">
+              commercial
+            </span>
+          </div>
+        </div>
+      </div>
+    ))
+  }
+</div>

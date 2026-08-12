@@ -149,7 +149,17 @@ const serviceJsonLd = serviceOfferings.map((s) => ({
       {
         serviceOfferings.map((s) => (
           <li class="border-b border-slate-900/10 py-5">
-            <div class="font-semibold text-[var(--color-ink)]">{s.name}</div>
+            <div class="flex items-baseline justify-between gap-4 flex-wrap">
+              <div class="font-semibold text-[var(--color-ink)]">{s.name}</div>
+              {s.pricingAnchor && (
+                <a
+                  href={`/pricing#${s.pricingAnchor}`}
+                  class="font-mono text-[12px] text-[var(--color-pink)] shrink-0"
+                >
+                  See pricing →
+                </a>
+              )}
+            </div>
             {s.description && (
               <p class="mt-1 text-sm text-slate-600 leading-relaxed max-w-[68ch]">
                 {s.description}

@@ -27,12 +27,16 @@ test('nav renders logo, three dropdown groups, Golden Sample, and Get-in-touch C
   );
 });
 
-test('"What we do" dropdown reveals Services and Lab', async ({ page }) => {
+test('"What we do" dropdown reveals Services, Pricing, and Lab', async ({ page }) => {
   await page.goto('/');
   const nav = page.getByRole('navigation', { name: 'Primary' });
   const desktop = nav.locator('div.hidden.md\\:flex').first();
   await desktop.getByText('What we do', { exact: true }).click();
   await expect(desktop.getByRole('link', { name: 'Services', exact: true })).toBeVisible();
+  await expect(desktop.getByRole('link', { name: 'Pricing', exact: true })).toHaveAttribute(
+    'href',
+    '/pricing',
+  );
   await expect(desktop.getByRole('link', { name: 'Lab', exact: true })).toBeVisible();
 });
 
@@ -110,6 +114,10 @@ test('footer renders logo, copyright, demoted links, and Hiring callout', async 
   await expect(footer.getByRole('link', { name: 'Pipeline', exact: true })).toHaveAttribute(
     'href',
     '/pipeline',
+  );
+  await expect(footer.getByRole('link', { name: 'Pricing', exact: true })).toHaveAttribute(
+    'href',
+    '/pricing',
   );
   await expect(footer.getByRole('link', { name: 'Works', exact: true })).toHaveAttribute(
     'href',

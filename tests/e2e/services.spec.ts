@@ -97,3 +97,21 @@ test('services FAQ links BioInfoOS to BioKEA Works', async ({ page }) => {
   const link = page.getByRole('link', { name: 'BioKEA Works' }).last();
   await expect(link).toHaveAttribute('href', '/works#bioinfoos');
 });
+
+test('barcoding and eDNA catalog rows link out to their pricing anchors', async ({ page }) => {
+  await page.goto('/services');
+  const barcodingRow = page
+    .locator('li')
+    .filter({ hasText: 'DNA-based identification of organisms (barcoding)' });
+  await expect(barcodingRow.getByRole('link', { name: 'See pricing →' })).toHaveAttribute(
+    'href',
+    '/pricing#barcoding',
+  );
+  const ednaRow = page
+    .locator('li')
+    .filter({ hasText: 'qPCR / eDNA assay (single + multi-species)' });
+  await expect(ednaRow.getByRole('link', { name: 'See pricing →' })).toHaveAttribute(
+    'href',
+    '/pricing#metabarcoding',
+  );
+});

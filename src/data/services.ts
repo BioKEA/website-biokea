@@ -1,12 +1,15 @@
 // src/data/services.ts
 // Service offerings catalog for the BioKEA molecular sequencing service.
 // Source of truth for /services page rendering, Service JSON-LD on the
-// page, and the /api/capabilities.json endpoint. Engagements are
-// project-rate and quoted per request — no published prices.
+// page, and the /api/capabilities.json endpoint. Most engagements are
+// project-rate and quoted per request — no published prices — except the
+// two offerings tagged with `pricingAnchor` below, which have published,
+// volume-tiered rates on /pricing (see src/data/pricing.ts).
 
 export interface ServiceOffering {
   name: string;
   description?: string;
+  pricingAnchor?: string;
 }
 
 export const serviceOfferings: ServiceOffering[] = [
@@ -22,11 +25,13 @@ export const serviceOfferings: ServiceOffering[] = [
     name: 'DNA-based identification of organisms (barcoding)',
     description:
       'Single-specimen barcode sequencing across COI, 16S, 18S, ITS, rbcL, matK, or custom primers.',
+    pricingAnchor: 'barcoding',
   },
   {
     name: 'qPCR / eDNA assay (single + multi-species)',
     description:
       'Quantitative PCR for environmental DNA detection of one or more target species in water, soil, or sediment samples.',
+    pricingAnchor: 'metabarcoding',
   },
   {
     name: 'Custom eDNA / qPCR assay design + validation',
