@@ -171,6 +171,23 @@ describe('pricing engine — upsell (non-dead-zone nudge)', () => {
   it('returns null when already on the top tier', () => {
     expect(nextTierUpsell('barcoding', 6000, 1, 'academic')).toBeNull();
   });
+
+  it('newRate includes the marker surcharge for multi-marker services', () => {
+    // eDNA 100 samples x3 markers: next tier is 200+ at $115 base,
+    // effective rate is 115 + 2*12 = 139.
+    const u = nextTierUpsell('metabarcoding', 100, 3, 'academic')!;
+    expect(u.newRate).toBe(139);
+    expect(u.additionalUnits).toBe(100);
+    // 200 * 139 = 27800, current 100 * 154 = 15400
+    expect(u.additionalCost).toBe(12400);
+  });
+
+  it('additionalUnits measures from the priced count, not the requested count', () => {
+    // 275 specimens is dead-zoned up to 300; reaching the 1000 tier needs
+    // 700 more from there, not 725 from the raw request.
+    const u = nextTierUpsell('barcoding', 275, 1, 'academic')!;
+    expect(u.additionalUnits).toBe(700);
+  });
 });
 
 describe('pricing engine — input validation', () => {

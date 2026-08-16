@@ -164,8 +164,8 @@ export function nextTierUpsell(
   if (!next) return null;
   const nextTotal = next.minQty * effectiveRate(svc, next, markers, audience);
   return {
-    additionalUnits: next.minQty - count,
+    additionalUnits: next.minQty - current.pricedCount,
     additionalCost: nextTotal - current.total,
-    newRate: rateOf(next, audience),
+    newRate: effectiveRate(svc, next, markers, audience),
   };
 }
