@@ -123,8 +123,27 @@ export async function handleQuote(request: Request, e: Env, remoteIp?: string): 
     );
   }
 
-  const inserted = (await insertRes.json()) as { quote_number: string; access_token: string }[];
-  const { quote_number: quoteNumber, access_token: accessToken } = inserted[0];
+  // The row is already committed at this point, so a malformed or empty
+  // RETURNING payload must produce a clean error rather than an unhandled
+  // throw — the caller needs to know the quote may exist without a link.
+  let inserted: { quote_number?: string; access_token?: string }[] = [];
+  try {
+    inserted = (await insertRes.json()) as typeof inserted;
+  } catch {
+    inserted = [];
+  }
+  const quoteNumber = inserted[0]?.quote_number;
+  const accessToken = inserted[0]?.access_token;
+  if (!quoteNumber || !accessToken) {
+    return json(
+      {
+        ok: false,
+        error:
+          'Your quote was saved but we could not build its link. Please email contact@biokea.ai.',
+      },
+      502,
+    );
+  }
   const url = `https://biokea.ai/quote/${accessToken}`;
 
   const summary = quote.lines
@@ -153,27 +172,39 @@ export async function handleQuote(request: Request, e: Env, remoteIp?: string): 
     `https://biokea.ai/`,
   ].join('\n');
 
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      authorization: `Bearer ${e.RESEND_API_KEY}`,
-    },
-    body: JSON.stringify({
-      from: `BioKEA <${e.CONTACT_FROM_EMAIL}>`,
-      to: email,
-      reply_to: 'contact@biokea.ai',
-      subject: `Your BioKEA quote — ${quoteNumber}`,
-      text,
-    }),
-  });
+  // The quote is already persisted and retrievable via `url`, so an email
+  // failure must not fail the request. Swallow both non-2xx responses and
+  // thrown network errors; the user still gets their number and link.
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${e.RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: `BioKEA <${e.CONTACT_FROM_EMAIL}>`,
+        to: email,
+        reply_to: 'contact@biokea.ai',
+        subject: `Your BioKEA quote — ${quoteNumber}`,
+        text,
+      }),
+    });
+  } catch {
+    // ignore — the quote is saved and the response carries the link
+  }
 
   return json({ ok: true, quoteNumber, url }, 200);
 }
 
 export async function POST({ request, clientAddress }: APIContext): Promise<Response> {
   const e = env as unknown as Env;
-  if (!e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY || !e?.RESEND_API_KEY) {
+  if (
+    !e?.SUPABASE_URL ||
+    !e?.SUPABASE_SERVICE_ROLE_KEY ||
+    !e?.RESEND_API_KEY ||
+    !e?.CONTACT_FROM_EMAIL
+  ) {
     return json({ ok: false, error: 'Quotes are not configured.' }, 500);
   }
   return handleQuote(request, e, clientAddress);

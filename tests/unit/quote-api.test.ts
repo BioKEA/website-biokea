@@ -118,4 +118,41 @@ describe('quote endpoint', () => {
     const res = await handleQuote(makeRequest(validBody), env);
     expect(res.status).toBe(502);
   });
+
+  it('returns 502 rather than throwing when the insert returns no rows', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        if (String(url).includes('/rest/v1/quotes')) {
+          return new Response('[]', {
+            status: 201,
+            headers: { 'content-type': 'application/json' },
+          });
+        }
+        return new Response('{}', { status: 200 });
+      }),
+    );
+    const res = await handleQuote(makeRequest(validBody), env);
+    expect(res.status).toBe(502);
+  });
+
+  it('still returns the quote when the email send throws', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        if (String(url).includes('/rest/v1/quotes')) {
+          return new Response(
+            JSON.stringify([{ quote_number: 'BK-2026-0001', access_token: 'tok-123' }]),
+            { status: 201, headers: { 'content-type': 'application/json' } },
+          );
+        }
+        throw new Error('resend unreachable');
+      }),
+    );
+    const res = await handleQuote(makeRequest(validBody), env);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.quoteNumber).toBe('BK-2026-0001');
+  });
 });
