@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
+import CtaBand from '@/components/sections/CtaBand.astro';
 import { pricedServices } from '@/data/pricing';
 
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | undefined;
@@ -121,7 +122,12 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | u
         <div class="font-mono text-[10px] tracking-[0.2em] uppercase text-[var(--color-ochre)]">
           Your quote
         </div>
-        <div class="mt-3 grid grid-cols-2 gap-4">
+        <div
+          class="mt-3 grid grid-cols-2 gap-4"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           <div>
             <div data-total-academic class="text-2xl font-semibold leading-none">$0</div>
             <div class="mt-1 font-mono text-[10px] text-[var(--color-cream)]/70">
@@ -141,6 +147,8 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | u
         <div
           data-deadzone-callout
           hidden
+          role="status"
+          aria-live="polite"
           class="mt-4 text-[13px] leading-relaxed text-[var(--color-ink)] bg-[rgba(146,64,14,0.1)] border-l-2 border-[var(--color-ochre)] rounded-r-sm px-3 py-2"
         >
         </div>
@@ -148,6 +156,8 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | u
         <div
           data-upsell-callout
           hidden
+          role="status"
+          aria-live="polite"
           class="mt-4 text-[13px] leading-relaxed text-slate-600 bg-white/60 border border-slate-900/10 rounded-sm px-3 py-2"
         >
         </div>
@@ -249,6 +259,12 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | u
     </aside>
   </section>
 
+  <CtaBand
+    title="Need something the calculator doesn't cover?"
+    subtitle="Study design, custom assay development, field collection, or anything bespoke — tell us about your project."
+    cta={{ href: '/contact?topic=sequencing', label: 'Start a conversation' }}
+  />
+
   {
     turnstileSiteKey && (
       <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
@@ -286,8 +302,10 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | u
         const markersEl = document.querySelector<HTMLInputElement>(
           `[data-markers-input="${slug}"]`,
         );
-        const count = Math.max(1, Math.floor(Number(countEl.value) || 1));
-        const markers = markersEl ? Math.max(1, Math.floor(Number(markersEl.value) || 1)) : 1;
+        const count = Math.min(1_000_000, Math.max(1, Math.floor(Number(countEl.value) || 1)));
+        const markers = markersEl
+          ? Math.min(20, Math.max(1, Math.floor(Number(markersEl.value) || 1)))
+          : 1;
         lines.push(
           markers > 1 ? { serviceSlug: slug, count, markers } : { serviceSlug: slug, count },
         );
@@ -362,6 +380,14 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | u
         if (slider) slider.value = String(countToSlider(Number(el.value) || 1));
         render();
       });
+      el.addEventListener('change', () => {
+        // Normalize on commit (blur/Enter) rather than on every keystroke, so
+        // typing "1" on the way to "150" isn't fought by the sanitizer.
+        const clamped = Math.min(1_000_000, Math.max(1, Math.floor(Number(el.value) || 1)));
+        el.value = String(clamped);
+        if (slider) slider.value = String(countToSlider(clamped));
+        render();
+      });
       slider?.addEventListener('input', () => {
         el.value = String(sliderToCount(Number(slider.value)));
         render();
@@ -370,6 +396,12 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | u
     document
       .querySelectorAll<HTMLInputElement>('[data-markers-input], [data-service-toggle]')
       .forEach((el) => el.addEventListener('input', render));
+    document.querySelectorAll<HTMLInputElement>('[data-markers-input]').forEach((el) => {
+      el.addEventListener('change', () => {
+        el.value = String(Math.min(20, Math.max(1, Math.floor(Number(el.value) || 1))));
+        render();
+      });
+    });
 
     openFormBtn.addEventListener('click', () => {
       form.hidden = false;

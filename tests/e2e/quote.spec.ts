@@ -58,3 +58,14 @@ test('the price is visible without submitting any form', async ({ page }) => {
   await expect(page.locator('[data-total-academic]')).toBeVisible();
   await expect(page.locator('#quote-name')).toBeHidden();
 });
+
+test('an out-of-range count is normalized on commit so display matches pricing', async ({
+  page,
+}) => {
+  await page.goto('/quote');
+  const input = page.locator('[data-count-input="barcoding"]');
+  await input.fill('0');
+  await input.blur();
+  await expect(input).toHaveValue('1');
+  await expect(page.locator('[data-total-academic]')).toHaveText('$16');
+});
