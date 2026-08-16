@@ -6,6 +6,10 @@
 --
 -- Two identifiers on purpose:
 --   quote_number  human-readable (BK-2026-0142); goes on PO requisitions.
+--                 The sequence is global and never resets, so the year is
+--                 a prefix, not a per-year counter — the first quote of
+--                 2027 continues the run (e.g. BK-2027-0143). Uniqueness
+--                 is what matters here, not the ordinal.
 --   access_token  unguessable; the only thing in the retrieval URL. A
 --                 sequential number in the URL would let anyone enumerate
 --                 other customers' quotes.
@@ -53,12 +57,16 @@ create table public.quotes (
 );
 
 create index quotes_created_idx on public.quotes (created_at desc);
-create index quotes_token_idx   on public.quotes (access_token);
 
 alter table public.quotes enable row level security;
 
--- Anonymous inserts allowed (the API route recomputes prices before
--- inserting). No select policy: reads require service_role.
-create policy quotes_public_insert
-  on public.quotes for insert
-  with check (true);
+-- No policies at all: RLS with zero policies denies every operation to
+-- anon/authenticated. Both writes (/api/quote) and reads (/quote/<token>)
+-- go through the Worker using SUPABASE_SERVICE_ROLE_KEY, which bypasses
+-- RLS. Deliberately stricter than `subscribers`, which allows anonymous
+-- insert: the publishable key is public, so an insert policy here would
+-- let anyone write rows directly, skipping the endpoint's validation,
+-- honeypot, and captcha. It also has to be this way for correctness —
+-- Postgres applies SELECT policies to INSERT ... RETURNING, so an
+-- insert-only policy would return zero rows and the API could never
+-- learn the generated access_token.
