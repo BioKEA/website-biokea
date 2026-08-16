@@ -340,14 +340,33 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | u
 
       // Dead zone: buying up to a tier floor genuinely costs LESS. Only
       // here is the word "save" truthful.
-      const saver = quote.lines.find((l) => l.academic.isBetterThanLiteral);
+      //
+      // A dead zone can apply to one audience and not the other, because the
+      // engine picks the cheapest tier per audience and the academic/commercial
+      // rate ratios differ across tiers. Report only the audiences that really
+      // benefit — claiming a saving for a rate that doesn't get one is exactly
+      // the dishonesty the isBetterThanLiteral gate exists to prevent.
+      const saver = quote.lines.find(
+        (l) => l.academic.isBetterThanLiteral || l.commercial.isBetterThanLiteral,
+      );
       if (saver) {
+        const parts: string[] = [];
+        if (saver.academic.isBetterThanLiteral) {
+          parts.push(
+            `<strong>Academic/nonprofit:</strong> priced at our ${saver.academic.tierRange} rate — ` +
+              `${usd(saver.academic.savings)} less than ${saver.count.toLocaleString()} ${saver.unitLabel}s ` +
+              `would cost, and you can send ${saver.academic.freeHeadroom.toLocaleString()} more at no extra cost.`,
+          );
+        }
+        if (saver.commercial.isBetterThanLiteral) {
+          parts.push(
+            `<strong>Commercial:</strong> priced at our ${saver.commercial.tierRange} rate — ` +
+              `${usd(saver.commercial.savings)} less than ${saver.count.toLocaleString()} ${saver.unitLabel}s ` +
+              `would cost, and you can send ${saver.commercial.freeHeadroom.toLocaleString()} more at no extra cost.`,
+          );
+        }
         deadzone.hidden = false;
-        deadzone.innerHTML =
-          `<strong>Priced at our ${saver.academic.tierRange} rate.</strong> ` +
-          `That's ${usd(saver.academic.savings)} less than ${saver.count.toLocaleString()} ` +
-          `${saver.unitLabel}s would cost — and you can send ${saver.academic.freeHeadroom.toLocaleString()} more ` +
-          `${saver.unitLabel}s at no extra cost.`;
+        deadzone.innerHTML = parts.join('<br><br>');
       } else {
         deadzone.hidden = true;
       }

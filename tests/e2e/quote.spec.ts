@@ -70,6 +70,21 @@ test('an out-of-range count is normalized on commit so display matches pricing',
   await expect(page.locator('[data-total-academic]')).toHaveText('$16');
 });
 
+test('a count where only the academic rate dead-zones names that rate explicitly', async ({
+  page,
+}) => {
+  await page.goto('/quote');
+  await page.locator('[data-count-input="barcoding"]').fill('850');
+  await page.locator('[data-count-input="barcoding"]').blur();
+  const callout = page.locator('[data-deadzone-callout]');
+  await expect(callout).toBeVisible();
+  await expect(callout).toContainText('Academic/nonprofit');
+  // Commercial is NOT in a dead zone at 850, so it must not be claimed.
+  await expect(callout).not.toContainText('Commercial:');
+  await expect(page.locator('[data-total-academic]')).toHaveText('$10,000');
+  await expect(page.locator('[data-total-commercial]')).toHaveText('$12,750');
+});
+
 test('an unknown quote token returns 404', async ({ page }) => {
   const res = await page.goto('/quote/00000000-0000-0000-0000-000000000000');
   expect(res?.status()).toBe(404);
