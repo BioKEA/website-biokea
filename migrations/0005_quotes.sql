@@ -14,10 +14,12 @@
 --                 sequential number in the URL would let anyone enumerate
 --                 other customers' quotes.
 --
--- RLS mirrors `subscribers`: anonymous insert is allowed (the API route
--- posts with the publishable key), and there is no select policy, so
--- reads require service_role. /quote/<token> renders server-side on the
--- Worker using SUPABASE_SERVICE_ROLE_KEY.
+-- RLS is enabled with NO policies, which denies anon and authenticated
+-- every operation. Both the write (/api/quote) and the read
+-- (/quote/<token>) run server-side on the Worker with
+-- SUPABASE_SERVICE_ROLE_KEY, which bypasses RLS. This is deliberately
+-- stricter than `subscribers`, which permits anonymous insert — see the
+-- note above the RLS statement at the bottom of this file for why.
 --
 -- Apply via Supabase Dashboard → SQL Editor, paste, run.
 
