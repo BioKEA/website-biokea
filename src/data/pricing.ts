@@ -6,12 +6,12 @@
 // two that have a clean per-unit rate card.
 
 export interface PriceTier {
-  range: string; // display label, e.g. "1–300"
+  range: string; // display label, e.g. "1–299"
   description: string;
   academicPrice: number;
   commercialPrice: number;
   minQty: number;
-  maxQty?: number; // undefined = open-ended top tier
+  maxQty?: number; // undefined ONLY on the final, open-ended tier
   best?: boolean;
 }
 
@@ -26,6 +26,15 @@ export interface PricedService {
   unitLabel: string; // "specimen" | "sample"
   tiers: PriceTier[];
   addonNote: string;
+  // Per-unit surcharge for each marker beyond the first. eDNA only.
+  // PROVISIONAL — pending Michelle's confirmation against the cost model.
+  // Published ranges were $10–13 (academic) / $13–16 (commercial); these
+  // sit inside both and preserve the documented ~25% commercial premium.
+  additionalMarkerPrice?: { academic: number; commercial: number };
+  // At or above this count, the configurator shows an indicative range
+  // instead of a firm quote and routes to a conversation — covering both
+  // the expensive dead zone and a sequencing-capacity check.
+  conversationThreshold?: number;
 }
 
 export const pricedServices: PricedService[] = [
@@ -61,28 +70,28 @@ export const pricedServices: PricedService[] = [
     unitLabel: 'specimen',
     tiers: [
       {
-        range: '1–300',
+        range: '1–299',
         description: 'Small batches & pilot runs',
         academicPrice: 16,
         commercialPrice: 20,
         minQty: 1,
-        maxQty: 300,
+        maxQty: 299,
       },
       {
-        range: '300–1,000',
+        range: '300–999',
         description: 'Standard project size',
         academicPrice: 12,
         commercialPrice: 15,
         minQty: 300,
-        maxQty: 1000,
+        maxQty: 999,
       },
       {
-        range: '1,000–5,000',
+        range: '1,000–4,999',
         description: 'Multi-flow-cell projects',
         academicPrice: 10,
         commercialPrice: 13,
         minQty: 1000,
-        maxQty: 5000,
+        maxQty: 4999,
       },
       {
         range: '5,000+',
@@ -93,6 +102,7 @@ export const pricedServices: PricedService[] = [
         best: true,
       },
     ],
+    conversationThreshold: 3001,
     addonNote:
       'Rates shown are per specimen at each volume tier. Contact us for volume commitments, recurring programs, or multi-project pricing.',
   },
@@ -122,12 +132,12 @@ export const pricedServices: PricedService[] = [
         maxQty: 48,
       },
       {
-        range: '49–200',
+        range: '49–199',
         description: 'Standard project size',
         academicPrice: 130,
         commercialPrice: 160,
         minQty: 49,
-        maxQty: 200,
+        maxQty: 199,
       },
       {
         range: '200+',
@@ -138,7 +148,8 @@ export const pricedServices: PricedService[] = [
         best: true,
       },
     ],
+    additionalMarkerPrice: { academic: 12, commercial: 15 },
     addonNote:
-      'Running more than one marker? Each additional target (e.g. stacking fish + invertebrate + general-eukaryote panels on the same samples) typically adds $10–13/sample (academic/nonprofit) or $13–16/sample (commercial).',
+      'Running more than one marker? Each additional target (e.g. stacking fish + invertebrate + general-eukaryote panels on the same samples) adds $12/sample (academic/nonprofit) or $15/sample (commercial).',
   },
 ];

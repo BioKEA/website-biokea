@@ -265,3 +265,57 @@ describe('pricing data', () => {
     }
   });
 });
+
+describe('pricing data — unambiguous tiers', () => {
+  it('no count belongs to two tiers, for any service', () => {
+    for (const s of pricedServices) {
+      for (let i = 1; i < s.tiers.length; i++) {
+        const prev = s.tiers[i - 1];
+        const cur = s.tiers[i];
+        expect(prev.maxQty).toBeDefined();
+        expect(cur.minQty).toBe(prev.maxQty! + 1);
+      }
+    }
+  });
+
+  it('only the final tier is open-ended', () => {
+    for (const s of pricedServices) {
+      const last = s.tiers[s.tiers.length - 1];
+      expect(last.maxQty).toBeUndefined();
+      for (const t of s.tiers.slice(0, -1)) expect(t.maxQty).toBeDefined();
+    }
+  });
+
+  it('barcoding tiers are 1-299 / 300-999 / 1000-4999 / 5000+', () => {
+    const b = pricedServices.find((s) => s.slug === 'barcoding')!;
+    expect(b.tiers.map((t) => [t.minQty, t.maxQty])).toEqual([
+      [1, 299],
+      [300, 999],
+      [1000, 4999],
+      [5000, undefined],
+    ]);
+  });
+
+  it('eDNA tiers are 1-48 / 49-199 / 200+', () => {
+    const e = pricedServices.find((s) => s.slug === 'metabarcoding')!;
+    expect(e.tiers.map((t) => [t.minQty, t.maxQty])).toEqual([
+      [1, 48],
+      [49, 199],
+      [200, undefined],
+    ]);
+  });
+
+  it('eDNA has a firm additional-marker price; barcoding has none', () => {
+    const e = pricedServices.find((s) => s.slug === 'metabarcoding')!;
+    expect(e.additionalMarkerPrice).toEqual({ academic: 12, commercial: 15 });
+    const b = pricedServices.find((s) => s.slug === 'barcoding')!;
+    expect(b.additionalMarkerPrice).toBeUndefined();
+  });
+
+  it('barcoding has a conversation threshold of 3001; eDNA has none', () => {
+    const b = pricedServices.find((s) => s.slug === 'barcoding')!;
+    expect(b.conversationThreshold).toBe(3001);
+    const e = pricedServices.find((s) => s.slug === 'metabarcoding')!;
+    expect(e.conversationThreshold).toBeUndefined();
+  });
+});
