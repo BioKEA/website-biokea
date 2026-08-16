@@ -82,3 +82,11 @@ test('no internal cost-model comment leaks into the served HTML', async ({ page 
   expect(body).not.toContain('gross margin');
   expect(body).not.toContain('cost model');
 });
+
+test('pricing page links to the quote configurator', async ({ page }) => {
+  await page.goto('/pricing');
+  await expect(page.getByRole('link', { name: /Build your quote/i }).first()).toHaveAttribute(
+    'href',
+    '/quote',
+  );
+});
