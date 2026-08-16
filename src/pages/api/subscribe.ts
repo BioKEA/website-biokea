@@ -122,7 +122,6 @@ async function sendWelcomeEmail(env: Env, email: string): Promise<WelcomeResult>
     `What you'll get from us, and only this:`,
     `  · new game drops on biokea.ai/mission/games/`,
     `  · papers, datasets, and lab milestones we want to share`,
-    `  · the Golden Sample Hunt and any future challenges`,
     ``,
     `That's it. No spam, no shared lists, no third-party tracking.`,
     `Unsubscribe any time by replying to this email with "unsubscribe",`,
@@ -137,7 +136,6 @@ async function sendWelcomeEmail(env: Env, email: string): Promise<WelcomeResult>
 <ul>
   <li>new game drops on <a href="https://biokea.ai/mission/games/">biokea.ai/mission/games/</a></li>
   <li>papers, datasets, and lab milestones we want to share</li>
-  <li>the Golden Sample Hunt and any future challenges</li>
 </ul>
 <p>That's it. No spam, no shared lists, no third-party tracking.</p>
 <p style="color:#5c6470;font-size:13px;">Unsubscribe any time: reply to this email with <em>unsubscribe</em>, or write to <a href="mailto:contact@biokea.ai">contact@biokea.ai</a>.</p>

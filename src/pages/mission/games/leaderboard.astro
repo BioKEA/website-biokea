@@ -103,14 +103,6 @@ import {
       >
         All-time
       </button>
-      <button
-        type="button"
-        role="tab"
-        data-tab="hunt"
-        class="ml-auto px-4 py-3 font-mono text-[11px] tracking-[0.16em] uppercase text-[var(--color-ochre)] border-b-2 border-transparent transition data-[active=true]:text-[var(--color-ink)] data-[active=true]:border-[var(--color-ochre)]"
-      >
-        Hunt 🎟
-      </button>
     </div>
   </section>
 
@@ -163,35 +155,6 @@ import {
       player — their single best run, with the day it was set.
     </p>
     <div class="grid md:grid-cols-2 gap-4" data-all-per-game></div>
-  </section>
-
-  <!-- Hunt panel — Golden Sample 26 cross-player progress -->
-  <section class="max-w-5xl mx-auto px-6 py-10 hidden data-[active=true]:block" data-panel="hunt">
-    <div class="flex items-baseline justify-between mb-6 gap-3 flex-wrap">
-      <h2 class="text-2xl font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
-        Golden Sample Hunt
-      </h2>
-      <a
-        href="/mission/games/golden-sample-26"
-        class="font-mono text-[11px] tracking-[0.14em] uppercase text-[var(--color-ochre)] hover:text-[var(--color-teal)]"
-      >
-        Hunt rules + your collection →
-      </a>
-    </div>
-    <p class="text-sm text-slate-600 leading-relaxed mb-6">
-      Six BioKEA games each guard one word. Six words spell out a sentence. Players ranked by
-      tickets earned (1–6); ties broken by who got to that number first. First 10 to reach 6/6 win
-      real soil sequencing.
-    </p>
-    <ol
-      class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md overflow-hidden divide-y divide-slate-900/5"
-      data-hunt-rows
-    >
-      <li class="px-4 py-4 text-[12px] font-mono text-slate-400 italic text-center">loading…</li>
-    </ol>
-    <p class="mt-4 text-[11px] font-mono uppercase tracking-[0.14em] text-slate-500" data-hunt-meta>
-      —
-    </p>
   </section>
 
   <section class="max-w-5xl mx-auto px-6 pb-12">
@@ -286,14 +249,13 @@ import {
           if (tab === 'today') void loadToday();
           else if (tab === 'week') void loadWeek();
           else if (tab === 'all') void loadAll();
-          else if (tab === 'hunt') void loadHunt();
         });
       }
 
       // ─── tab switching ───
       const tabBtns = document.querySelectorAll('[data-tab]');
       const panels = document.querySelectorAll('[data-panel]');
-      const loaded = { today: false, week: false, all: false, hunt: false };
+      const loaded = { today: false, week: false, all: false };
       function activate(tabName) {
         tabBtns.forEach((b) =>
           b.setAttribute('data-active', b.getAttribute('data-tab') === tabName ? 'true' : 'false'),
@@ -313,9 +275,6 @@ import {
         } else if (tabName === 'all' && !loaded.all) {
           loaded.all = true;
           void loadAll();
-        } else if (tabName === 'hunt' && !loaded.hunt) {
-          loaded.hunt = true;
-          void loadHunt();
         }
       }
       tabBtns.forEach((b) =>
@@ -501,63 +460,9 @@ import {
         );
       }
 
-      // ─── Hunt (Golden Sample 26 cross-player progress) ───
-      async function loadHunt() {
-        const list = document.querySelector('[data-hunt-rows]');
-        const meta = document.querySelector('[data-hunt-meta]');
-        if (!list) return;
-        let data;
-        try {
-          const res = await fetch('/api/golden-sample/leaderboard');
-          data = await res.json();
-        } catch {
-          list.innerHTML =
-            '<li class="px-4 py-4 text-[12px] font-mono text-rose-500 italic text-center">offline</li>';
-          return;
-        }
-        if (!data || !data.ok || !Array.isArray(data.ranked)) {
-          list.innerHTML =
-            '<li class="px-4 py-4 text-[12px] font-mono text-rose-500 italic text-center">' +
-            ((data && data.error) || 'could not load') +
-            '</li>';
-          return;
-        }
-        if (data.ranked.length === 0) {
-          list.innerHTML =
-            '<li class="px-6 py-8 text-[12px] font-mono text-slate-400 italic text-center">no tickets earned yet · be the first</li>';
-          if (meta) meta.textContent = `0 of ${data.slot_count} · 10 prizes available`;
-          return;
-        }
-        const slotCount = data.slot_count || 6;
-        list.innerHTML = data.ranked
-          .map((row, i) => {
-            const mine = isMine(row.handle);
-            const filled = '█'.repeat(row.tickets);
-            const empty = '·'.repeat(slotCount - row.tickets);
-            const complete = row.tickets >= slotCount;
-            return `<li class="px-4 py-3 flex items-baseline justify-between gap-3 ${mine ? 'bg-[var(--color-ochre)]/10' : ''}">
-              <div class="flex items-baseline gap-3 min-w-0">
-                <span class="font-mono text-[10px] text-slate-400 w-5 text-right">${i + 1}</span>
-                <span class="text-sm truncate ${mine ? 'font-semibold' : ''} text-[var(--color-ink)]">${escapeHtml(row.handle)}</span>
-                ${complete ? '<span class="font-mono text-[9px] tracking-[0.16em] uppercase text-[var(--color-ochre)]">✓ complete</span>' : ''}
-              </div>
-              <div class="flex items-baseline gap-2 shrink-0">
-                <span class="font-mono text-[14px] tracking-[0.1em] text-[var(--color-ochre)]">${filled}<span class="text-slate-300">${empty}</span></span>
-                <span class="font-mono text-[12px] text-[var(--color-ink)] tabular-nums">${row.tickets}/${slotCount}</span>
-              </div>
-            </li>`;
-          })
-          .join('');
-        if (meta) {
-          const completed = data.ranked.filter((r) => r.tickets >= slotCount).length;
-          meta.textContent = `${data.total_handles} player${data.total_handles === 1 ? '' : 's'} earning · ${completed} complete`;
-        }
-      }
-
       // initial load — honour ?tab= or #tab so cross-links from other
-      // pages can land directly on a specific panel (e.g. the
-      // /mission/games/golden-sample-26 page links here with #hunt).
-      const validTabs = ['today', 'week', 'all', 'hunt'];
+      // pages can land directly on a specific panel.
+      const validTabs = ['today', 'week', 'all'];
       const initialTab = (() => {
         const fromHash = (location.hash || '').replace('#', '');
         if (validTabs.includes(fromHash)) return fromHash;

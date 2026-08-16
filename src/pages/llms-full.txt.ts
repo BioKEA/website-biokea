@@ -156,17 +156,6 @@ Full inventory (~80 items) available on request. Hardware was sourced across 202
 
 ${renderProjects()}
 
-## Golden Sample Hunt — Code with Claude · 2026
-
-A 30-day public scavenger hunt. The six BioKEA projects above double as "games": one Golden Sample Card is hidden inside each. Players collect six clue fragments, assemble them into a final answer, and submit through a Google Form. The first ten correct submissions win:
-
-- Real molecular sequencing of soil from the player's own backyard
-- A full report (PDF)
-- The raw sequencing data (FASTQ)
-- A Claude-powered explorer for the data
-
-Hunt window: May 7, 2026 → July 6, 2026 (~60 days). US residents only, 18+, one redemption per handle. Page: ${SITE}/mission/games/golden-sample-26
-
 ## Milestones
 
 ${renderMilestones()}

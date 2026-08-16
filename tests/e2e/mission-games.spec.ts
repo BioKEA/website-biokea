@@ -21,14 +21,16 @@ test('mission/games shows exactly 6 game tiles', async ({ page }) => {
   await expect(page.locator('[data-game-slug]')).toHaveCount(6);
 });
 
-test('mission/games hero CTA links to /mission/games/golden-sample-26', async ({ page }) => {
+test('mission/games no longer promotes the closed hunt', async ({ page }) => {
   await page.goto('/mission/games');
-  // The hunt CTA is the prominent "Golden Sample Hunt · Six golden samples
-  // · 10 prizes" dark-pill button under the intro paragraph. The page
-  // was moved from /golden-sample-26 to /mission/games/golden-sample-26
-  // to match the convention of the other game-area pages.
-  const cta = page.getByRole('link', { name: /Golden Sample Hunt/i }).first();
-  await expect(cta).toHaveAttribute('href', '/mission/games/golden-sample-26');
+  // Scoped to the page's own content (#main), not the site-wide Nav —
+  // the Nav's standalone "Golden Sample" link is cleaned up separately
+  // when the nav is restructured.
+  const main = page.locator('#main');
+  const body = await main.innerText();
+  expect(body).not.toContain('Golden Sample Hunt');
+  expect(body).not.toContain('GOLDEN SAMPLE HIDDEN');
+  await expect(main.getByRole('link', { name: /Golden Sample/i })).toHaveCount(0);
 });
 
 test('mission/games tile links go to /mission/games/<slug>/', async ({ page }) => {
