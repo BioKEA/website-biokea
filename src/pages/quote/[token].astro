@@ -11,7 +11,7 @@ interface QuoteLineRow {
   count: number;
   markers: number;
   academic: { total: number; tierRange: string; pricedCount: number; freeHeadroom: number };
-  commercial: { total: number };
+  commercial: { total: number; tierRange: string; pricedCount: number; freeHeadroom: number };
 }
 interface QuoteRow {
   quote_number: string;
@@ -92,16 +92,24 @@ const expired = Date.parse(quote.expires_at) < Date.now();
                 <div class="font-semibold">{l.serviceTitle}</div>
                 <div class="text-xs text-slate-500 mt-1">
                   {l.count.toLocaleString()} {l.unitLabel}s
-                  {l.markers > 1 && ` · ${l.markers} markers`} · {l.academic.tierRange} tier
-                  {l.academic.freeHeadroom > 0 &&
-                    ` · may ship up to ${l.academic.pricedCount.toLocaleString()} at this price`}
+                  {l.markers > 1 && ` · ${l.markers} markers`}
                 </div>
               </td>
-              <td class="px-4 py-4 text-sm font-mono text-right whitespace-nowrap">
+              <td class="px-4 py-4 text-sm font-mono text-right whitespace-nowrap align-top">
                 {usd(l.academic.total)}
+                <div class="mt-1 font-sans text-[11px] font-normal text-slate-500 whitespace-normal">
+                  {l.academic.tierRange} tier
+                  {l.academic.freeHeadroom > 0 &&
+                    ` · ships up to ${l.academic.pricedCount.toLocaleString()}`}
+                </div>
               </td>
-              <td class="px-4 py-4 text-sm font-mono text-right whitespace-nowrap">
+              <td class="px-4 py-4 text-sm font-mono text-right whitespace-nowrap align-top">
                 {usd(l.commercial.total)}
+                <div class="mt-1 font-sans text-[11px] font-normal text-slate-500 whitespace-normal">
+                  {l.commercial.tierRange} tier
+                  {l.commercial.freeHeadroom > 0 &&
+                    ` · ships up to ${l.commercial.pricedCount.toLocaleString()}`}
+                </div>
               </td>
             </tr>
           ))
@@ -127,8 +135,8 @@ const expired = Date.parse(quote.expires_at) < Date.now();
     <div class="mt-6 text-xs text-slate-500 leading-relaxed">
       <p>
         Academic/nonprofit rates require eligible institutional status, confirmed at ordering. Final
-        pricing is based on the {quote.lines[0]?.unitLabel ?? 'sample'} count actually received. Turnaround
-        is typically 4–8 weeks from sample receipt.
+        pricing is based on the counts actually received. Turnaround is typically 4–8 weeks from
+        sample receipt.
       </p>
       <p class="mt-2">
         Questions? <a href="mailto:contact@biokea.ai" class="text-[var(--color-teal)] underline"
