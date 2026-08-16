@@ -69,3 +69,8 @@ test('an out-of-range count is normalized on commit so display matches pricing',
   await expect(input).toHaveValue('1');
   await expect(page.locator('[data-total-academic]')).toHaveText('$16');
 });
+
+test('an unknown quote token returns 404', async ({ page }) => {
+  const res = await page.goto('/quote/00000000-0000-0000-0000-000000000000');
+  expect(res?.status()).toBe(404);
+});
