@@ -6,6 +6,7 @@ const env = {
   SUPABASE_SERVICE_ROLE_KEY: 'sr_test',
   RESEND_API_KEY: 'test-key',
   CONTACT_FROM_EMAIL: 'notifications@biokea.ai',
+  CONTACT_TO_EMAIL: 'contact@biokea.ai',
 };
 
 function makeRequest(body: unknown) {

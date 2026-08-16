@@ -23,6 +23,8 @@
 --
 -- Apply via Supabase Dashboard → SQL Editor, paste, run.
 
+create extension if not exists citext;
+
 create sequence if not exists public.quote_number_seq start 1;
 
 create table public.quotes (

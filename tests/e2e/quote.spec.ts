@@ -24,13 +24,25 @@ test('a dead-zone count auto-applies the better rate and shows headroom', async 
   await expect(callout).toContainText('25 more');
 });
 
-test('"save" wording never appears outside a dead zone', async ({ page }) => {
+test('no comparative-price claim appears outside a dead zone', async ({ page }) => {
   await page.goto('/quote');
   await page.locator('[data-count-input="barcoding"]').fill('600');
   await page.locator('[data-count-input="barcoding"]').blur();
+  // 600 is not a dead zone for either audience, so the callout must be hidden.
   await expect(page.locator('[data-deadzone-callout]')).toBeHidden();
   const summary = await page.locator('[data-summary-panel]').innerText();
-  expect(summary.toLowerCase()).not.toContain('save');
+  expect(summary.toLowerCase()).not.toContain('less than');
+  expect(summary.toLowerCase()).not.toContain('no extra cost');
+});
+
+test('a dead-zone count does make a comparative-price claim', async ({ page }) => {
+  await page.goto('/quote');
+  await page.locator('[data-count-input="barcoding"]').fill('275');
+  await page.locator('[data-count-input="barcoding"]').blur();
+  const callout = page.locator('[data-deadzone-callout]');
+  await expect(callout).toBeVisible();
+  await expect(callout).toContainText('less than');
+  await expect(callout).toContainText('no extra cost');
 });
 
 test('the conversation band swaps the CTA and hides the firm total', async ({ page }) => {

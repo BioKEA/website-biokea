@@ -32,6 +32,7 @@ interface Env {
   SUPABASE_SERVICE_ROLE_KEY: string;
   RESEND_API_KEY: string;
   CONTACT_FROM_EMAIL: string;
+  CONTACT_TO_EMAIL: string;
   TURNSTILE_SECRET_KEY?: string;
 }
 
@@ -147,12 +148,23 @@ export async function handleQuote(request: Request, e: Env, remoteIp?: string): 
   const url = `https://biokea.ai/quote/${accessToken}`;
 
   const summary = quote.lines
-    .map(
-      (l) =>
-        `  · ${l.serviceTitle}: ${l.count.toLocaleString()} ${l.unitLabel}s` +
-        (l.markers > 1 ? ` × ${l.markers} markers` : '') +
-        ` — ${usd(l.academic.total)} academic / ${usd(l.commercial.total)} commercial`,
-    )
+    .map((l) => {
+      const markerNote = l.markers > 1 ? ` × ${l.markers} markers` : '';
+      const head = `  · ${l.serviceTitle}: ${l.count.toLocaleString()} ${l.unitLabel}s${markerNote}`;
+      const academic =
+        `      academic/nonprofit: ${usd(l.academic.total)} (${l.academic.tierRange} tier` +
+        (l.academic.freeHeadroom > 0
+          ? `, ships up to ${l.academic.pricedCount.toLocaleString()}`
+          : '') +
+        `)`;
+      const commercial =
+        `      commercial: ${usd(l.commercial.total)} (${l.commercial.tierRange} tier` +
+        (l.commercial.freeHeadroom > 0
+          ? `, ships up to ${l.commercial.pricedCount.toLocaleString()}`
+          : '') +
+        `)`;
+      return [head, academic, commercial].join('\n');
+    })
     .join('\n');
 
   const text = [
@@ -194,6 +206,43 @@ export async function handleQuote(request: Request, e: Env, remoteIp?: string): 
     // ignore — the quote is saved and the response carries the link
   }
 
+  // Notify BioKEA. Separate try/catch for the same reason as above: the
+  // quote is already saved, so no email outcome may fail the request.
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${e.RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: `BioKEA <${e.CONTACT_FROM_EMAIL}>`,
+        to: e.CONTACT_TO_EMAIL,
+        reply_to: email,
+        subject: `[quote] ${quoteNumber} — ${name}${organization ? ` (${organization})` : ''}`,
+        text: [
+          `New quote request — ${quoteNumber}`,
+          ``,
+          `Name: ${name}`,
+          `Email: ${email}`,
+          `Organization: ${organization || '—'}`,
+          ``,
+          summary,
+          ``,
+          `Total: ${usd(quote.total.academic)} academic/nonprofit · ${usd(quote.total.commercial)} commercial`,
+          quote.needsConversation ? `\nFLAGGED: volume requires a capacity conversation.` : '',
+          ``,
+          `Note from customer:`,
+          note && note.length > 0 ? note : '(none)',
+          ``,
+          `Quote: ${url}`,
+        ].join('\n'),
+      }),
+    });
+  } catch {
+    // ignore — the quote is saved and the customer already has their link
+  }
+
   return json({ ok: true, quoteNumber, url }, 200);
 }
 
@@ -203,7 +252,8 @@ export async function POST({ request, clientAddress }: APIContext): Promise<Resp
     !e?.SUPABASE_URL ||
     !e?.SUPABASE_SERVICE_ROLE_KEY ||
     !e?.RESEND_API_KEY ||
-    !e?.CONTACT_FROM_EMAIL
+    !e?.CONTACT_FROM_EMAIL ||
+    !e?.CONTACT_TO_EMAIL
   ) {
     return json({ ok: false, error: 'Quotes are not configured.' }, 500);
   }

@@ -331,9 +331,19 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | u
       lineList.innerHTML = quote.lines
         .map((l) => {
           const markerNote = l.markers > 1 ? ` · ${l.markers} markers` : '';
-          return `<li class="flex justify-between gap-3 border-b border-slate-900/5 pb-2">
-            <span>${l.serviceTitle}<br><span class="text-xs text-slate-500">${l.count.toLocaleString()} ${l.unitLabel}s${markerNote} · ${l.academic.tierRange} tier</span></span>
-            <span class="font-mono text-[13px] whitespace-nowrap">${usd(l.academic.total)}</span>
+          return `<li class="border-b border-slate-900/5 pb-2">
+            <div class="text-[var(--color-ink)]">${l.serviceTitle}</div>
+            <div class="text-xs text-slate-500 mt-0.5">${l.count.toLocaleString()} ${l.unitLabel}s${markerNote}</div>
+            <div class="mt-1.5 grid grid-cols-2 gap-2 font-mono text-[12px]">
+              <div>
+                <div class="text-[var(--color-ink)]">${usd(l.academic.total)}</div>
+                <div class="text-[10px] text-slate-500">academic · ${l.academic.tierRange}</div>
+              </div>
+              <div class="text-right">
+                <div class="text-[var(--color-ink)]">${usd(l.commercial.total)}</div>
+                <div class="text-[10px] text-slate-500">commercial · ${l.commercial.tierRange}</div>
+              </div>
+            </div>
           </li>`;
         })
         .join('');
@@ -376,12 +386,18 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | u
       upsell.hidden = true;
       if (!saver && quote.lines.length === 1 && !quote.needsConversation) {
         const l = quote.lines[0];
-        const next = nextTierUpsell(l.serviceSlug, l.count, l.markers, 'academic');
-        if (next && next.additionalCost > 0) {
+        const nextA = nextTierUpsell(l.serviceSlug, l.count, l.markers, 'academic');
+        const nextC = nextTierUpsell(l.serviceSlug, l.count, l.markers, 'commercial');
+        if (nextA && nextA.additionalCost > 0) {
           upsell.hidden = false;
+          const commercialNote =
+            nextC && nextC.additionalCost > 0
+              ? ` At the commercial rate that's ${usd(nextC.additionalCost)} more, dropping to $${nextC.newRate}/${l.unitLabel}.`
+              : '';
           upsell.innerHTML =
-            `${next.additionalUnits.toLocaleString()} more ${l.unitLabel}s costs ` +
-            `${usd(next.additionalCost)} more — and drops your rate to $${next.newRate}/${l.unitLabel}.`;
+            `${nextA.additionalUnits.toLocaleString()} more ${l.unitLabel}s costs ` +
+            `${usd(nextA.additionalCost)} more at the academic rate — and drops it to $${nextA.newRate}/${l.unitLabel}.` +
+            commercialNote;
         }
       }
 

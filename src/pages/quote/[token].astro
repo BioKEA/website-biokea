@@ -74,6 +74,14 @@ const expired = Date.parse(quote.expires_at) < Date.now();
   </section>
 
   <section class="max-w-3xl mx-auto px-6 pb-10">
+    {
+      expired && (
+        <p class="mb-6 text-sm text-[var(--color-ink)] bg-[rgba(190,24,93,0.08)] border-l-2 border-[var(--color-pink)] rounded-r-sm px-4 py-3 leading-relaxed print:block">
+          <strong>This quote has expired.</strong> Pricing and availability may have changed —
+          please request a current quote before submitting a purchase order.
+        </p>
+      )
+    }
     <table
       class="w-full border-collapse bg-white border border-slate-900/10 rounded-md overflow-hidden"
     >
@@ -145,12 +153,29 @@ const expired = Date.parse(quote.expires_at) < Date.now();
       </p>
     </div>
 
-    <button
-      type="button"
-      onclick="window.print()"
-      class="mt-8 bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium print:hidden"
-    >
-      Print / save as PDF
-    </button>
+    {
+      !expired && (
+        <button
+          type="button"
+          onclick="window.print()"
+          class="mt-8 bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium print:hidden"
+        >
+          Print / save as PDF
+        </button>
+      )
+    }
   </section>
+
+  <style is:global>
+    @media print {
+      nav,
+      footer,
+      a[href='#main'] {
+        display: none !important;
+      }
+      body {
+        background: #fff;
+      }
+    }
+  </style>
 </BaseLayout>
