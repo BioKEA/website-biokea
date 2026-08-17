@@ -1,7 +1,7 @@
 // Minimal Resend sender behind a function type so handlers can be tested
-// with memorySender(). Failures are swallowed on purpose: every caller has
-// already committed the thing the email is about (same stance as
-// api/contact.ts and api/subscribe.ts).
+// with memorySender(). Failures are logged for observability but never thrown:
+// every caller has already committed the thing the email is about (same stance
+// as api/contact.ts and api/subscribe.ts).
 export interface EmailMessage {
   to: string;
   subject: string;
@@ -16,7 +16,7 @@ export function resendSender(env: {
 }): EmailSender {
   return async (msg) => {
     try {
-      await fetch('https://api.resend.com/emails', {
+      const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
@@ -30,8 +30,24 @@ export function resendSender(env: {
           text: msg.text,
         }),
       });
-    } catch {
-      // ignore — see header comment
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        console.error(
+          '[email] Resend ' +
+            res.status +
+            ' sending "' +
+            msg.subject +
+            '" to ' +
+            msg.to +
+            ': ' +
+            body,
+        );
+      }
+    } catch (err) {
+      console.error(
+        '[email] Resend request failed sending "' + msg.subject + '" to ' + msg.to + ':',
+        err,
+      );
     }
   };
 }

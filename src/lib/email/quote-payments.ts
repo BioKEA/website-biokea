@@ -20,8 +20,23 @@ function lineSummary(q: QuoteRecord): string {
     .join('\n');
 }
 
+function actualCountsSummary(
+  actual_lines: { serviceSlug: string; count: number; markers?: number }[],
+): string {
+  return actual_lines
+    .map((l) => {
+      const markers = (l.markers ?? 1) > 1 ? ` × ${l.markers} markers` : '';
+      return `  · ${l.serviceSlug}: ${l.count.toLocaleString('en-US')}${markers}`;
+    })
+    .join('\n');
+}
+
 function labBody(q: QuoteRecord, p: PaymentRecord, headline: string): string {
-  return [
+  const hasActualLines =
+    p.kind === 'balance' && p.actual_lines && p.actual_lines.length > 0 ? p.actual_lines : null;
+  const quotedLabel = hasActualLines ? 'Quoted:' : '';
+
+  const lines = [
     headline,
     ``,
     `Customer: ${q.name} <${q.email}>`,
@@ -29,15 +44,23 @@ function labBody(q: QuoteRecord, p: PaymentRecord, headline: string): string {
     `Rate: ${q.audience ?? '—'}`,
     `PO number: ${q.po_number ?? '—'}`,
     ``,
+    quotedLabel,
     lineSummary(q),
+  ];
+
+  if (hasActualLines) {
+    lines.push('', `Actual counts (invoiced):`, actualCountsSummary(hasActualLines));
+  }
+
+  lines.push(
     ``,
     `Amount: ${usdCents(p.amount_cents)} · paid ${date(p.paid_at)}`,
     p.invoice_pdf ? `Invoice PDF: ${p.invoice_pdf}` : '',
     ``,
     `Admin: ${adminUrl(q)}`,
-  ]
-    .filter((l) => l !== '')
-    .join('\n');
+  );
+
+  return lines.filter((l) => l !== '').join('\n');
 }
 
 export function depositPaidCustomerEmail(q: QuoteRecord, p: PaymentRecord): EmailMessage {

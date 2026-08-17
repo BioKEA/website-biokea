@@ -98,7 +98,7 @@ describe('payment emails', () => {
 });
 
 describe('resendSender', () => {
-  it('posts to Resend with the shared envelope and never throws', async () => {
+  it('posts to Resend with the shared envelope and never throws on success', async () => {
     const calls: unknown[] = [];
     vi.stubGlobal(
       'fetch',
@@ -119,18 +119,69 @@ describe('resendSender', () => {
       subject: 'S',
       text: 'T',
     });
+  });
+
+  it('logs Resend non-2xx errors and never throws', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response('{"message":"invalid key"}', {
+            status: 401,
+            headers: { 'content-type': 'application/json' },
+          }),
+      ),
+    );
+    const send = resendSender({
+      RESEND_API_KEY: 'k',
+      CONTACT_FROM_EMAIL: 'notifications@biokea.ai',
+    });
+    await expect(send({ to: 'x@y.z', subject: 'Test', text: 'T' })).resolves.toBeUndefined();
+    expect(spy).toHaveBeenCalledOnce();
+    expect(spy.mock.calls[0][0]).toContain('Resend 401');
+    spy.mockRestore();
+  });
+
+  it('logs network errors and never throws', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => {
-        throw new Error('net');
+        throw new Error('net down');
       }),
     );
-    await expect(send({ to: 'x@y.z', subject: 'S', text: 'T' })).resolves.toBeUndefined();
+    const send = resendSender({
+      RESEND_API_KEY: 'k',
+      CONTACT_FROM_EMAIL: 'notifications@biokea.ai',
+    });
+    await expect(send({ to: 'x@y.z', subject: 'Test', text: 'T' })).resolves.toBeUndefined();
+    expect(spy).toHaveBeenCalledOnce();
+    spy.mockRestore();
   });
 
   it('memorySender records messages', async () => {
     const s = memorySender();
     await s({ to: 'a', subject: 'b', text: 'c' });
     expect(s.sent).toEqual([{ to: 'a', subject: 'b', text: 'c' }]);
+  });
+
+  it('shows actual invoiced counts in balance-paid lab email when present', () => {
+    const balanceWithActual: PaymentRecord = {
+      ...balance,
+      actual_lines: [
+        { serviceSlug: 'barcoding', count: 743, markers: 0 },
+        { serviceSlug: 'metabarcoding', count: 58, markers: 2 },
+      ],
+    };
+    const m = balancePaidLabEmail(quote, balanceWithActual, 'contact@biokea.ai');
+    expect(m.text).toContain('Actual counts (invoiced):');
+    expect(m.text).toContain('barcoding: 743');
+    expect(m.text).toContain('metabarcoding: 58 × 2 markers');
+  });
+
+  it('does not show actual counts in deposit lab email', () => {
+    const m = depositPaidLabEmail(quote, deposit, 'contact@biokea.ai');
+    expect(m.text).not.toContain('Actual counts');
   });
 });
