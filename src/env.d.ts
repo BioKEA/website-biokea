@@ -24,9 +24,9 @@ declare module 'cloudflare:workers' {
     CONTACT_TO_EMAIL?: string;
     SUPABASE_URL?: string;
     SUPABASE_PUBLISHABLE_KEY?: string;
-    // Bypasses RLS. Required by the Golden Sample hunt endpoints and by
-    // /api/quote + /quote/<token>, whose `quotes` table has RLS enabled
-    // with zero policies. Worker secret only — never expose to the client.
+    // Bypasses RLS. Required by /api/quote and /quote/<token>, whose
+    // `quotes` table has RLS enabled with zero policies. Worker secret
+    // only — never expose to the client.
     SUPABASE_SERVICE_ROLE_KEY?: string;
     TURNSTILE_SECRET_KEY?: string;
     [key: string]: unknown;

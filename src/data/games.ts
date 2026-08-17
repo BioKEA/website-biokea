@@ -1,6 +1,6 @@
 // src/data/games.ts
-// The six BioKEA "games" featured in the Golden Sample Hunt
-// (Code with Claude · 2026). Each game is a self-contained Vite/React
+// The six BioKEA "games" — browser games built around what the lab
+// actually does. Each game is a self-contained Vite/React
 // app served as static assets under public/mission/games/<slug>/, so the
 // public URL is /mission/games/<slug>/ — nested under the Mission section
 // to reinforce the storytelling thesis.
