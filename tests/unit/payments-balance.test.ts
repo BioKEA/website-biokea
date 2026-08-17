@@ -211,13 +211,13 @@ describe('handleBalance', () => {
     expect(db.payments.filter((p) => p.kind === 'balance')).toHaveLength(2);
   });
 
-  it('rolls back and reports a Stripe failure', async () => {
+  it('rolls back and reports a gateway failure', async () => {
     gateway.failNext = new Error('down');
     expect(
       (
         await handleBalance(post({ 'counts[barcoding]': '743', confirm: 'true' }), N, deps())
       ).headers.get('location'),
-    ).toBe(`/admin/quotes/${N}?error=stripe`);
+    ).toBe(`/admin/quotes/${N}?error=gateway`);
     expect(db.payments.filter((p) => p.kind === 'balance')).toHaveLength(0);
     expect(db.quotes[0].status).toBe('deposit_paid');
   });

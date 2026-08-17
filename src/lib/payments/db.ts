@@ -49,6 +49,7 @@ export interface PaymentsDb {
   listRecentQuotes(limit: number): Promise<QuoteRecord[]>;
   listPayments(quoteId: string): Promise<PaymentRecord[]>;
   findPaymentByInvoiceId(externalId: string): Promise<PaymentRecord | null>;
+  findPaymentByExternalOrderId(externalOrderId: string): Promise<PaymentRecord | null>;
   insertPayment(row: NewPayment): Promise<PaymentRecord | 'conflict'>;
   updatePayment(id: string, patch: PaymentPatch): Promise<void>;
   deletePayment(id: string): Promise<void>;
@@ -114,6 +115,11 @@ export class SupabaseDb implements PaymentsDb {
   findPaymentByInvoiceId(inv: string) {
     return this.one<PaymentRecord>(
       `quote_payments?external_id=eq.${encodeURIComponent(inv)}&select=*&limit=1`,
+    );
+  }
+  findPaymentByExternalOrderId(orderId: string) {
+    return this.one<PaymentRecord>(
+      `quote_payments?external_order_id=eq.${encodeURIComponent(orderId)}&select=*&limit=1`,
     );
   }
 
@@ -220,6 +226,9 @@ export class MemoryDb implements PaymentsDb {
   }
   async findPaymentByInvoiceId(inv: string) {
     return this.payments.find((p) => p.external_id === inv) ?? null;
+  }
+  async findPaymentByExternalOrderId(orderId: string) {
+    return this.payments.find((p) => p.external_order_id === orderId) ?? null;
   }
   async insertPayment(row: NewPayment): Promise<PaymentRecord | 'conflict'> {
     const status = row.status ?? 'open';

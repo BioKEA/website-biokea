@@ -111,8 +111,8 @@ const val = (k: string) => previewInputs.get(k) ?? '';
           {flash.error === 'state' &&
             'The quote is not ready for a balance (needs a paid deposit and status deposit_paid).'}
           {flash.error === 'input' && 'Those counts could not be priced — check the numbers.'}
-          {flash.error === 'stripe' &&
-            'Stripe rejected the invoice. Nothing was recorded; try again.'}
+          {flash.error === 'gateway' &&
+            'Shopify rejected the invoice. Nothing was recorded; try again.'}
         </p>
       )
     }

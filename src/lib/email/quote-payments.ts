@@ -130,3 +130,25 @@ export function balancePaidLabEmail(q: QuoteRecord, p: PaymentRecord, labTo: str
     text: labBody(q, p, `Balance paid on ${q.quote_number} — project settled.`),
   };
 }
+
+// Shopify's refunds/create webhook: no status change (staff act in Shopify),
+// just a heads-up to the lab inbox. Spec §4.4.
+export function refundLabEmail(
+  q: QuoteRecord,
+  p: PaymentRecord,
+  orderRef: string,
+  labTo: string,
+): EmailMessage {
+  return {
+    to: labTo,
+    replyTo: q.email,
+    subject: `[refund] ${q.quote_number} · ${who(q)} · order ${orderRef}`,
+    text: [
+      `A refund was recorded in Shopify on order ${orderRef} for quote ${q.quote_number}.`,
+      `No status change was made; review in Shopify admin.`,
+      ``,
+      `Amount on file: ${usdCents(p.amount_cents)}`,
+      `Admin: ${adminUrl(q)}`,
+    ].join('\n'),
+  };
+}

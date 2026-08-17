@@ -206,6 +206,21 @@ describe('SupabaseDb', () => {
     expect(await db.findPaymentByInvoiceId('in_2')).toMatchObject({ id: 'p2' });
     expect(calls[1].url).toBe(`${URL}/rest/v1/quote_payments?external_id=eq.in_2&select=*&limit=1`);
   });
+
+  it('finds a payment by external_order_id', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        calls.push({ url, init: {} });
+        return jsonRes([{ id: 'p3' }]);
+      }),
+    );
+    const db = new SupabaseDb(URL, KEY);
+    expect(await db.findPaymentByExternalOrderId('5551')).toMatchObject({ id: 'p3' });
+    expect(calls[0].url).toBe(
+      `${URL}/rest/v1/quote_payments?external_order_id=eq.5551&select=*&limit=1`,
+    );
+  });
 });
 
 describe('MemoryDb', () => {
@@ -260,5 +275,15 @@ describe('MemoryDb', () => {
     expect(db.quotes[0].status).toBe('deposit_invoiced');
     expect(await db.updateQuoteStatusIf('q1', 'quoted', 'deposit_invoiced')).toBe(false);
     expect(db.quotes[0].status).toBe('deposit_invoiced');
+  });
+
+  it('finds a payment by external_order_id', async () => {
+    const db = new MemoryDb();
+    const inserted = await db.insertPayment({ quote_id: 'q1', kind: 'deposit', amount_cents: 1 });
+    await db.updatePayment((inserted as { id: string }).id, { external_order_id: '5551' });
+    expect(await db.findPaymentByExternalOrderId('5551')).toMatchObject({
+      id: (inserted as { id: string }).id,
+    });
+    expect(await db.findPaymentByExternalOrderId('nope')).toBeNull();
   });
 });

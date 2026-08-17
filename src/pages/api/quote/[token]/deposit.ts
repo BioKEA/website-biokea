@@ -162,8 +162,14 @@ export async function POST({ request, params }: APIContext): Promise<Response> {
     SUPABASE_SERVICE_ROLE_KEY?: string;
     SHOPIFY_STORE_DOMAIN?: string;
     SHOPIFY_ADMIN_TOKEN?: string;
+    SHOPIFY_PAYMENT_TERMS_TEMPLATE?: string;
   };
-  if (!e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY) {
+  if (
+    !e?.SUPABASE_URL ||
+    !e?.SUPABASE_SERVICE_ROLE_KEY ||
+    !e?.SHOPIFY_ADMIN_TOKEN ||
+    !e?.SHOPIFY_STORE_DOMAIN
+  ) {
     return new Response('Payments are not configured.', { status: 500 });
   }
   const token = params.token ?? '';
@@ -172,12 +178,10 @@ export async function POST({ request, params }: APIContext): Promise<Response> {
   }
   return handleDeposit(request, token, {
     db: new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY),
-    // Task 5 wires the full config (apiVersion, paymentTermsTemplate); this
-    // is a minimal placeholder so the route compiles against the real
-    // shopifyGateway(cfg, fetchImpl?) signature.
     gateway: shopifyGateway({
-      storeDomain: e.SHOPIFY_STORE_DOMAIN ?? '',
-      adminToken: e.SHOPIFY_ADMIN_TOKEN ?? '',
+      storeDomain: e.SHOPIFY_STORE_DOMAIN,
+      adminToken: e.SHOPIFY_ADMIN_TOKEN,
+      paymentTermsTemplate: e.SHOPIFY_PAYMENT_TERMS_TEMPLATE ?? 'NET_30',
     }),
   });
 }

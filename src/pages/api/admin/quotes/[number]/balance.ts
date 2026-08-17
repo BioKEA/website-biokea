@@ -117,7 +117,7 @@ export async function handleBalance(
     });
   } catch {
     await deps.db.deletePayment(inserted.id);
-    return seeOther(`${admin}?error=stripe`);
+    return seeOther(`${admin}?error=gateway`);
   }
 
   await deps.db.updatePayment(inserted.id, {
@@ -139,8 +139,14 @@ export async function POST({ request, params, locals }: APIContext): Promise<Res
     SUPABASE_SERVICE_ROLE_KEY?: string;
     SHOPIFY_STORE_DOMAIN?: string;
     SHOPIFY_ADMIN_TOKEN?: string;
+    SHOPIFY_PAYMENT_TERMS_TEMPLATE?: string;
   };
-  if (!e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY) {
+  if (
+    !e?.SUPABASE_URL ||
+    !e?.SUPABASE_SERVICE_ROLE_KEY ||
+    !e?.SHOPIFY_ADMIN_TOKEN ||
+    !e?.SHOPIFY_STORE_DOMAIN
+  ) {
     return new Response('Payments are not configured.', { status: 500 });
   }
   if (!locals.adminEmail) return new Response('Forbidden', { status: 403 }); // middleware sets it; belt and braces
@@ -148,12 +154,10 @@ export async function POST({ request, params, locals }: APIContext): Promise<Res
   if (!/^BK-\d{4}-\d{4,}$/.test(number)) return new Response('Quote not found', { status: 404 });
   return handleBalance(request, number, {
     db: new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY),
-    // Task 5 wires the full config (apiVersion, paymentTermsTemplate); this
-    // is a minimal placeholder so the route compiles against the real
-    // shopifyGateway(cfg, fetchImpl?) signature.
     gateway: shopifyGateway({
-      storeDomain: e.SHOPIFY_STORE_DOMAIN ?? '',
-      adminToken: e.SHOPIFY_ADMIN_TOKEN ?? '',
+      storeDomain: e.SHOPIFY_STORE_DOMAIN,
+      adminToken: e.SHOPIFY_ADMIN_TOKEN,
+      paymentTermsTemplate: e.SHOPIFY_PAYMENT_TERMS_TEMPLATE ?? 'NET_30',
     }),
     actorEmail: locals.adminEmail,
   });

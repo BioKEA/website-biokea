@@ -6,6 +6,7 @@ import {
   depositPaidLabEmail,
   balancePaidCustomerEmail,
   balancePaidLabEmail,
+  refundLabEmail,
 } from '@/lib/email/quote-payments';
 import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
 
@@ -97,6 +98,28 @@ describe('payment emails', () => {
   it('uses the customer name when there is no organization', () => {
     const m = depositPaidLabEmail({ ...quote, organization: null }, deposit, 'contact@biokea.ai');
     expect(m.subject).toBe('[deposit paid] BK-2026-0142 · Alice · $4,800.00');
+  });
+
+  it('refund lab email: subject, no-state-change message, admin link', () => {
+    const m = refundLabEmail(quote, deposit, '#1042', 'contact@biokea.ai');
+    expect(m.to).toBe('contact@biokea.ai');
+    expect(m.replyTo).toBe('alice@state.edu');
+    expect(m.subject).toBe('[refund] BK-2026-0142 · State University · order #1042');
+    expect(m.text).toContain(
+      'A refund was recorded in Shopify on order #1042 for quote BK-2026-0142.',
+    );
+    expect(m.text).toContain('No status change was made; review in Shopify admin.');
+    expect(m.text).toContain('https://biokea.ai/admin/quotes/BK-2026-0142');
+  });
+
+  it('refund lab email uses the customer name when there is no organization', () => {
+    const m = refundLabEmail(
+      { ...quote, organization: null },
+      deposit,
+      '#1042',
+      'contact@biokea.ai',
+    );
+    expect(m.subject).toBe('[refund] BK-2026-0142 · Alice · order #1042');
   });
 });
 
