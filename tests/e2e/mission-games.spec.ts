@@ -43,3 +43,16 @@ test('mission/games tile links go to /mission/games/<slug>/', async ({ page }) =
     '/mission/games/codon2048/',
   );
 });
+
+test('every Golden Sample route is gone', async ({ page }) => {
+  for (const path of [
+    '/mission/games/golden-sample-26',
+    '/golden-sample-26',
+    '/api/golden-sample/state',
+    '/api/golden-sample/leaderboard',
+    '/golden-sample/overlay.js',
+  ]) {
+    const res = await page.goto(path);
+    expect(res?.status(), `${path} should not exist`).toBe(404);
+  }
+});

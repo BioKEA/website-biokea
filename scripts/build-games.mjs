@@ -123,30 +123,6 @@ function injectSubscribeLink(indexHtmlPath, slug) {
   return true;
 }
 
-// Drops the shared Golden Sample reveal overlay into every game. The
-// games dispatch `biokea:golden-found` events; the overlay renders
-// the modal + writes the ticket into localStorage. Word vault stays
-// server-side (see /api/golden-sample/claim/<game>) so source readers
-// don't see it. I won't tell. That would be cheating.
-function injectGoldenSampleOverlay(indexHtmlPath) {
-  let html;
-  try {
-    html = readFileSync(indexHtmlPath, 'utf-8');
-  } catch {
-    return false;
-  }
-  if (html.includes('data-biokea-golden-overlay')) return true;
-  // Loaded async + defer so it doesn't block the game's own bundle.
-  // Path is absolute so it works whether the game lives at
-  // /mission/games/<slug>/ or /games/<slug>/ (depends on framework).
-  const tag =
-    '<script data-biokea-golden-overlay src="/golden-sample/overlay.js" async defer></script>';
-  const next = html.replace(/<\/body>/i, `${tag}</body>`);
-  if (next === html) return false;
-  writeFileSync(indexHtmlPath, next);
-  return true;
-}
-
 // Injects the shared Google Analytics (gtag.js) snippet into every game so
 // /mission/games/<slug>/ traffic is tracked under the same G-WYL7J2D7SG
 // property as the rest of biokea.ai (the marketing site loads it from
@@ -249,7 +225,6 @@ for (const game of games) {
     const indexHtml = join(out, 'index.html');
     injectBackButton(indexHtml);
     injectSubscribeLink(indexHtml, game.slug);
-    injectGoldenSampleOverlay(indexHtml);
     injectAnalytics(indexHtml);
     console.log(`[games-build] ${game.slug}: ✓ built from ${game.repo}`);
     okCount++;

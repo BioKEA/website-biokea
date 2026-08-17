@@ -1,7 +1,7 @@
 // src/pages/api/subscribe.ts
 //
 // Opt-in endpoint for the "Lab updates" form on /mission/games/,
-// /golden-sample-26, /subscribe, and the in-game injected pill.
+// /subscribe, and the in-game injected pill.
 // Writes to public.subscribers in the shared Supabase project (RLS
 // allows anonymous inserts) and queues a welcome email via Resend.
 // Mirrors the validation+honeypot+optional-Turnstile pattern of
