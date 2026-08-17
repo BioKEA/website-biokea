@@ -85,16 +85,13 @@ const jsonLdServices = pricedServices.map((s) => ({
     </p>
     <div class="mt-6 flex items-center gap-4 flex-wrap">
       <a
-        href="/contact?topic=sequencing"
+        href="/quote"
         class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium"
       >
-        Request a quote
+        Build a quote
       </a>
-      <a
-        href="/quote"
-        class="bg-[var(--color-teal)] text-white px-4 py-2.5 rounded-sm text-sm font-medium"
-      >
-        Build your quote →
+      <a href="/contact?topic=sequencing" class="text-[var(--color-teal)] text-sm font-medium">
+        Talk to us →
       </a>
       <a href="/services" class="text-[var(--color-teal)] text-sm font-medium">
         Need something else? See our full service catalog →
@@ -238,8 +235,8 @@ const jsonLdServices = pricedServices.map((s) => ({
 
   <CtaBand
     title="Not sure which service — or need a project-specific number?"
-    subtitle="Every project is a little different. Send us your sample count and goals and we'll put together a project-specific quote."
-    cta={{ href: '/contact?topic=sequencing', label: 'Request a quote' }}
+    subtitle="Build an itemized quote instantly, or send us your sample count and goals and we'll put one together."
+    cta={{ href: '/quote', label: 'Build a quote' }}
   />
 
   <p class="max-w-6xl mx-auto px-6 pb-12 text-xs text-slate-500 leading-relaxed">

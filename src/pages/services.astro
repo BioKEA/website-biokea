@@ -99,12 +99,15 @@ const serviceJsonLd = serviceOfferings.map((s) => ({
       DNA barcoding, environmental DNA, and long-read genomics — sample to FAIR-compliant data
       package, run out of the BioKEA Berkeley Large Data Collider.
     </p>
-    <div class="mt-6 flex items-center gap-4">
+    <div class="mt-6 flex items-center gap-4 flex-wrap">
       <a
-        href="/contact?topic=sequencing"
+        href="/quote"
         class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium"
       >
-        Request a quote
+        Build a quote
+      </a>
+      <a href="/contact?topic=sequencing" class="text-[var(--color-teal)] text-sm font-medium">
+        Talk to us →
       </a>
       <a href="/lab" class="text-[var(--color-teal)] text-sm font-medium"> See the lab → </a>
     </div>
@@ -138,10 +141,10 @@ const serviceJsonLd = serviceOfferings.map((s) => ({
 
     <div class="mt-6">
       <a
-        href="/contact?topic=sequencing"
+        href="/quote"
         class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium inline-block"
       >
-        Request a quote
+        Build a quote
       </a>
     </div>
 
@@ -172,10 +175,10 @@ const serviceJsonLd = serviceOfferings.map((s) => ({
 
     <div class="mt-8">
       <a
-        href="/contact?topic=sequencing"
+        href="/quote"
         class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium inline-block"
       >
-        Request a quote
+        Build a quote
       </a>
     </div>
   </section>
@@ -258,8 +261,8 @@ const serviceJsonLd = serviceOfferings.map((s) => ({
 
   <CtaBand
     title="Ready to send samples?"
-    subtitle="Tell us about your project — we respond within a few days."
-    cta={{ href: '/contact?topic=sequencing', label: 'Request a quote' }}
+    subtitle="Build an itemized quote in about a minute, or tell us about your project and we'll respond within a few days."
+    cta={{ href: '/quote', label: 'Build a quote' }}
   />
 
   <script

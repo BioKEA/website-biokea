@@ -42,10 +42,17 @@ test('comparison table renders both services', async ({ page }) => {
   await expect(page.getByRole('columnheader', { name: 'eDNA Metabarcoding' })).toBeVisible();
 });
 
-test('request a quote CTA routes to contact with sequencing topic', async ({ page }) => {
+test('pricing hero leads with Build a quote and offers Talk to us', async ({ page }) => {
   await page.goto('/pricing');
-  const cta = page.getByRole('link', { name: 'Request a quote' }).first();
-  await expect(cta).toHaveAttribute('href', '/contact?topic=sequencing');
+  await expect(page.getByRole('link', { name: 'Build a quote' }).first()).toHaveAttribute(
+    'href',
+    '/quote',
+  );
+  await expect(page.getByRole('link', { name: 'Talk to us' }).first()).toHaveAttribute(
+    'href',
+    '/contact?topic=sequencing',
+  );
+  await expect(page.getByRole('link', { name: 'Request a quote' })).toHaveCount(0);
 });
 
 test('hero links back to /services for the rest of the catalog', async ({ page }) => {
@@ -85,7 +92,7 @@ test('no internal cost-model comment leaks into the served HTML', async ({ page 
 
 test('pricing page links to the quote configurator', async ({ page }) => {
   await page.goto('/pricing');
-  await expect(page.getByRole('link', { name: /Build your quote/i }).first()).toHaveAttribute(
+  await expect(page.getByRole('link', { name: /Build a quote/i }).first()).toHaveAttribute(
     'href',
     '/quote',
   );

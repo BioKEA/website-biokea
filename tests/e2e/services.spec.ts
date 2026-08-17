@@ -43,10 +43,20 @@ test('services Service JSON-LD nodes carry no priceSpecification', async ({ page
   }
 });
 
-test('services CTA routes to contact with sequencing topic', async ({ page }) => {
+test('services primary CTA now leads to the configurator', async ({ page }) => {
   await page.goto('/services');
-  const cta = page.getByRole('link', { name: 'Request a quote' }).first();
-  await expect(cta).toHaveAttribute('href', '/contact?topic=sequencing');
+  const primary = page.getByRole('link', { name: 'Build a quote' }).first();
+  await expect(primary).toHaveAttribute('href', '/quote');
+  // The old ambiguous label is gone everywhere on the page.
+  await expect(page.getByRole('link', { name: 'Request a quote' })).toHaveCount(0);
+});
+
+test('services still offers a human path', async ({ page }) => {
+  await page.goto('/services');
+  await expect(page.getByRole('link', { name: 'Talk to us' }).first()).toHaveAttribute(
+    'href',
+    '/contact?topic=sequencing',
+  );
 });
 
 test('services page has Service JSON-LD nodes', async ({ page }) => {
