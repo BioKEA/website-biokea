@@ -17,9 +17,18 @@ CONTACT_TO_EMAIL = "contact@biokea.ai"
 SUPABASE_URL = "https://xkmfsxcaapyuxachtcsy.supabase.co"
 SUPABASE_PUBLISHABLE_KEY = "sb_publishable_HmeteofpCTVchDfmzrMAxg_y0ea1IM1"
 
+# Cloudflare Access application protecting /admin/* and /api/admin/*.
+# Zero Trust → Access → Applications → biokea-admin → Overview shows the
+# team domain; the AUD tag is under the application's settings. Both are
+# public identifiers, not secrets. src/middleware.ts verifies the JWT.
+CF_ACCESS_TEAM_DOMAIN = "REPLACE.cloudflareaccess.com"
+CF_ACCESS_AUD = "REPLACE-with-application-audience-tag"
+
 # Secrets — set once per environment:
 #   wrangler secret put RESEND_API_KEY
 #   wrangler secret put TURNSTILE_SECRET_KEY   # optional; enables captcha
+#   wrangler secret put STRIPE_SECRET_KEY
+#   wrangler secret put STRIPE_WEBHOOK_SECRET
 #
 # If TURNSTILE_SECRET_KEY is unset, the contact + subscribe endpoints
 # skip captcha verification. Pair it with PUBLIC_TURNSTILE_SITE_KEY at

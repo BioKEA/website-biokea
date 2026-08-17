@@ -40,3 +40,11 @@ declare module 'cloudflare:workers' {
     [key: string]: unknown;
   };
 }
+
+declare namespace App {
+  interface Locals {
+    // Set by src/middleware.ts on /admin/* and /api/admin/* after the
+    // Cloudflare Access JWT verifies (or CF_ACCESS_DEV_EMAIL in dev).
+    adminEmail?: string;
+  }
+}
