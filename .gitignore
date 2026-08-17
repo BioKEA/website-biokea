@@ -17,7 +17,6 @@
 # Game build artifacts — produced by scripts/build-games.mjs from
 # per-game GitHub repos. CI rebuilds on every deploy; locals run
 # `npm run games:build` (or `npm run build`) to populate this dir.
-/public/mission/games/
 
 # Original .zip source bundles for the six games. Each game now lives
 # in its own private GitHub repo (BioKEA/game-<slug>); these zips are

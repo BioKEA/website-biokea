@@ -8,5 +8,4 @@ dist
 tmp
 docs
 test-results
-public/mission/games
 .worktrees

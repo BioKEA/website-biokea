@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/build-games.mjs && astro build",
-    "games:build": "node scripts/build-games.mjs",
+    "build": "astro build",
     "agentis:previews": "node scripts/capture-agentis-previews.mjs",
     "preview": "astro preview",
     "check": "astro check",

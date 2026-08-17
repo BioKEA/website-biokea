@@ -54,8 +54,19 @@ test('"About" dropdown reveals Mission, Projects, Works, Press, and Games', asyn
   await expect(desktop.getByRole('link', { name: 'Press', exact: true })).toBeVisible();
   await expect(desktop.getByRole('link', { name: 'Games', exact: true })).toHaveAttribute(
     'href',
-    '/mission/games',
+    'https://games.biokea.ai',
   );
+});
+
+test('the games surface has moved off this origin', async ({ page }) => {
+  for (const path of [
+    '/mission/games',
+    '/mission/games/leaderboard',
+    '/api/handle-check?handle=x',
+  ]) {
+    const res = await page.goto(path);
+    expect(res?.status(), `${path} should be gone`).toBe(404);
+  }
 });
 
 test('the About dropdown opens and closes on click', async ({ page }) => {
