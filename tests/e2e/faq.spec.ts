@@ -27,7 +27,7 @@ test('faq page FAQPage JSON-LD includes turnaround and minimum-volume questions'
     .find((j) => j && j['@type'] === 'FAQPage' && j['@id']?.includes('faq#faq'));
   expect(faq).toBeDefined();
   const questions = faq.mainEntity.map((q: { name: string }) => q.name);
-  expect(questions.length).toBe(12);
+  expect(questions.length).toBe(13);
   expect(questions.some((q: string) => /turnaround/i.test(q))).toBe(true);
   expect(questions.some((q: string) => /minimum sample volume/i.test(q))).toBe(true);
 });
