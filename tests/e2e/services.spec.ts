@@ -75,24 +75,9 @@ test('services page has Service JSON-LD nodes', async ({ page }) => {
   expect(serviceGraph['@graph'].length).toBeGreaterThanOrEqual(7);
 });
 
-test('services page FAQPage JSON-LD includes turnaround and minimum-volume questions', async ({
-  page,
-}) => {
+test('services FAQ teaser links to the dedicated FAQ page', async ({ page }) => {
   await page.goto('/services');
-  const scripts = await page.locator('script[type="application/ld+json"]').allTextContents();
-  const faq = scripts
-    .map((s) => {
-      try {
-        return JSON.parse(s);
-      } catch {
-        return null;
-      }
-    })
-    .find((j) => j && j['@type'] === 'FAQPage' && j['@id']?.includes('services#faq'));
-  expect(faq).toBeDefined();
-  const questions = faq.mainEntity.map((q: { name: string }) => q.name);
-  expect(questions.some((q: string) => /turnaround/i.test(q))).toBe(true);
-  expect(questions.some((q: string) => /minimum sample volume/i.test(q))).toBe(true);
+  await expect(page.getByRole('link', { name: 'Read the FAQ →' })).toHaveAttribute('href', '/faq');
 });
 
 test('contact form preselects Sequencing service inquiry topic when ?topic=sequencing', async ({
