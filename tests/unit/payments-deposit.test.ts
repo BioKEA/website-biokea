@@ -139,12 +139,12 @@ describe('handleDeposit', () => {
   });
 
   it('refuses academic without the attestation, and unknown audiences', async () => {
-    for (const fields of [
-      { audience: 'academic' },
-      { audience: 'academic', attest: 'no' },
-      { audience: 'wholesale' },
-      {},
-    ]) {
+    for (const fields of [{ audience: 'academic' }, { audience: 'academic', attest: 'no' }]) {
+      const res = await handleDeposit(post(TOKEN, fields), TOKEN, { db, gateway, now: NOW });
+      expect(res.status).toBe(303);
+      expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=attest`);
+    }
+    for (const fields of [{ audience: 'wholesale' }, {}]) {
       const res = await handleDeposit(post(TOKEN, fields), TOKEN, { db, gateway, now: NOW });
       expect(res.status).toBe(303);
       expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=unavailable`);

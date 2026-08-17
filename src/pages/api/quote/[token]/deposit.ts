@@ -21,21 +21,17 @@ import type { QuoteRecord } from '@/lib/payments/types';
 
 export const prerender = false;
 
-const FormSchema = z
-  .object({
-    audience: z.enum(['academic', 'commercial']),
-    attest: z.string().optional(),
-    po_number: z
-      .string()
-      .trim()
-      .max(64)
-      .regex(/^[^\r\n]*$/)
-      .optional()
-      .or(z.literal('')),
-  })
-  .refine((f) => f.audience !== 'academic' || f.attest === 'true', {
-    message: 'academic requires attestation',
-  });
+const FormSchema = z.object({
+  audience: z.enum(['academic', 'commercial']),
+  attest: z.string().optional(),
+  po_number: z
+    .string()
+    .trim()
+    .max(64)
+    .regex(/^[^\r\n]*$/)
+    .optional()
+    .or(z.literal('')),
+});
 
 export interface DepositDeps {
   db: PaymentsDb;
@@ -44,7 +40,7 @@ export interface DepositDeps {
 }
 
 const seeOther = (location: string) => new Response(null, { status: 303, headers: { location } });
-const back = (token: string, reason: 'unavailable' | 'failed') =>
+const back = (token: string, reason: 'unavailable' | 'failed' | 'attest') =>
   seeOther(`/quote/${token}?pay=${reason}`);
 
 async function liveDepositUrl(db: PaymentsDb, quote: QuoteRecord): Promise<string | null> {
@@ -84,6 +80,8 @@ export async function handleDeposit(
   } catch {
     return back(token, 'unavailable');
   }
+
+  if (form.audience === 'academic' && form.attest !== 'true') return back(token, 'attest');
 
   const lines = depositLines(quote.lines, form.audience);
   const amountCents = depositTotalCents(lines);

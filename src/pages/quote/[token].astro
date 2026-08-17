@@ -36,7 +36,7 @@ const fmtDate = (iso: string) => iso.slice(0, 10);
 const expired = Date.parse(quote.expires_at) < Date.now();
 const panel = panelView(quote, payments, new Date());
 const paymentsLive = !!e?.STRIPE_SECRET_KEY; // hide the offer if Stripe isn't configured on this deployment
-const payFlash = Astro.url.searchParams.get('pay'); // 'unavailable' | 'failed' | null
+const payFlash = Astro.url.searchParams.get('pay'); // 'unavailable' | 'failed' | 'attest' | null
 ---
 
 <BaseLayout
@@ -142,6 +142,14 @@ const payFlash = Astro.url.searchParams.get('pay'); // 'unavailable' | 'failed' 
         </p>
       )
     }
+    {
+      payFlash === 'attest' && (
+        <p class="mt-5 text-sm text-[var(--color-ink)] bg-[rgba(146,64,14,0.1)] border-l-2 border-[var(--color-ochre)] rounded-r-sm px-4 py-3 leading-relaxed print:hidden">
+          <strong>One more step:</strong> to use the academic / nonprofit rate, tick the attestation
+          box below — or choose the commercial rate.
+        </p>
+      )
+    }
 
     {
       panel.kind === 'offer' && paymentsLive && (
@@ -205,9 +213,31 @@ const payFlash = Astro.url.searchParams.get('pay'); // 'unavailable' | 'failed' 
         </section>
       )
     }
+    <!--
+      Progressive enhancement for the offer form above: the server
+      (POST /api/quote/[token]/deposit) is the authoritative check for the
+      academic attestation, but toggling `required` client-side lets the
+      browser's native validation catch a missed checkbox before the round
+      trip. A no-op when the offer panel isn't rendered (`#pay` won't
+      exist). Left unconditional rather than nested inside the
+      `panel.kind === 'offer'` block above because Prettier's Astro parser
+      mis-tokenizes multi-brace script bodies nested inside a JSX
+      curly-expression.
+    -->
+    <script>
+      const form = document.querySelector<HTMLFormElement>('#pay form');
+      const attest = form && form.querySelector<HTMLInputElement>('input[name="attest"]');
+      if (form && attest) {
+        form.querySelectorAll<HTMLInputElement>('input[name="audience"]').forEach((radio) => {
+          radio.addEventListener('change', () => {
+            attest.required = radio.value === 'academic' && radio.checked;
+          });
+        });
+      }
+    </script>
     {
       panel.kind === 'invoiced' && (
-        <section class="mt-8 p-5 bg-[var(--color-cream)] border border-slate-900/10 rounded-md print:hidden">
+        <section class="mt-8 p-5 bg-[var(--color-cream)] border border-slate-900/10 rounded-md">
           <p class="font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">
             {panel.phase === 'deposit' ? 'Deposit invoice' : 'Balance invoice'}
           </p>
@@ -216,10 +246,12 @@ const payFlash = Astro.url.searchParams.get('pay'); // 'unavailable' | 'failed' 
             <strong>{usdCents(panel.amountCents)}</strong> sent to {quote.email}
             {panel.dueAt && ` — due ${fmtDate(panel.dueAt)}`}.
           </p>
-          <div class="mt-3 flex gap-3">
+          <div class="mt-3 flex gap-3 print:hidden">
             {panel.hostedInvoiceUrl && (
               <a
                 href={panel.hostedInvoiceUrl}
+                target="_blank"
+                rel="noopener"
                 class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2 rounded-sm text-sm font-medium"
               >
                 Pay now →
