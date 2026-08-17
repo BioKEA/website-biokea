@@ -127,11 +127,8 @@ export async function handleBalance(
     due_at: created.dueAt,
   });
   await deps.db.updateQuote(quote.id, { external_customer_id: created.customerId });
-  // Conditional: only steps deposit_paid → balance_invoiced. If the
-  // webhook's invoice.paid landed while the Stripe call above was in
-  // flight, the quote is already past 'deposit_paid' and this is a
-  // no-op — never clobber a status the webhook already advanced (spec's
-  // I1 fix).
+  // conditional step — never clobber a status the payment webhook may
+  // already have advanced
   await deps.db.updateQuoteStatusIf(quote.id, 'deposit_paid', 'balance_invoiced');
   return seeOther(`${admin}?balance=invoiced`);
 }

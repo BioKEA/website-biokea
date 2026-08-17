@@ -54,5 +54,5 @@ export interface PaymentRecord {
 
 export interface InvoiceLineSpec {
   description: string;
-  amountCents: number; // may be negative (deposit credit on the balance invoice)
+  amountCents: number; // always >= 0; the balance's deposit credit travels separately as CreateInvoiceSpec.credit
 }

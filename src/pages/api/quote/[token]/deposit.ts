@@ -149,10 +149,8 @@ export async function handleDeposit(
     po_number: poNumber,
     external_customer_id: created.customerId,
   });
-  // Conditional: only steps quoted → deposit_invoiced. If the webhook's
-  // invoice.paid landed while the Stripe call above was in flight, the
-  // quote is already past 'quoted' and this is a no-op — never clobber a
-  // status the webhook already advanced (spec's I1 fix).
+  // conditional step — never clobber a status the payment webhook may
+  // already have advanced
   await deps.db.updateQuoteStatusIf(quote.id, 'quoted', 'deposit_invoiced');
 
   return seeOther(created.hostedUrl);

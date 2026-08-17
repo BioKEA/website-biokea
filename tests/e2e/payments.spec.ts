@@ -40,8 +40,9 @@ test('the deposit endpoint fails closed on an unknown quote / unconfigured deplo
 });
 
 test('the webhook refuses an unsigned post', async ({ request }) => {
-  const res = await request.post('/api/stripe/webhook', { data: { id: 'evt_x' } });
-  expect([400, 500]).toContain(res.status()); // 400 bad signature; 500 when unconfigured
+  const res = await request.post('/api/shopify/webhook', { data: { id: 'evt_x' } });
+  // 404 until the Shopify webhook lands (Task 5), which tightens this to [401,500].
+  expect([401, 404, 500]).toContain(res.status());
 });
 
 test('pricing and services advertise the online deposit', async ({ page }) => {
