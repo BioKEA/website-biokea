@@ -3,7 +3,7 @@ import { buildQuote } from '@/lib/pricing/quote';
 import { MemoryDb } from '@/lib/payments/db';
 import { MemoryGateway } from '@/lib/payments/gateway';
 import { handleDeposit } from '@/pages/api/quote/[token]/deposit';
-import type { QuoteRecord } from '@/lib/payments/types';
+import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
 
 const TOKEN = '11111111-1111-1111-1111-111111111111';
 const q = buildQuote([
@@ -40,6 +40,21 @@ function post(token: string, fields: Record<string, string>) {
     headers: { 'content-type': 'application/x-www-form-urlencoded', origin: 'https://biokea.ai' },
     body: new URLSearchParams(fields),
   });
+}
+
+class RacyDb extends MemoryDb {
+  // First listPayments() (the pre-check) sees nothing; insertPayment() reports the
+  // partial-index conflict as if a concurrent request won; the re-read then sees
+  // the winner's row (or nothing, in the second test).
+  winner: PaymentRecord | null = null;
+  calls = 0;
+  override async listPayments(quoteId: string) {
+    this.calls++;
+    return this.calls === 1 ? [] : this.winner ? [this.winner] : [];
+  }
+  override async insertPayment(): Promise<PaymentRecord | 'conflict'> {
+    return 'conflict';
+  }
 }
 
 let db: MemoryDb;
@@ -214,5 +229,46 @@ describe('handleDeposit', () => {
       { db, gateway, now: NOW },
     );
     expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=unavailable`);
+  });
+
+  it('on a lost insert race, redirects to the winning invoice without calling Stripe', async () => {
+    const racy = new RacyDb();
+    racy.quotes.push(quote());
+    racy.winner = {
+      id: 'pX',
+      quote_id: 'q1',
+      kind: 'deposit',
+      status: 'open',
+      amount_cents: 1,
+      currency: 'usd',
+      stripe_invoice_id: 'in_w',
+      hosted_invoice_url: 'https://invoice.stripe.test/in_w',
+      invoice_pdf: null,
+      due_at: null,
+      paid_at: null,
+      actual_lines: null,
+      created_by: null,
+      created_at: '2026-09-01T00:00:00Z',
+    };
+    const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+      db: racy,
+      gateway,
+      now: NOW,
+    });
+    expect(res.headers.get('location')).toBe('https://invoice.stripe.test/in_w');
+    expect(gateway.created).toHaveLength(0);
+  });
+
+  it('on a conflict with no live row to fall back to, redirects with ?pay=failed', async () => {
+    const racy = new RacyDb();
+    racy.quotes.push(quote());
+    racy.winner = null;
+    const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+      db: racy,
+      gateway,
+      now: NOW,
+    });
+    expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=failed`);
+    expect(gateway.created).toHaveLength(0);
   });
 });
