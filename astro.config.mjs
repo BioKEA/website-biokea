@@ -10,6 +10,13 @@ const hiddenFromSitemap = ['/404', '/projects/sdl-moonshot'];
 export default defineConfig({
   site: 'https://biokea.ai',
   output: 'server',
+  security: {
+    // Astro's built-in CSRF check is same-origin only, which 403s the
+    // in-game "Lab updates" pill posting from games.biokea.ai to
+    // /api/subscribe. src/middleware.ts re-applies the same check with an
+    // allow-list (src/lib/origin-check.ts).
+    checkOrigin: false,
+  },
   adapter: cloudflare({
     platformProxy: { enabled: true },
   }),

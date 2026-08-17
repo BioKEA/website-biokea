@@ -43,3 +43,22 @@ test('/api/capabilities.json returns lab, services, equipment, and partners', as
   const partnerNames = payload.partners.map((p: { name: string }) => p.name);
   expect(partnerNames).toContain('California Institute for Biodiversity');
 });
+
+// The in-game "Lab updates" pill on games.biokea.ai posts form-encoded to
+// /api/subscribe cross-origin. Astro's stock CSRF check would 403 that, so
+// src/middleware.ts re-implements it with an allow-list. An invalid email
+// keeps the endpoint from ever writing anything; anything but 403 means
+// the request got past the origin gate (400 from validation in prod, 500
+// "not configured" on a dev box without .dev.vars).
+test('/api/subscribe accepts form posts from games.biokea.ai but not from other origins', async ({
+  request,
+}) => {
+  const post = (origin: string) =>
+    request.post('/api/subscribe', {
+      headers: { origin, 'content-type': 'application/x-www-form-urlencoded' },
+      data: 'email=not-an-email&source=codon2048&consent=true',
+    });
+  expect((await post('https://games.biokea.ai')).status()).not.toBe(403);
+  expect((await post('http://localhost:4321')).status()).not.toBe(403);
+  expect((await post('https://evil.example')).status()).toBe(403);
+});
