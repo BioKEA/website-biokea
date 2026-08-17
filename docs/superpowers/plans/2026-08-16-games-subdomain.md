@@ -19,17 +19,17 @@
 - **Two secrets stay put on `website-biokea`:** `SUPABASE_SERVICE_ROLE_KEY` (used by `/api/quote`, `/quote/<token>`) — never delete it there.
 - **Handle storage key** the games read: `biokea:player:handle` (+ `biokea:player:handle-confirmed`). Do not rename.
 - **Cross-site links are absolute:** games-site → `https://biokea.ai/...`; website-biokea → `https://games.biokea.ai`.
-- **Rollout gate:** Part B (Tasks B1–B3) must not merge until Task A7's live verification passes.
+- **Rollout gate:** Part B (Tasks 8–10) must not merge until Task 7's live verification passes.
 - Follow existing conventions: cream/ink/teal/pink/ochre tokens, Inter + JetBrains Mono, `font-mono-label` utility, `Eyebrow` component. Prettier config copied verbatim.
 - No new npm dependencies beyond those `website-biokea` already uses (minus MDX/sitemap, which games-site drops).
 
 ---
 
-# Part A — `BioKEA/games-site`
+# Part A — `BioKEA/games-site` (Tasks 1–7)
 
 Work in a fresh clone of the new repo. Set `SITE=/path/to/website-biokea` in your shell for the copy commands.
 
-### Task A1: Create the repo and scaffold with layout, nav, footer, 404
+### Task 1: Create the repo and scaffold with layout, nav, footer, 404
 
 **Files:**
 
@@ -102,7 +102,7 @@ git switch -c main 2>/dev/null || true
 }
 ```
 
-Note: `scripts/build-games.mjs` and `scripts/verify-games.mjs` arrive in Task A5. Until then `npm run build` will fail at the first command; use `npx astro build` if you need a build before A5.
+Note: `scripts/build-games.mjs` and `scripts/verify-games.mjs` arrive in Task 5. Until then `npm run build` will fail at the first command; use `npx astro build` if you need a build before Task 5.
 
 - [ ] **Step 3: Copy the config files verbatim, then adjust**
 
@@ -480,7 +480,7 @@ git push -u origin main
 
 ---
 
-### Task A2: Port the data modules, handle picker, and index page
+### Task 2: Port the data modules, handle picker, and index page
 
 **Files:**
 
@@ -492,8 +492,8 @@ git push -u origin main
 
 **Interfaces:**
 
-- Consumes: `BaseLayout`, `Eyebrow` from A1.
-- Produces: `games: Game[]` with `playUrl: '/<slug>/'`; `LEADERBOARD_GAMES`, `KNOWN_HANDLE_KEYS`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` from `@/data/leaderboard-games` — used by A3.
+- Consumes: `BaseLayout`, `Eyebrow` from Task 1.
+- Produces: `games: Game[]` with `playUrl: '/<slug>/'`; `LEADERBOARD_GAMES`, `KNOWN_HANDLE_KEYS`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` from `@/data/leaderboard-games` — used by Task 3.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -691,7 +691,7 @@ git push
 
 ---
 
-### Task A3: Port the leaderboard page
+### Task 3: Port the leaderboard page
 
 **Files:**
 
@@ -700,7 +700,7 @@ git push
 
 **Interfaces:**
 
-- Consumes: `LEADERBOARD_GAMES`, `KNOWN_HANDLE_KEYS`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` from A2.
+- Consumes: `LEADERBOARD_GAMES`, `KNOWN_HANDLE_KEYS`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` from Task 2.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -746,7 +746,7 @@ git -C "$SITE" show 3629438:src/pages/mission/games/leaderboard.astro > src/page
 sed -i '' 's#href="/mission/games/"#href="/"#g' src/pages/leaderboard.astro
 ```
 
-Then change the `BaseLayout` title prop from `"Daily Leaderboard — BioKEA Games"` — it already ends in "BioKEA Games", so leave it. Verify: `grep -n "mission/games" src/pages/leaderboard.astro` → no matches (the `playUrl`s come from the data module and were fixed in A2).
+Then change the `BaseLayout` title prop from `"Daily Leaderboard — BioKEA Games"` — it already ends in "BioKEA Games", so leave it. Verify: `grep -n "mission/games" src/pages/leaderboard.astro` → no matches (the `playUrl`s come from the data module and were fixed in Task 2).
 
 - [ ] **Step 4: Run tests to verify they pass**
 
@@ -763,7 +763,7 @@ git push
 
 ---
 
-### Task A4: Port the handle-check API
+### Task 4: Port the handle-check API
 
 **Files:**
 
@@ -772,7 +772,7 @@ git push
 
 **Interfaces:**
 
-- Produces: `GET /api/handle-check?handle=<h>` → `{ ok: true, allowed: boolean }` | `{ ok: false, error }`. Consumed by `HandlePicker` (A2) via a same-origin fetch.
+- Produces: `GET /api/handle-check?handle=<h>` → `{ ok: true, allowed: boolean }` | `{ ok: false, error }`. Consumed by `HandlePicker` (Task 2) via a same-origin fetch.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -828,7 +828,7 @@ git push
 
 ---
 
-### Task A5: Port the game build script and add a post-build verifier
+### Task 5: Port the game build script and add a post-build verifier
 
 **Files:**
 
@@ -1025,7 +1025,7 @@ git push
 
 ---
 
-### Task A6: Deploy workflow, README, and first deploy
+### Task 6: Deploy workflow, README, and first deploy
 
 **Files:**
 
@@ -1034,7 +1034,7 @@ git push
 
 **Interfaces:**
 
-- Consumes: `npm run build` (A5) and `npm run games:verify`.
+- Consumes: `npm run build` (Task 5) and `npm run games:verify`.
 - Produces: a live Worker `biokea-games` on every push to `main`.
 
 - [ ] **Step 1: Write the workflow**
@@ -1209,7 +1209,7 @@ Manual: Cloudflare dashboard → Workers & Pages → `biokea-games` → Settings
 
 ---
 
-### Task A7: Live verification (gate for Part B)
+### Task 7: Live verification (gate for Part B)
 
 **Files:** none.
 
@@ -1221,7 +1221,7 @@ for p in / /leaderboard /codon2048/ /pipette-rush/ /plasmid-plinko/ /particle-su
 done
 ```
 
-Expected: every page and bundle `200`; `handle=DrBio` → `200`; `handle=bad one` → `400`. If `DrBio` returns `500`, the Worker secret from A6 Step 4 is missing.
+Expected: every page and bundle `200`; `handle=DrBio` → `200`; `handle=bad one` → `400`. If `DrBio` returns `500`, the Worker secret from Task 6 Step 4 is missing.
 
 - [ ] **Step 2: Verify the injections on the live bundle**
 
@@ -1240,11 +1240,11 @@ Only when Steps 1–3 pass, proceed to Part B.
 
 ---
 
-# Part B — `website-biokea` removal
+# Part B — `website-biokea` removal (Tasks 8–10)
 
 Work in `website-biokea` on a branch `games-subdomain` created from `main` (use `superpowers:using-git-worktrees`).
 
-### Task B1: Remove the games surface and the games prebuild
+### Task 8: Remove the games surface and the games prebuild
 
 **Files:**
 
@@ -1380,7 +1380,7 @@ git commit -m "feat(games): move the games surface to games.biokea.ai; drop the 
 
 ---
 
-### Task B2: Update copy, docs, and comments that named `/mission/games/`
+### Task 9: Update copy, docs, and comments that named `/mission/games/`
 
 **Files:**
 
@@ -1480,7 +1480,7 @@ git commit -m "docs: point subscribe/privacy/docs at games.biokea.ai"
 
 ---
 
-### Task B3: Full verification sweep
+### Task 10: Full verification sweep
 
 **Files:** none (plus a possible lint-fix commit).
 
