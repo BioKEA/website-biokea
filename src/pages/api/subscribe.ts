@@ -33,7 +33,7 @@ const SubscribeSchema = z.object({
 
 interface Env {
   // Reuse the same publishable Supabase URL+anon key the games and
-  // the games.biokea.ai leaderboard panel already uses. Anon insert is
+  // the games.biokea.ai leaderboard panel already use. Anon insert is
   // allowed by the subscribers_public_insert RLS policy.
   SUPABASE_URL: string;
   SUPABASE_PUBLISHABLE_KEY: string;
