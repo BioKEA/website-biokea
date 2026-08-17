@@ -29,6 +29,14 @@ declare module 'cloudflare:workers' {
     // only — never expose to the client.
     SUPABASE_SERVICE_ROLE_KEY?: string;
     TURNSTILE_SECRET_KEY?: string;
+    // Stripe — Worker secrets. sk_test_… in dev/.dev.vars, sk_live_… in prod.
+    STRIPE_SECRET_KEY?: string;
+    STRIPE_WEBHOOK_SECRET?: string;
+    // Cloudflare Access (admin gate) — plain vars in wrangler.toml.
+    CF_ACCESS_TEAM_DOMAIN?: string; // e.g. biokea.cloudflareaccess.com
+    CF_ACCESS_AUD?: string; // Application Audience tag
+    // Dev-only bypass for the admin gate; ignored in production builds.
+    CF_ACCESS_DEV_EMAIL?: string;
     [key: string]: unknown;
   };
 }
