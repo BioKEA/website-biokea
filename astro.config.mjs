@@ -9,6 +9,13 @@ const hiddenFromSitemap = ['/404', '/projects/sdl-moonshot'];
 
 export default defineConfig({
   site: 'https://biokea.ai',
+  // Two of the shipped game bundles (built from BioKEA/game-* repos) still
+  // hardcode https://biokea.ai/mission/games/leaderboard in their score
+  // prompt. Keep these two redirects until those repos are rebuilt.
+  redirects: {
+    '/mission/games': 'https://games.biokea.ai/',
+    '/mission/games/leaderboard': 'https://games.biokea.ai/leaderboard',
+  },
   output: 'server',
   adapter: cloudflare({
     platformProxy: { enabled: true },
