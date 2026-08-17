@@ -1,5 +1,9 @@
 name = "biokeawebsite"
 compatibility_date = "2026-04-18"
+# The stripe SDK imports Node built-ins (util, crypto, events…) even with the
+# fetch HTTP client, so the Workers runtime needs the Node compatibility layer.
+# Enabled by wrangler for both `wrangler deploy` and astro dev's platformProxy.
+compatibility_flags = ["nodejs_compat"]
 
 # Astro's Cloudflare adapter emits the worker entry + static assets;
 # wrangler deploy picks them up from dist/ via `astro build`.
