@@ -16,7 +16,7 @@ test('mission page CTA routes to contact', async ({ page }) => {
   await page.goto('/mission');
   await expect(page.getByRole('link', { name: /Get in touch/ }).first()).toHaveAttribute(
     'href',
-    '/contact',
+    '/contact?topic=funding',
   );
 });
 
