@@ -2,51 +2,31 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
 import { env } from 'cloudflare:workers';
+import { SupabaseDb } from '@/lib/payments/db';
+import { panelView } from '@/lib/payments/panel';
+import { usdCents } from '@/lib/payments/terms';
+import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
 
 export const prerender = false;
 
-interface QuoteLineRow {
-  serviceTitle: string;
-  unitLabel: string;
-  count: number;
-  markers: number;
-  academic: { total: number; tierRange: string; pricedCount: number; freeHeadroom: number };
-  commercial: { total: number; tierRange: string; pricedCount: number; freeHeadroom: number };
-}
-interface QuoteRow {
-  quote_number: string;
-  organization: string | null;
-  lines: QuoteLineRow[];
-  total_academic: number;
-  total_commercial: number;
-  needs_conversation: boolean;
-  created_at: string;
-  expires_at: string;
-}
-
 const { token } = Astro.params;
-const e = env as unknown as { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: string };
+const e = env as unknown as {
+  SUPABASE_URL?: string;
+  SUPABASE_SERVICE_ROLE_KEY?: string;
+  STRIPE_SECRET_KEY?: string;
+};
 
 // UUID shape check first — avoids a pointless round trip on junk tokens.
 const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token ?? '');
 
-let quote: QuoteRow | null = null;
+let quote: QuoteRecord | null = null;
+let payments: PaymentRecord[] = [];
 if (isUuid && e?.SUPABASE_URL && e?.SUPABASE_SERVICE_ROLE_KEY) {
   // Service role: the quotes table has no anonymous select policy. The page
   // renders on the Worker, so this key is never exposed to the client.
-  const res = await fetch(
-    `${e.SUPABASE_URL}/rest/v1/quotes?access_token=eq.${encodeURIComponent(token!)}&select=*`,
-    {
-      headers: {
-        apikey: e.SUPABASE_SERVICE_ROLE_KEY,
-        authorization: `Bearer ${e.SUPABASE_SERVICE_ROLE_KEY}`,
-      },
-    },
-  );
-  if (res.ok) {
-    const rows = (await res.json()) as QuoteRow[];
-    quote = rows[0] ?? null;
-  }
+  const db = new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY);
+  quote = await db.getQuoteByToken(token!);
+  if (quote) payments = await db.listPayments(quote.id);
 }
 
 if (!quote) return new Response('Quote not found', { status: 404 });
@@ -54,6 +34,9 @@ if (!quote) return new Response('Quote not found', { status: 404 });
 const usd = (n: number) => '$' + n.toLocaleString('en-US');
 const fmtDate = (iso: string) => iso.slice(0, 10);
 const expired = Date.parse(quote.expires_at) < Date.now();
+const panel = panelView(quote, payments, new Date());
+const paymentsLive = !!e?.STRIPE_SECRET_KEY; // hide the offer if Stripe isn't configured on this deployment
+const payFlash = Astro.url.searchParams.get('pay'); // 'unavailable' | 'failed' | null
 ---
 
 <BaseLayout
@@ -140,11 +123,170 @@ const expired = Date.parse(quote.expires_at) < Date.now();
       )
     }
 
+    {
+      payFlash === 'failed' && (
+        <p class="mt-5 text-sm text-[var(--color-ink)] bg-[rgba(190,24,93,0.08)] border-l-2 border-[var(--color-pink)] rounded-r-sm px-4 py-3 leading-relaxed print:hidden">
+          <strong>Payment service unavailable.</strong> Your quote is unaffected — please try again
+          in a few minutes.
+        </p>
+      )
+    }
+    {
+      payFlash === 'unavailable' && (
+        <p class="mt-5 text-sm text-[var(--color-ink)] bg-[rgba(146,64,14,0.1)] border-l-2 border-[var(--color-ochre)] rounded-r-sm px-4 py-3 leading-relaxed print:hidden">
+          This quote can't be paid online right now. Email{' '}
+          <a class="underline" href="mailto:contact@biokea.ai">
+            contact@biokea.ai
+          </a>{' '}
+          and we'll sort it out.
+        </p>
+      )
+    }
+
+    {
+      panel.kind === 'offer' && paymentsLive && (
+        <section
+          id="pay"
+          class="mt-8 p-5 bg-[var(--color-cream)] border border-slate-900/10 rounded-md print:hidden"
+        >
+          <p class="font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">
+            Start this project
+          </p>
+          <h2 class="mt-1 text-lg font-semibold text-[var(--color-ink)]">
+            Pay a 50% deposit online
+          </h2>
+          <p class="mt-1 text-sm text-slate-600 leading-relaxed">
+            You'll get a Stripe invoice you can pay by card, ACH debit, or bank transfer — or
+            forward to your accounts-payable team. The balance is invoiced on the actual sample
+            counts when results are delivered.
+          </p>
+          <form
+            method="post"
+            action={`/api/quote/${quote.access_token}/deposit`}
+            class="mt-4 space-y-3 text-sm"
+          >
+            <label class="flex items-start gap-2">
+              <input type="radio" name="audience" value="commercial" required class="mt-1" />
+              <span>
+                <strong>Commercial rate</strong> — deposit {usdCents(panel.depositCommercialCents)}
+              </span>
+            </label>
+            <label class="flex items-start gap-2">
+              <input type="radio" name="audience" value="academic" required class="mt-1" />
+              <span>
+                <strong>Academic / nonprofit rate</strong> — deposit{' '}
+                {usdCents(panel.depositAcademicCents)}
+              </span>
+            </label>
+            <label class="flex items-start gap-2 pl-6 text-xs text-slate-600">
+              <input type="checkbox" name="attest" value="true" class="mt-0.5" />
+              <span>
+                Required for the academic rate: this work is for a degree-granting institution,
+                government agency, or non-profit research organization.
+              </span>
+            </label>
+            <label class="block pt-1">
+              <span class="text-xs text-slate-600">
+                PO number (optional — printed on the invoice)
+              </span>
+              <input
+                name="po_number"
+                maxlength="64"
+                class="mt-1 w-full max-w-xs border border-slate-300 rounded px-2 py-1.5 font-mono"
+              />
+            </label>
+            <button
+              type="submit"
+              class="mt-2 bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium"
+            >
+              Continue to invoice →
+            </button>
+          </form>
+        </section>
+      )
+    }
+    {
+      panel.kind === 'invoiced' && (
+        <section class="mt-8 p-5 bg-[var(--color-cream)] border border-slate-900/10 rounded-md print:hidden">
+          <p class="font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">
+            {panel.phase === 'deposit' ? 'Deposit invoice' : 'Balance invoice'}
+          </p>
+          <p class="mt-1 text-sm text-[var(--color-ink)]">
+            {panel.phase === 'deposit' ? 'Deposit' : 'Balance'} invoice for{' '}
+            <strong>{usdCents(panel.amountCents)}</strong> sent to {quote.email}
+            {panel.dueAt && ` — due ${fmtDate(panel.dueAt)}`}.
+          </p>
+          <div class="mt-3 flex gap-3">
+            {panel.hostedInvoiceUrl && (
+              <a
+                href={panel.hostedInvoiceUrl}
+                class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2 rounded-sm text-sm font-medium"
+              >
+                Pay now →
+              </a>
+            )}
+            {panel.invoicePdf && (
+              <a
+                href={panel.invoicePdf}
+                class="px-4 py-2 rounded-sm text-sm font-medium border border-slate-900/20 bg-white"
+              >
+                Invoice PDF
+              </a>
+            )}
+          </div>
+        </section>
+      )
+    }
+    {
+      panel.kind === 'deposit_paid' && (
+        <section class="mt-8 p-5 bg-[var(--color-cream)] border border-slate-900/10 rounded-md">
+          <p class="font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">
+            Deposit received
+          </p>
+          <p class="mt-1 text-sm text-[var(--color-ink)]">
+            Deposit of <strong>{usdCents(panel.amountCents)}</strong> received on{' '}
+            {fmtDate(panel.paidAt)}. The lab will send shipping instructions and your sample
+            manifest within 2 business days.
+          </p>
+          {panel.invoicePdf && (
+            <a
+              href={panel.invoicePdf}
+              class="mt-3 inline-block text-sm underline text-[var(--color-teal)] print:hidden"
+            >
+              Receipt / invoice PDF
+            </a>
+          )}
+        </section>
+      )
+    }
+    {
+      panel.kind === 'paid' && (
+        <section class="mt-8 p-5 bg-[var(--color-cream)] border border-slate-900/10 rounded-md">
+          <p class="font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">
+            Paid in full
+          </p>
+          <p class="mt-1 text-sm text-[var(--color-ink)]">Thank you — this project is settled.</p>
+          <div class="mt-3 flex gap-4 text-sm print:hidden">
+            {panel.depositPdf && (
+              <a href={panel.depositPdf} class="underline text-[var(--color-teal)]">
+                Deposit invoice PDF
+              </a>
+            )}
+            {panel.balancePdf && (
+              <a href={panel.balancePdf} class="underline text-[var(--color-teal)]">
+                Balance invoice PDF
+              </a>
+            )}
+          </div>
+        </section>
+      )
+    }
+
     <div class="mt-6 text-xs text-slate-500 leading-relaxed">
       <p>
-        Academic/nonprofit rates require eligible institutional status, confirmed at ordering. Final
-        pricing is based on the counts actually received. Turnaround is typically 4–8 weeks from
-        sample receipt.
+        Academic/nonprofit rates require eligible institutional status, attested when you pay the
+        deposit. Final pricing is based on the counts actually received. Turnaround is typically 4–8
+        weeks from sample receipt.
       </p>
       <p class="mt-2">
         Questions? <a href="mailto:contact@biokea.ai" class="text-[var(--color-teal)] underline"

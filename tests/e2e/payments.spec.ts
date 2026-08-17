@@ -26,3 +26,27 @@ test('admin pages render for a dev-bypassed staff user', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /quotes & payments/i })).toBeVisible();
   await expect(page.getByText(`Signed in as ${process.env.CF_ACCESS_DEV_EMAIL}`)).toBeVisible();
 });
+
+test('the deposit endpoint fails closed on an unknown quote / unconfigured deployment', async ({
+  request,
+}) => {
+  const res = await request.post('/api/quote/11111111-1111-1111-1111-111111111111/deposit', {
+    headers: { origin: 'http://localhost:4321' },
+    form: { audience: 'commercial' },
+    maxRedirects: 0,
+  });
+  // 500 "not configured" (CI), or 404 when Supabase is configured locally but the token is unknown.
+  expect([404, 500]).toContain(res.status());
+});
+
+test('the webhook refuses an unsigned post', async ({ request }) => {
+  const res = await request.post('/api/stripe/webhook', { data: { id: 'evt_x' } });
+  expect([400, 500]).toContain(res.status()); // 400 bad signature; 500 when unconfigured
+});
+
+test('pricing and services advertise the online deposit', async ({ page }) => {
+  await page.goto('/pricing');
+  await expect(page.getByText(/50% deposit online/i).first()).toBeVisible();
+  await page.goto('/services');
+  await expect(page.getByText(/50% deposit online/i).first()).toBeVisible();
+});
