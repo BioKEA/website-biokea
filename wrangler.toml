@@ -25,8 +25,8 @@ SUPABASE_PUBLISHABLE_KEY = "sb_publishable_HmeteofpCTVchDfmzrMAxg_y0ea1IM1"
 # Zero Trust → Access → Applications → biokea-admin → Overview shows the
 # team domain; the AUD tag is under the application's settings. Both are
 # public identifiers, not secrets. src/middleware.ts verifies the JWT.
-CF_ACCESS_TEAM_DOMAIN = "REPLACE.cloudflareaccess.com"
-CF_ACCESS_AUD = "REPLACE-with-application-audience-tag"
+CF_ACCESS_TEAM_DOMAIN = "biokea.cloudflareaccess.com"
+CF_ACCESS_AUD = "53739c704f8ebcff2b67597d0f3ab8ff6deaf74f1cdb34ea9c6b0be653e8e1b7"
 
 # Secrets — set once per environment:
 #   wrangler secret put RESEND_API_KEY
