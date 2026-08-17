@@ -1,0 +1,109 @@
+// The four notifications the Stripe webhook sends. Pure builders — the
+// webhook handler decides when; these decide what. Spec §5.6.
+import type { EmailMessage } from './resend';
+import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
+import { usdCents } from '@/lib/payments/terms';
+
+export const SITE_URL = 'https://biokea.ai';
+
+const who = (q: QuoteRecord) => q.organization ?? q.name;
+const date = (iso: string | null) => (iso ? iso.slice(0, 10) : '—');
+const quoteUrl = (q: QuoteRecord) => `${SITE_URL}/quote/${q.access_token}`;
+const adminUrl = (q: QuoteRecord) => `${SITE_URL}/admin/quotes/${q.quote_number}`;
+
+function lineSummary(q: QuoteRecord): string {
+  return q.lines
+    .map((l) => {
+      const markers = l.markers > 1 ? ` × ${l.markers} markers` : '';
+      return `  · ${l.serviceTitle}: ${l.count.toLocaleString('en-US')} ${l.unitLabel}s${markers}`;
+    })
+    .join('\n');
+}
+
+function labBody(q: QuoteRecord, p: PaymentRecord, headline: string): string {
+  return [
+    headline,
+    ``,
+    `Customer: ${q.name} <${q.email}>`,
+    `Organization: ${q.organization ?? '—'}`,
+    `Rate: ${q.audience ?? '—'}`,
+    `PO number: ${q.po_number ?? '—'}`,
+    ``,
+    lineSummary(q),
+    ``,
+    `Amount: ${usdCents(p.amount_cents)} · paid ${date(p.paid_at)}`,
+    p.invoice_pdf ? `Invoice PDF: ${p.invoice_pdf}` : '',
+    ``,
+    `Admin: ${adminUrl(q)}`,
+  ]
+    .filter((l) => l !== '')
+    .join('\n');
+}
+
+export function depositPaidCustomerEmail(q: QuoteRecord, p: PaymentRecord): EmailMessage {
+  return {
+    to: q.email,
+    replyTo: 'contact@biokea.ai',
+    subject: `Deposit received — BioKEA quote ${q.quote_number}`,
+    text: [
+      `Thanks — we've received your deposit of ${usdCents(p.amount_cents)} toward quote ${q.quote_number}.`,
+      ``,
+      `What happens next: the lab will email you shipping instructions and your sample`,
+      `manifest within 2 business days. Once your samples arrive and pass QC, we start`,
+      `sequencing; the balance is invoiced on the actual counts when results are delivered.`,
+      ``,
+      `Your quote: ${quoteUrl(q)}`,
+      p.invoice_pdf ? `Receipt / invoice PDF: ${p.invoice_pdf}` : '',
+      ``,
+      `Questions? Just reply to this email.`,
+      ``,
+      `— The BioKEA team`,
+      `${SITE_URL}/`,
+    ]
+      .filter((l) => l !== '')
+      .join('\n'),
+  };
+}
+
+export function depositPaidLabEmail(q: QuoteRecord, p: PaymentRecord, labTo: string): EmailMessage {
+  return {
+    to: labTo,
+    replyTo: q.email,
+    subject: `[deposit paid] ${q.quote_number} · ${who(q)} · ${usdCents(p.amount_cents)}`,
+    text: labBody(
+      q,
+      p,
+      `Deposit paid on ${q.quote_number} — send shipping instructions + manifest.`,
+    ),
+  };
+}
+
+export function balancePaidCustomerEmail(q: QuoteRecord, p: PaymentRecord): EmailMessage {
+  return {
+    to: q.email,
+    replyTo: 'contact@biokea.ai',
+    subject: `Paid in full — BioKEA quote ${q.quote_number}`,
+    text: [
+      `Thanks — your balance of ${usdCents(p.amount_cents)} for quote ${q.quote_number} is paid, and the project is settled in full.`,
+      ``,
+      `Your quote: ${quoteUrl(q)}`,
+      p.invoice_pdf ? `Invoice PDF: ${p.invoice_pdf}` : '',
+      ``,
+      `Thank you for working with BioKEA.`,
+      ``,
+      `— The BioKEA team`,
+      `${SITE_URL}/`,
+    ]
+      .filter((l) => l !== '')
+      .join('\n'),
+  };
+}
+
+export function balancePaidLabEmail(q: QuoteRecord, p: PaymentRecord, labTo: string): EmailMessage {
+  return {
+    to: labTo,
+    replyTo: q.email,
+    subject: `[paid in full] ${q.quote_number} · ${who(q)} · ${usdCents(p.amount_cents)}`,
+    text: labBody(q, p, `Balance paid on ${q.quote_number} — project settled.`),
+  };
+}
