@@ -58,20 +58,14 @@ test('"About" dropdown reveals Mission, Projects, Works, Press, and Games', asyn
   );
 });
 
-test('the games surface has moved off this origin (old paths redirect, API is gone)', async ({
-  page,
-}) => {
-  const apiRes = await page.goto('/api/handle-check?handle=x');
-  expect(apiRes?.status(), '/api/handle-check?handle=x should be gone').toBe(404);
-
-  const redirects: [string, string][] = [
-    ['/mission/games', 'https://games.biokea.ai/'],
-    ['/mission/games/leaderboard', 'https://games.biokea.ai/leaderboard'],
-  ];
-  for (const [path, location] of redirects) {
-    const res = await page.request.get(path, { maxRedirects: 0 });
-    expect([301, 308], `${path} should redirect with a 301/308`).toContain(res.status());
-    expect(res.headers()['location'], `${path} should redirect to ${location}`).toBe(location);
+test('the games surface has moved off this origin', async ({ page }) => {
+  for (const path of [
+    '/mission/games',
+    '/mission/games/leaderboard',
+    '/api/handle-check?handle=x',
+  ]) {
+    const res = await page.goto(path);
+    expect(res?.status(), `${path} should be gone`).toBe(404);
   }
 });
 
