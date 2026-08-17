@@ -1,14 +1,15 @@
 ---
 // src/components/layout/Nav.astro
-// Editorial-style top nav: 2 grouped dropdowns + 1 standalone link +
-// a right-aligned CTA button. Native <details>/<summary> for the
-// dropdowns — keyboard-accessible, zero JS overhead. Mobile renders
-// the same structure as a flat accordion inside the hamburger.
+// Editorial-style top nav: 3 top-level links + 1 grouped dropdown + a
+// right-aligned CTA button. The commercial path (Services, Pricing) sits
+// flat at top level rather than nested, so it reads first. Native
+// <details>/<summary> for the dropdown — keyboard-accessible, zero JS
+// overhead. Mobile renders the same structure as a flat accordion inside
+// the hamburger.
 
 interface NavLink {
   href: string;
   label: string;
-  accent?: 'gold';
 }
 
 interface NavGroup {
@@ -16,42 +17,26 @@ interface NavGroup {
   items: NavLink[];
 }
 
+const topLevelLinks: NavLink[] = [
+  { href: '/services', label: 'Services' },
+  { href: '/pricing', label: 'Pricing' },
+  { href: '/lab', label: 'Lab' },
+];
+
 const navGroups: NavGroup[] = [
   {
-    label: 'What we do',
+    label: 'About',
     items: [
-      { href: '/services', label: 'Services' },
-      { href: '/pricing', label: 'Pricing' },
-      { href: '/quote', label: 'Quote' },
-      { href: '/lab', label: 'Lab' },
-    ],
-  },
-  {
-    label: 'Our work',
-    items: [
+      { href: '/mission', label: 'Mission' },
       { href: '/projects', label: 'Projects' },
       { href: '/works', label: 'Works' },
       { href: '/press', label: 'Press' },
-    ],
-  },
-  {
-    label: 'Mission',
-    items: [
-      { href: '/mission', label: 'Overview' },
-      { href: '/mission/games', label: 'Game-based Storytelling' },
+      { href: '/mission/games', label: 'Games' },
     ],
   },
 ];
 
-// Golden Sample 26 is live (2026-05-07 → 2026-07-07). Surfaced as a
-// gold-accented standalone link so it pops in the otherwise quiet nav.
-// Path is the canonical /mission/games/golden-sample-26; the legacy
-// /golden-sample-26 308-redirects there.
-const standaloneLinks: NavLink[] = [
-  { href: '/mission/games/golden-sample-26', label: 'Golden Sample', accent: 'gold' },
-];
-
-const cta: NavLink = { href: '/contact', label: 'Get in touch' };
+const cta: NavLink = { href: '/quote', label: 'Build a quote' };
 ---
 
 <nav aria-label="Primary" class="bg-[var(--color-ink)] text-[var(--color-cream)]">
@@ -69,6 +54,15 @@ const cta: NavLink = { href: '/contact', label: 'Get in touch' };
 
     <div class="hidden md:flex items-center gap-7">
       <ul class="flex items-center gap-7 text-base font-medium text-slate-300 tracking-wide">
+        {
+          topLevelLinks.map((link) => (
+            <li>
+              <a href={link.href} class="hover:text-[var(--color-teal-bright)] transition">
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
         {
           navGroups.map((group) => (
             <li class="relative">
@@ -101,23 +95,6 @@ const cta: NavLink = { href: '/contact', label: 'Get in touch' };
                   ))}
                 </ul>
               </details>
-            </li>
-          ))
-        }
-        {
-          standaloneLinks.map((link) => (
-            <li>
-              <a
-                href={link.href}
-                class:list={[
-                  'transition',
-                  link.accent === 'gold'
-                    ? 'text-[var(--color-gold)] font-semibold hover:text-[var(--color-gold-soft)]'
-                    : 'hover:text-[var(--color-teal-bright)]',
-                ]}
-              >
-                {link.label}
-              </a>
             </li>
           ))
         }
@@ -157,6 +134,15 @@ const cta: NavLink = { href: '/contact', label: 'Get in touch' };
   <div id="mobile-menu" class="md:hidden hidden border-t border-slate-800">
     <ul class="flex flex-col gap-1 px-6 py-4 text-base">
       {
+        topLevelLinks.map((link) => (
+          <li>
+            <a href={link.href} class="block py-2 border-b border-slate-800">
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+      {
         navGroups.map((group) => (
           <li>
             <details class="group border-b border-slate-800 last:border-b-0">
@@ -185,21 +171,6 @@ const cta: NavLink = { href: '/contact', label: 'Get in touch' };
                 ))}
               </ul>
             </details>
-          </li>
-        ))
-      }
-      {
-        standaloneLinks.map((link) => (
-          <li>
-            <a
-              href={link.href}
-              class:list={[
-                'block py-2 border-b border-slate-800',
-                link.accent === 'gold' && 'text-[var(--color-gold)] font-semibold',
-              ]}
-            >
-              {link.label}
-            </a>
           </li>
         ))
       }
