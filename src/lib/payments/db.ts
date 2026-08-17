@@ -3,7 +3,7 @@
 // endpoints are unit-tested against MemoryDb. Every call uses the
 // service-role key: `quotes`, `quote_payments`, `stripe_events` all have
 // RLS enabled with zero policies (see migrations/0005 and 0006).
-import type { PaymentRecord, QuoteRecord } from './types';
+import type { PaymentRecord, QuoteRecord, QuoteStatus } from './types';
 
 export type NewPayment = Pick<PaymentRecord, 'quote_id' | 'kind' | 'amount_cents'> &
   Partial<
@@ -43,6 +43,11 @@ export interface PaymentsDb {
   updatePayment(id: string, patch: PaymentPatch): Promise<void>;
   deletePayment(id: string): Promise<void>;
   updateQuote(id: string, patch: QuotePatch): Promise<void>;
+  // Conditional update: only advances the quote's status when it still
+  // matches `from` — protects against clobbering a status the webhook
+  // already moved on while a Stripe call was in flight (spec's I1 fix).
+  // Returns whether the update happened.
+  updateQuoteStatusIf(id: string, from: QuoteStatus, to: QuoteStatus): Promise<boolean>;
   recordStripeEvent(id: string, type: string): Promise<boolean>;
   deleteStripeEvent(id: string): Promise<void>;
 }
@@ -64,14 +69,14 @@ export class SupabaseDb implements PaymentsDb {
 
   private async one<T>(path: string): Promise<T | null> {
     const res = await fetch(`${this.url}/rest/v1/${path}`, { headers: this.headers() });
-    if (!res.ok) return null;
+    if (!res.ok) throw new Error(`${path.split('?')[0]} read failed: ${res.status}`);
     const rows = (await res.json()) as T[];
     return rows[0] ?? null;
   }
 
   private async many<T>(path: string): Promise<T[]> {
     const res = await fetch(`${this.url}/rest/v1/${path}`, { headers: this.headers() });
-    if (!res.ok) return [];
+    if (!res.ok) throw new Error(`${path.split('?')[0]} read failed: ${res.status}`);
     return (await res.json()) as T[];
   }
 
@@ -128,6 +133,20 @@ export class SupabaseDb implements PaymentsDb {
   }
   updateQuote(id: string, patch: QuotePatch) {
     return this.patch('quotes', id, patch);
+  }
+
+  async updateQuoteStatusIf(id: string, from: QuoteStatus, to: QuoteStatus): Promise<boolean> {
+    const res = await fetch(
+      `${this.url}/rest/v1/quotes?id=eq.${encodeURIComponent(id)}&status=eq.${encodeURIComponent(from)}`,
+      {
+        method: 'PATCH',
+        headers: this.headers({ Prefer: 'return=representation' }),
+        body: JSON.stringify({ status: to }),
+      },
+    );
+    if (!res.ok) throw new Error(`quotes conditional update failed: ${res.status}`);
+    const rows = (await res.json()) as unknown[];
+    return rows.length > 0;
   }
 
   async deletePayment(id: string): Promise<void> {
@@ -228,6 +247,12 @@ export class MemoryDb implements PaymentsDb {
   async updateQuote(id: string, patch: QuotePatch) {
     const q = this.quotes.find((x) => x.id === id);
     if (q) Object.assign(q, patch);
+  }
+  async updateQuoteStatusIf(id: string, from: QuoteStatus, to: QuoteStatus): Promise<boolean> {
+    const q = this.quotes.find((x) => x.id === id);
+    if (!q || q.status !== from) return false;
+    q.status = to;
+    return true;
   }
   async recordStripeEvent(id: string) {
     if (this.events.has(id)) return false;

@@ -86,7 +86,12 @@ export async function handleDeposit(
   const lines = depositLines(quote.lines, form.audience);
   const amountCents = depositTotalCents(lines);
   const total = form.audience === 'academic' ? quote.total_academic : quote.total_commercial;
-  assertDepositSane(total, amountCents, lines.length); // throws → 500 via the wrapper; deliberate
+  try {
+    assertDepositSane(total, amountCents, lines.length);
+  } catch (err) {
+    console.error('[deposit] sanity check failed for', quote.quote_number, err);
+    return back(token, 'failed');
+  }
 
   const inserted = await deps.db.insertPayment({
     quote_id: quote.id,
@@ -123,7 +128,10 @@ export async function handleDeposit(
         ` The balance is invoiced on actual sample counts when results are delivered.`,
       customFields,
       daysUntilDue: INVOICE_DAYS_UNTIL_DUE,
-      idempotencyKey: `deposit:${quote.id}`,
+      // keyed on the payment row id — unique per attempt, so a voided/failed
+      // attempt never replays a stale Stripe request (spec §6 'new
+      // idempotency key suffix').
+      idempotencyKey: `deposit:${inserted.id}`,
     });
   } catch {
     await deps.db.deletePayment(inserted.id);
@@ -137,12 +145,16 @@ export async function handleDeposit(
     due_at: created.dueAt,
   });
   await deps.db.updateQuote(quote.id, {
-    status: 'deposit_invoiced',
     audience: form.audience,
     academic_attested_at: form.audience === 'academic' ? now().toISOString() : null,
     po_number: poNumber,
     stripe_customer_id: created.customerId,
   });
+  // Conditional: only steps quoted → deposit_invoiced. If the webhook's
+  // invoice.paid landed while the Stripe call above was in flight, the
+  // quote is already past 'quoted' and this is a no-op — never clobber a
+  // status the webhook already advanced (spec's I1 fix).
+  await deps.db.updateQuoteStatusIf(quote.id, 'quoted', 'deposit_invoiced');
 
   return seeOther(created.hostedInvoiceUrl);
 }

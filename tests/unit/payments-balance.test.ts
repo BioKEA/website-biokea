@@ -123,7 +123,7 @@ describe('handleBalance', () => {
     const spec = gateway.created[0];
     expect(spec.kind).toBe('balance');
     expect(spec.customer.id).toBe('cus_1');
-    expect(spec.idempotencyKey).toBe('balance:q1:1');
+    expect(spec.idempotencyKey).toBe('balance:p2');
     expect(spec.customFields).toEqual([
       { name: 'Quote', value: N },
       { name: 'PO number', value: 'PO-77' },
@@ -210,7 +210,7 @@ describe('handleBalance', () => {
     await db.updatePayment(first.id, { status: 'void' });
     await db.updateQuote('q1', { status: 'deposit_paid' });
     await handleBalance(post({ 'counts[barcoding]': '750', confirm: 'true' }), N, deps());
-    expect(gateway.created[1].idempotencyKey).toBe('balance:q1:2');
+    expect(gateway.created[1].idempotencyKey).toBe('balance:p3');
     expect(db.payments.filter((p) => p.kind === 'balance')).toHaveLength(2);
   });
 
@@ -223,5 +223,27 @@ describe('handleBalance', () => {
     ).toBe(`/admin/quotes/${N}?error=stripe`);
     expect(db.payments.filter((p) => p.kind === 'balance')).toHaveLength(0);
     expect(db.quotes[0].status).toBe('deposit_paid');
+  });
+
+  it('never clobbers a status the webhook already advanced while the Stripe call was in flight', async () => {
+    class RacingGateway extends MemoryGateway {
+      constructor(private readonly db: MemoryDb) {
+        super();
+      }
+      override async createInvoice(spec: Parameters<MemoryGateway['createInvoice']>[0]) {
+        // Simulate invoice.paid landing (via the webhook) mid-call.
+        this.db.quotes[0].status = 'paid';
+        return super.createInvoice(spec);
+      }
+    }
+    const racingGateway = new RacingGateway(db);
+    const res = await handleBalance(post({ 'counts[barcoding]': '743', confirm: 'true' }), N, {
+      db,
+      gateway: racingGateway,
+      actorEmail: 'michelle@biokea.ai',
+    });
+    expect(res.headers.get('location')).toBe(`/admin/quotes/${N}?balance=invoiced`);
+    expect(db.quotes[0].status).toBe('paid');
+    expect(db.quotes[0].stripe_customer_id).toBe('cus_1');
   });
 });

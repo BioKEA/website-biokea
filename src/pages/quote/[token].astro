@@ -25,8 +25,13 @@ if (isUuid && e?.SUPABASE_URL && e?.SUPABASE_SERVICE_ROLE_KEY) {
   // Service role: the quotes table has no anonymous select policy. The page
   // renders on the Worker, so this key is never exposed to the client.
   const db = new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY);
-  quote = await db.getQuoteByToken(token!);
-  if (quote) payments = await db.listPayments(quote.id);
+  try {
+    quote = await db.getQuoteByToken(token!);
+    if (quote) payments = await db.listPayments(quote.id);
+  } catch (err) {
+    console.error('[quote] read failed', err);
+    return new Response('Quote service unavailable — please try again shortly.', { status: 503 });
+  }
 }
 
 if (!quote) return new Response('Quote not found', { status: 404 });

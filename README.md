@@ -47,33 +47,48 @@ wrangler secret put RESEND_API_KEY
 # non-secret vars (CONTACT_FROM_EMAIL, CONTACT_TO_EMAIL) live in wrangler.toml
 ```
 
+## Migrations
+
+Supabase schema changes live in `migrations/*.sql`, applied by hand:
+
+- `migrations/0005_quotes.sql`
+- `migrations/0006_quote_payments.sql`
+
+Apply in the Supabase Dashboard → SQL Editor, in order; **0006 must be
+applied before the first deploy of the payments code** (existing quotes get
+`status = 'quoted'`).
+
 ## Payments (Stripe)
 
 Customers pay a 50% deposit on a quote from `/quote/<token>`; staff issue the
 balance from `/admin/quotes/<number>`. Design: `docs/superpowers/specs/2026-08-16-stripe-payments-design.md`.
 
-Worker secrets (once per mode):
+Rollout order:
 
-```bash
-npx wrangler secret put STRIPE_SECRET_KEY        # sk_test_… first, sk_live_… at go-live
-npx wrangler secret put STRIPE_WEBHOOK_SECRET    # from the dashboard webhook endpoint
-```
+1. Apply `migrations/0006_quote_payments.sql` in Supabase (see Migrations, above).
+2. Create the Cloudflare Access app and set `CF_ACCESS_TEAM_DOMAIN` / `CF_ACCESS_AUD` in `wrangler.toml`:
+   Zero Trust → Access → Applications → Add → Self-hosted; domain `biokea.ai`, paths `/admin/*` and
+   `/api/admin/*`; policy Allow emails ending `@biokea.ai` (Google or One-time PIN); copy the team
+   domain and the app's Audience (AUD) tag into `wrangler.toml`.
+3. `wrangler secret put STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` (test mode first):
+   ```bash
+   npx wrangler secret put STRIPE_SECRET_KEY        # sk_test_… first, sk_live_… at go-live
+   npx wrangler secret put STRIPE_WEBHOOK_SECRET    # from the dashboard webhook endpoint
+   ```
+   `wrangler.toml` also enables `compatibility_flags = ["nodejs_compat"]` — the stripe SDK needs
+   Node built-ins on Workers.
+4. Deploy.
+5. Create the Stripe webhook endpoint (`https://biokea.ai/api/stripe/webhook`, events `invoice.paid`,
+   `invoice.voided`, `invoice.marked_uncollectible`) and re-put the signing secret if it changed.
+6. Enable ACH debit + bank transfers + invoice branding in the Stripe dashboard: Settings → Payments
+   → Payment methods: enable **ACH Direct Debit** and **Bank transfers**; Settings → Billing →
+   Invoices: upload logo/brand colour; turn on "Email finalized invoices to customers" and receipts.
+7. Walk the test-mode checklist (card `4242…`, ACH test bank, bank-transfer test flow, void, balance
+   above/below the estimate), then swap live keys.
 
-`wrangler.toml` vars: `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD` (Cloudflare Access app for `/admin/*`). `wrangler.toml` also enables `compatibility_flags = ["nodejs_compat"]` — the stripe SDK needs Node built-ins on Workers.
-
-Stripe dashboard (once, in test mode, then repeat in live):
-
-1. Settings → Payments → Payment methods: enable **ACH Direct Debit** and **Bank transfers**.
-2. Settings → Billing → Invoices: upload logo/brand colour; turn on "Email finalized invoices to customers" and receipts.
-3. Developers → Webhooks → Add endpoint `https://biokea.ai/api/stripe/webhook`, events
-   `invoice.paid`, `invoice.voided`, `invoice.marked_uncollectible`; copy the signing secret → `STRIPE_WEBHOOK_SECRET`.
-
-Cloudflare Zero Trust (once): Access → Applications → Add → Self-hosted; domain `biokea.ai`,
-paths `/admin/*` and `/api/admin/*`; policy Allow emails ending `@biokea.ai` (Google or One-time PIN);
-copy the team domain and the app's Audience (AUD) tag into `wrangler.toml`.
-
-Local dev: copy `.dev.vars.example` → `.dev.vars` (test keys; `.dev.vars.example` lists every key including the Stripe test keys), run `npm run dev`, and in another
-terminal `stripe listen --forward-to localhost:4321/api/stripe/webhook` (paste its `whsec_…` into `.dev.vars`).
+Local dev: copy `.dev.vars.example` → `.dev.vars` — it lists every key the Worker reads, including
+Stripe test keys — then run `npm run dev`, and in another terminal
+`stripe listen --forward-to localhost:4321/api/stripe/webhook` (paste its `whsec_…` into `.dev.vars`).
 Set `CF_ACCESS_DEV_EMAIL` to reach `/admin` locally.
 
 ## Architecture

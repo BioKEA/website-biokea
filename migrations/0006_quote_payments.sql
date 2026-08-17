@@ -49,6 +49,8 @@ create unique index if not exists quote_payments_live_idx
 create index if not exists quote_payments_quote_idx on public.quote_payments (quote_id);
 
 -- Webhook idempotency: insert-or-skip on the Stripe event id.
+-- Grows unbounded; safe to prune rows older than ~90 days (delete from
+-- stripe_events where received_at < now() - interval '90 days').
 create table if not exists public.stripe_events (
   id          text primary key,
   type        text not null,

@@ -36,17 +36,28 @@ describe('SupabaseDb', () => {
     expect(h.authorization).toBe(`Bearer ${KEY}`);
   });
 
-  it('returns null for an empty result and on a non-2xx', async () => {
+  it('returns null for a genuinely empty result', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => jsonRes([])),
     );
     expect(await new SupabaseDb(URL, KEY).getQuoteByNumber('BK-2026-9999')).toBeNull();
+  });
+
+  it('throws (does not silently return null) on a non-2xx read', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => jsonRes({ message: 'boom' }, 500)),
     );
-    expect(await new SupabaseDb(URL, KEY).getQuoteById('x')).toBeNull();
+    await expect(new SupabaseDb(URL, KEY).getQuoteById('x')).rejects.toThrow(/read failed/);
+  });
+
+  it('throws (does not silently return []) on a non-2xx list read', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => jsonRes({ message: 'boom' }, 500)),
+    );
+    await expect(new SupabaseDb(URL, KEY).listPayments('q1')).rejects.toThrow(/read failed/);
   });
 
   it('inserts a payment and returns the representation; maps a unique violation to "conflict"', async () => {
@@ -153,6 +164,27 @@ describe('SupabaseDb', () => {
     expect(calls[0].init.method).toBe('DELETE');
   });
 
+  it('conditionally updates a quote status only when it still matches "from"', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init: RequestInit) => {
+        calls.push({ url, init });
+        return jsonRes([{ id: 'q1' }], 200);
+      }),
+    );
+    const db = new SupabaseDb(URL, KEY);
+    expect(await db.updateQuoteStatusIf('q1', 'quoted', 'deposit_invoiced')).toBe(true);
+    expect(calls[0].url).toBe(`${URL}/rest/v1/quotes?id=eq.q1&status=eq.quoted`);
+    expect(calls[0].init.method).toBe('PATCH');
+    expect(JSON.parse(String(calls[0].init.body))).toEqual({ status: 'deposit_invoiced' });
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => jsonRes([], 200)),
+    );
+    expect(await db.updateQuoteStatusIf('q1', 'quoted', 'deposit_invoiced')).toBe(false);
+  });
+
   it('lists payments newest first and finds by invoice id', async () => {
     vi.stubGlobal(
       'fetch',
@@ -198,5 +230,32 @@ describe('MemoryDb', () => {
     expect(await db.recordStripeEvent('e', 'invoice.paid')).toBe(true);
     await db.deleteStripeEvent('e');
     expect(await db.recordStripeEvent('e', 'invoice.paid')).toBe(true);
+  });
+
+  it('conditionally updates a quote status only when it still matches "from"', async () => {
+    const db = new MemoryDb();
+    db.quotes.push({
+      id: 'q1',
+      quote_number: 'BK-2026-0001',
+      access_token: 't',
+      email: 'a@b.edu',
+      name: 'Alice',
+      organization: null,
+      lines: [],
+      total_academic: 0,
+      total_commercial: 0,
+      needs_conversation: false,
+      created_at: '2026-08-20T00:00:00Z',
+      expires_at: '2026-09-19T00:00:00Z',
+      status: 'quoted',
+      audience: null,
+      academic_attested_at: null,
+      po_number: null,
+      stripe_customer_id: null,
+    });
+    expect(await db.updateQuoteStatusIf('q1', 'quoted', 'deposit_invoiced')).toBe(true);
+    expect(db.quotes[0].status).toBe('deposit_invoiced');
+    expect(await db.updateQuoteStatusIf('q1', 'quoted', 'deposit_invoiced')).toBe(false);
+    expect(db.quotes[0].status).toBe('deposit_invoiced');
   });
 });

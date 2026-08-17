@@ -89,7 +89,6 @@ export async function handleBalance(
     created_by: deps.actorEmail,
   });
   if (inserted === 'conflict') return seeOther(`${admin}?error=state`);
-  const attempt = payments.filter((p) => p.kind === 'balance').length + 1;
 
   const customFields = [{ name: 'Quote', value: quote.quote_number }];
   if (quote.po_number) customFields.push({ name: 'PO number', value: quote.po_number });
@@ -111,7 +110,10 @@ export async function handleBalance(
       footer: `Balance for BioKEA quote ${quote.quote_number}, computed on actual sample counts.`,
       customFields,
       daysUntilDue: INVOICE_DAYS_UNTIL_DUE,
-      idempotencyKey: `balance:${quote.id}:${attempt}`,
+      // keyed on the payment row id — unique per attempt, so a voided/failed
+      // attempt never replays a stale Stripe request (spec §6 'new
+      // idempotency key suffix').
+      idempotencyKey: `balance:${inserted.id}`,
     });
   } catch {
     await deps.db.deletePayment(inserted.id);
@@ -124,10 +126,13 @@ export async function handleBalance(
     invoice_pdf: created.invoicePdf,
     due_at: created.dueAt,
   });
-  await deps.db.updateQuote(quote.id, {
-    status: 'balance_invoiced',
-    stripe_customer_id: created.customerId,
-  });
+  await deps.db.updateQuote(quote.id, { stripe_customer_id: created.customerId });
+  // Conditional: only steps deposit_paid → balance_invoiced. If the
+  // webhook's invoice.paid landed while the Stripe call above was in
+  // flight, the quote is already past 'deposit_paid' and this is a
+  // no-op — never clobber a status the webhook already advanced (spec's
+  // I1 fix).
+  await deps.db.updateQuoteStatusIf(quote.id, 'deposit_paid', 'balance_invoiced');
   return seeOther(`${admin}?balance=invoiced`);
 }
 

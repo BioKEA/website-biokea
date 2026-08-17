@@ -325,6 +325,31 @@ describe('handleStripeWebhook', () => {
     expect(db.quotes[0].status).toBe('deposit_paid');
   });
 
+  it('a DB outage on the payment lookup is retried, not swallowed as "unknown invoice"', async () => {
+    class OutageDb extends MemoryDb {
+      async findPaymentByInvoiceId(): Promise<never> {
+        throw new Error('supabase down');
+      }
+    }
+    const outage = new OutageDb();
+    outage.quotes.push(quote());
+    await outage.insertPayment({
+      quote_id: 'q1',
+      kind: 'deposit',
+      amount_cents: 480000,
+      stripe_invoice_id: 'in_1',
+      hosted_invoice_url: 'https://invoice.stripe.com/i/x',
+    });
+    const outageDeps = { ...deps(), db: outage };
+
+    const res = await handleStripeWebhook(
+      event('evt_15', 'invoice.paid', depositInvoice),
+      outageDeps,
+    );
+    expect(res.status).toBe(500);
+    expect(outage.events.size).toBe(0);
+  });
+
   it('an un-record failure is logged', async () => {
     class DoublyFlakyDb extends MemoryDb {
       async updateQuote(): Promise<void> {

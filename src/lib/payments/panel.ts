@@ -71,5 +71,9 @@ export function panelView(quote: QuoteRecord, payments: PaymentRecord[], now: Da
         depositPdf: deposit?.invoice_pdf ?? null,
         balancePdf: balance?.invoice_pdf ?? null,
       };
+    default:
+      // Covers a pre-migration row whose `status` column hasn't been
+      // backfilled yet (undefined at runtime despite the type).
+      return { kind: 'none' };
   }
 }

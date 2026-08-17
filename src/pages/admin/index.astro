@@ -11,14 +11,23 @@ import type { QuoteRecord } from '@/lib/payments/types';
 
 export const prerender = false;
 
+if (!Astro.locals.adminEmail) return new Response('Forbidden', { status: 403 });
+
 const e = env as { SUPABASE_URL?: string; SUPABASE_SERVICE_ROLE_KEY?: string };
 let quotes: QuoteRecord[] = [];
 let configured = false;
 if (e?.SUPABASE_URL && e?.SUPABASE_SERVICE_ROLE_KEY) {
   configured = true;
-  quotes = await new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY).listRecentQuotes(100);
+  try {
+    quotes = await new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY).listRecentQuotes(
+      100,
+    );
+  } catch (err) {
+    console.error('[admin] read failed', err);
+    return new Response('Quote service unavailable — please try again shortly.', { status: 503 });
+  }
 }
-const admin = Astro.locals.adminEmail ?? 'unknown';
+const admin = Astro.locals.adminEmail;
 const total = (q: QuoteRecord) =>
   q.audience === 'commercial'
     ? q.total_commercial

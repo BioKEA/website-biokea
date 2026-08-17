@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { buildQuote } from '@/lib/pricing/quote';
 import { MemoryDb } from '@/lib/payments/db';
 import { MemoryGateway } from '@/lib/payments/gateway';
@@ -95,7 +95,7 @@ describe('handleDeposit', () => {
     });
     expect(spec.quoteNumber).toBe('BK-2026-0142');
     expect(spec.daysUntilDue).toBe(30);
-    expect(spec.idempotencyKey).toBe('deposit:q1');
+    expect(spec.idempotencyKey).toBe('deposit:p1');
     expect(spec.customFields).toEqual([
       { name: 'Quote', value: 'BK-2026-0142' },
       { name: 'PO number', value: 'PO-77' },
@@ -270,5 +270,43 @@ describe('handleDeposit', () => {
     });
     expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=failed`);
     expect(gateway.created).toHaveLength(0);
+  });
+
+  it('never clobbers a status the webhook already advanced while the Stripe call was in flight', async () => {
+    class RacingGateway extends MemoryGateway {
+      constructor(private readonly db: MemoryDb) {
+        super();
+      }
+      override async createInvoice(spec: Parameters<MemoryGateway['createInvoice']>[0]) {
+        // Simulate invoice.paid landing (via the webhook) mid-call.
+        this.db.quotes[0].status = 'deposit_paid';
+        return super.createInvoice(spec);
+      }
+    }
+    const racingGateway = new RacingGateway(db);
+    const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+      db,
+      gateway: racingGateway,
+      now: NOW,
+    });
+    expect(res.status).toBe(303);
+    expect(db.quotes[0].status).toBe('deposit_paid');
+    expect(db.quotes[0].audience).toBe('commercial');
+    expect(db.quotes[0].stripe_customer_id).toBe('cus_test_1');
+  });
+
+  it('logs and redirects with ?pay=failed when the deposit sanity check fails, without calling Stripe', async () => {
+    db.quotes[0] = quote({ total_commercial: 1 }); // tampered total vs. the line prices
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+      db,
+      gateway,
+      now: NOW,
+    });
+    expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=failed`);
+    expect(gateway.created).toHaveLength(0);
+    expect(db.payments).toHaveLength(0);
+    expect(errSpy).toHaveBeenCalled();
+    errSpy.mockRestore();
   });
 });

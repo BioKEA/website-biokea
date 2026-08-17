@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildQuote } from '@/lib/pricing/quote';
 import { panelView } from '@/lib/payments/panel';
-import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
+import type { PaymentRecord, QuoteRecord, QuoteStatus } from '@/lib/payments/types';
 
 const q = buildQuote([{ serviceSlug: 'barcoding', count: 800 }]);
 const now = new Date('2026-09-01T00:00:00Z');
@@ -156,6 +156,11 @@ describe('panelView', () => {
       depositPdf: 'https://pay.stripe.com/x.pdf',
       balancePdf: null,
     });
+  });
+
+  it('shows nothing for a pre-migration row with an unrecognized/undefined status', () => {
+    const v = panelView({ ...quote(), status: undefined as unknown as QuoteStatus }, [], now);
+    expect(v).toEqual({ kind: 'none' });
   });
 
   it('ignores voided rows when picking the live payment', () => {
