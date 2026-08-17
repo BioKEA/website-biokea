@@ -7,10 +7,10 @@
 // records a no-invoice settlement when nothing is owed. Spec §5.3.
 import type { APIContext } from 'astro';
 import { env } from 'cloudflare:workers';
-import type { QuoteLineInput } from '@/lib/pricing/quote';
 import { type PaymentsDb, SupabaseDb } from '@/lib/payments/db';
 import { type PaymentsGateway, makeStripe, stripeGateway } from '@/lib/payments/gateway';
 import { INVOICE_DAYS_UNTIL_DUE, computeBalance } from '@/lib/payments/terms';
+import { parseBalanceForm } from '@/lib/payments/balance-form';
 
 export const prerender = false;
 
@@ -20,43 +20,11 @@ export interface BalanceDeps {
   actorEmail: string;
 }
 
-const COUNT_KEY = /^counts\[([a-z0-9-]{1,64})\]$/;
-const MARKER_KEY = /^markers\[([a-z0-9-]{1,64})\]$/;
-const isPosInt = (s: string) => /^\d{1,7}$/.test(s) && Number(s) > 0;
-
-// Also used by the admin page to render the preview from the query string
-// (FormData on POST, URLSearchParams on the preview GET).
-export function parseBalanceForm(
-  fd: FormData | URLSearchParams,
-): { inputs: QuoteLineInput[]; confirm: boolean } | null {
-  const counts = new Map<string, number>();
-  const markers = new Map<string, number>();
-  for (const [k, v] of fd.entries()) {
-    const val = typeof v === 'string' ? v.trim() : '';
-    const c = k.match(COUNT_KEY);
-    if (c) {
-      if (val === '') continue;
-      if (!isPosInt(val)) return null;
-      counts.set(c[1], Number(val));
-      continue;
-    }
-    const m = k.match(MARKER_KEY);
-    if (m) {
-      if (val === '') continue;
-      if (!isPosInt(val)) return null;
-      markers.set(m[1], Number(val));
-    }
-  }
-  if (counts.size === 0) return null;
-  const inputs: QuoteLineInput[] = [];
-  for (const [slug, count] of counts) {
-    const mk = markers.get(slug);
-    inputs.push(
-      mk && mk > 1 ? { serviceSlug: slug, count, markers: mk } : { serviceSlug: slug, count },
-    );
-  }
-  return { inputs, confirm: fd.get('confirm') === 'true' };
-}
+// Re-exported so existing importers (this route's own tests, Task 10) keep
+// working. Moved to balance-form.ts (no Stripe import) because importing it
+// from here into the admin page dragged this route's Stripe gateway into
+// the page's module graph and broke Vite's dev SSR resolution of `stripe`.
+export { parseBalanceForm };
 
 const seeOther = (location: string) => new Response(null, { status: 303, headers: { location } });
 

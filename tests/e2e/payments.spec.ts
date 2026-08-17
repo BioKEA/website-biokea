@@ -17,3 +17,12 @@ test('a forged Access header is refused', async ({ request }) => {
   const res = await request.get('/admin', { headers: { 'cf-access-jwt-assertion': 'not.a.jwt' } });
   expect(res.status()).toBe(403);
 });
+
+// With the dev bypass (CF_ACCESS_DEV_EMAIL in .dev.vars) the pages render.
+// Without Supabase configured, /admin says so and a quote page 404s.
+test('admin pages render for a dev-bypassed staff user', async ({ page }) => {
+  test.skip(!process.env.CF_ACCESS_DEV_EMAIL, 'needs the dev bypass');
+  await page.goto('/admin');
+  await expect(page.getByRole('heading', { name: /quotes & payments/i })).toBeVisible();
+  await expect(page.getByText(`Signed in as ${process.env.CF_ACCESS_DEV_EMAIL}`)).toBeVisible();
+});
