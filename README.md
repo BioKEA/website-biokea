@@ -13,6 +13,13 @@ npm install
 npm run dev            # http://localhost:4321
 ```
 
+Or, without a local Node install, via Docker (dev server only — the
+Cloudflare Worker deploy still goes through wrangler/CI):
+
+```bash
+docker compose up      # http://localhost:4321, live-reloads from ./src
+```
+
 ## Test
 
 ```bash
