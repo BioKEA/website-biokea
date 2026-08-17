@@ -1,0 +1,93 @@
+---
+// src/pages/admin/index.astro — staff list of recent quotes + payment status.
+// Behind Cloudflare Access (src/middleware.ts). Operational, not analytical:
+// Stripe is where the money lives.
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import { env } from 'cloudflare:workers';
+import { SupabaseDb } from '@/lib/payments/db';
+import { usdCents } from '@/lib/payments/terms';
+import type { QuoteRecord } from '@/lib/payments/types';
+
+export const prerender = false;
+
+if (!Astro.locals.adminEmail) return new Response('Forbidden', { status: 403 });
+
+const e = env as { SUPABASE_URL?: string; SUPABASE_SERVICE_ROLE_KEY?: string };
+let quotes: QuoteRecord[] = [];
+let configured = false;
+if (e?.SUPABASE_URL && e?.SUPABASE_SERVICE_ROLE_KEY) {
+  configured = true;
+  try {
+    quotes = await new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY).listRecentQuotes(
+      100,
+    );
+  } catch (err) {
+    console.error('[admin] read failed', err);
+    return new Response('Quote service unavailable — please try again shortly.', { status: 503 });
+  }
+}
+const admin = Astro.locals.adminEmail;
+const total = (q: QuoteRecord) =>
+  q.audience === 'commercial'
+    ? q.total_commercial
+    : q.audience === 'academic'
+      ? q.total_academic
+      : null;
+---
+
+<BaseLayout title="Admin — quotes — BioKEA" description="Internal." noindex>
+  <section class="max-w-5xl mx-auto px-6 pt-16 pb-12">
+    <Eyebrow>ADMIN · QUOTES</Eyebrow>
+    <h1 class="mt-3 text-3xl font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+      Quotes &amp; payments
+    </h1>
+    <p class="mt-1 text-xs text-slate-500">Signed in as {admin} · {quotes.length} most recent</p>
+    {
+      !configured && (
+        <p class="mt-6 text-sm text-red-700">Supabase is not configured on this deployment.</p>
+      )
+    }
+    <table
+      class="mt-6 w-full border-collapse text-sm bg-white border border-slate-900/10 rounded-md overflow-hidden"
+    >
+      <thead>
+        <tr class="bg-[var(--color-ink)] text-white text-left">
+          <th class="px-3 py-2">Quote</th><th class="px-3 py-2">Created</th><th class="px-3 py-2"
+            >Customer</th
+          >
+          <th class="px-3 py-2">Status</th><th class="px-3 py-2 text-right">Total (chosen rate)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          quotes.map((q) => (
+            <tr class="border-t border-slate-900/10">
+              <td class="px-3 py-2 font-mono">
+                <a
+                  class="underline text-[var(--color-teal)]"
+                  href={`/admin/quotes/${q.quote_number}`}
+                >
+                  {q.quote_number}
+                </a>
+              </td>
+              <td class="px-3 py-2">{q.created_at.slice(0, 10)}</td>
+              <td class="px-3 py-2">
+                {q.organization ?? q.name} <span class="text-slate-500">· {q.email}</span>
+              </td>
+              <td class="px-3 py-2 font-mono text-xs">
+                {q.status}
+                {q.needs_conversation ? ' · conversation' : ''}
+              </td>
+              <td class="px-3 py-2 text-right font-mono">
+                {total(q) === null
+                  ? `${usdCents(q.total_academic * 100)} / ${usdCents(q.total_commercial * 100)}`
+                  : usdCents(total(q)! * 100)}
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </section>
+</BaseLayout>

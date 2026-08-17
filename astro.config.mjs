@@ -5,7 +5,7 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 
-const hiddenFromSitemap = ['/404', '/projects/sdl-moonshot'];
+const hiddenFromSitemap = ['/404', '/projects/sdl-moonshot', '/admin'];
 
 export default defineConfig({
   site: 'https://biokea.ai',

@@ -1,0 +1,334 @@
+---
+// src/pages/admin/quotes/[number].astro — one quote: lines, payments,
+// and the balance form (preview → confirm). Spec §5.3.
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import { env } from 'cloudflare:workers';
+import { SupabaseDb } from '@/lib/payments/db';
+import { computeBalance, usdCents } from '@/lib/payments/terms';
+import { parseBalanceForm } from '@/lib/payments/balance-form';
+import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
+
+export const prerender = false;
+
+if (!Astro.locals.adminEmail) return new Response('Forbidden', { status: 403 });
+
+const e = env as { SUPABASE_URL?: string; SUPABASE_SERVICE_ROLE_KEY?: string };
+const number = Astro.params.number ?? '';
+if (!/^BK-\d{4}-\d{4,}$/.test(number) || !e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY) {
+  return new Response('Quote not found', { status: 404 });
+}
+const db = new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY);
+let found: QuoteRecord | null;
+let payments: PaymentRecord[];
+try {
+  found = await db.getQuoteByNumber(number);
+  payments = found ? await db.listPayments(found.id) : [];
+} catch (err) {
+  console.error('[admin] read failed', err);
+  return new Response('Quote service unavailable — please try again shortly.', { status: 503 });
+}
+if (!found) return new Response('Quote not found', { status: 404 });
+const quote: QuoteRecord = found;
+const deposit = payments.find((p) => p.kind === 'deposit' && p.status === 'paid') ?? null;
+
+const url = Astro.url;
+const flash = {
+  error: url.searchParams.get('error'),
+  balance: url.searchParams.get('balance'),
+  refund: url.searchParams.get('refund'),
+};
+// Computed here, not inline in the template. Also: in a `[number].astro`
+// route Astro's generated per-file types shadow the global `Number`
+// identifier, so this uses unary `+` (identical string-to-number coercion)
+// instead of calling `Number(...)`, and the global `isFinite` (equivalent
+// to `Number.isFinite` once the argument is already a number) instead of
+// `Number.isFinite`.
+const refundDisplay = isFinite(+(flash.refund ?? '')) ? usdCents(+(flash.refund ?? '0')) : '—';
+
+// Preview: the balance endpoint bounced the form back to us as query params.
+let preview: ReturnType<typeof computeBalance> | null = null;
+let previewError: string | null = null;
+let previewInputs = new URLSearchParams();
+if (url.searchParams.get('preview') === '1' && deposit && quote.audience) {
+  previewInputs = url.searchParams;
+  const parsed = parseBalanceForm(url.searchParams);
+  if (!parsed) previewError = 'Counts must be positive whole numbers.';
+  else {
+    try {
+      preview = computeBalance(parsed.inputs, quote.audience, {
+        amountCents: deposit.amount_cents,
+        invoiceLabel: deposit.stripe_invoice_id ?? 'deposit',
+        paidAt: deposit.paid_at ?? deposit.created_at,
+      });
+    } catch (err) {
+      previewError = err instanceof Error ? err.message : 'Invalid configuration.';
+    }
+  }
+}
+const canBalance = quote.status === 'deposit_paid' && deposit !== null && quote.audience !== null;
+const val = (k: string) => previewInputs.get(k) ?? '';
+---
+
+<BaseLayout title={`Admin — ${quote.quote_number} — BioKEA`} description="Internal." noindex>
+  <section class="max-w-4xl mx-auto px-6 pt-16 pb-12">
+    <p class="text-xs">
+      <a class="underline text-[var(--color-teal)]" href="/admin">← All quotes</a>
+    </p>
+    <Eyebrow>ADMIN · {quote.quote_number}</Eyebrow>
+    <h1 class="mt-3 text-3xl font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+      {quote.organization ?? quote.name}
+    </h1>
+    <p class="mt-1 text-sm text-slate-600">
+      {quote.name} · <a class="underline" href={`mailto:${quote.email}`}>{quote.email}</a>
+    </p>
+    <p class="mt-1 font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">
+      status {quote.status} · rate {quote.audience ?? '—'} · PO {quote.po_number ?? '—'} · valid to {
+        quote.expires_at.slice(0, 10)
+      }
+      · <a class="underline" href={`/quote/${quote.access_token}`}>customer view</a>
+      {
+        quote.stripe_customer_id && (
+          <>
+            {' '}
+            ·{' '}
+            <a
+              class="underline"
+              href={`https://dashboard.stripe.com/customers/${quote.stripe_customer_id}`}
+            >
+              Stripe customer
+            </a>
+          </>
+        )
+      }
+    </p>
+
+    {
+      flash.error && (
+        <p class="mt-6 text-sm text-red-700 border-l-2 border-red-700 pl-3">
+          {flash.error === 'state' &&
+            'The quote is not ready for a balance (needs a paid deposit and status deposit_paid).'}
+          {flash.error === 'input' && 'Those counts could not be priced — check the numbers.'}
+          {flash.error === 'stripe' &&
+            'Stripe rejected the invoice. Nothing was recorded; try again.'}
+        </p>
+      )
+    }
+    {
+      flash.balance === 'invoiced' && (
+        <p class="mt-6 text-sm text-green-800 border-l-2 border-green-700 pl-3">
+          Balance invoice sent.
+        </p>
+      )
+    }
+    {
+      flash.balance === 'settled' && (
+        <p class="mt-6 text-sm text-amber-800 border-l-2 border-amber-600 pl-3">
+          Nothing owed — actual total came in at or under the deposit.{' '}
+          <strong>Refund {refundDisplay}</strong> in Stripe: Payments → the deposit payment →
+          Refund. The quote is marked paid.
+        </p>
+      )
+    }
+
+    <h2 class="mt-8 text-lg font-semibold">Quoted lines</h2>
+    <table class="mt-2 w-full text-sm border-collapse bg-white border border-slate-900/10">
+      <thead
+        ><tr class="bg-slate-100 text-left"
+          ><th class="px-3 py-2">Service</th><th class="px-3 py-2 text-right">Quoted count</th><th
+            class="px-3 py-2 text-right">Academic</th
+          ><th class="px-3 py-2 text-right">Commercial</th></tr
+        ></thead
+      >
+      <tbody
+        >{
+          quote.lines.map((l) => (
+            <tr class="border-t border-slate-900/10">
+              <td class="px-3 py-2">
+                {l.serviceTitle}
+                {l.markers > 1 ? ` × ${l.markers} markers` : ''}
+              </td>
+              <td class="px-3 py-2 text-right font-mono">
+                {l.count.toLocaleString('en-US')} {l.unitLabel}s
+              </td>
+              <td class="px-3 py-2 text-right font-mono">{usdCents(l.academic.total * 100)}</td>
+              <td class="px-3 py-2 text-right font-mono">{usdCents(l.commercial.total * 100)}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+
+    <h2 class="mt-8 text-lg font-semibold">Payments</h2>
+    {
+      payments.length === 0 ? (
+        <p class="mt-2 text-sm text-slate-500">None yet.</p>
+      ) : (
+        <table class="mt-2 w-full text-sm border-collapse bg-white border border-slate-900/10">
+          <thead>
+            <tr class="bg-slate-100 text-left">
+              <>
+                <th class="px-3 py-2">Kind</th>
+                <th class="px-3 py-2">Status</th>
+                <th class="px-3 py-2 text-right">Amount</th>
+                <th class="px-3 py-2">Due</th>
+                <th class="px-3 py-2">Paid</th>
+                <th class="px-3 py-2">Links</th>
+                <th class="px-3 py-2">By</th>
+              </>
+            </tr>
+          </thead>
+          <tbody>
+            {payments.map((p) => (
+              <tr class="border-t border-slate-900/10">
+                <td class="px-3 py-2">{p.kind}</td>
+                <td class="px-3 py-2 font-mono text-xs">{p.status}</td>
+                <td class="px-3 py-2 text-right font-mono">{usdCents(p.amount_cents)}</td>
+                <td class="px-3 py-2">{p.due_at?.slice(0, 10) ?? '—'}</td>
+                <td class="px-3 py-2">{p.paid_at?.slice(0, 10) ?? '—'}</td>
+                <td class="px-3 py-2 text-xs">
+                  {p.hosted_invoice_url && (
+                    <a class="underline" href={p.hosted_invoice_url}>
+                      hosted
+                    </a>
+                  )}{' '}
+                  {p.invoice_pdf && (
+                    <a class="underline" href={p.invoice_pdf}>
+                      pdf
+                    </a>
+                  )}{' '}
+                  {p.stripe_invoice_id && (
+                    <a
+                      class="underline"
+                      href={`https://dashboard.stripe.com/invoices/${p.stripe_invoice_id}`}
+                    >
+                      stripe
+                    </a>
+                  )}
+                </td>
+                <td class="px-3 py-2 text-xs">{p.created_by ?? '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )
+    }
+
+    {
+      canBalance && (
+        <section class="mt-10 p-5 bg-[var(--color-cream)] border border-slate-900/10 rounded-md">
+          <h2 class="text-lg font-semibold">Issue balance invoice</h2>
+          <p class="mt-1 text-sm text-slate-600">
+            Enter the counts actually received and QC-passed. Priced at the{' '}
+            <strong>{quote.audience}</strong> rate; the paid deposit of{' '}
+            <strong>{usdCents(deposit!.amount_cents)}</strong> is credited.
+          </p>
+          <form
+            method="post"
+            action={`/api/admin/quotes/${quote.quote_number}/balance`}
+            class="mt-4"
+          >
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-left">
+                  <>
+                    <th class="py-1">Service</th>
+                    <th class="py-1 text-right">Quoted</th>
+                    <th class="py-1">Actual count</th>
+                    <th class="py-1">Markers</th>
+                  </>
+                </tr>
+              </thead>
+              <tbody>
+                {quote.lines.map((l) => (
+                  <tr>
+                    <td class="py-1 pr-3">{l.serviceTitle}</td>
+                    <td class="py-1 pr-3 text-right font-mono">
+                      {l.count.toLocaleString('en-US')}
+                    </td>
+                    <td class="py-1 pr-3">
+                      <input
+                        name={`counts[${l.serviceSlug}]`}
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        value={val(`counts[${l.serviceSlug}]`) || String(l.count)}
+                        class="w-28 border border-slate-300 rounded px-2 py-1 font-mono"
+                      />
+                    </td>
+                    <td class="py-1">
+                      {l.serviceSlug === 'metabarcoding' ? (
+                        <input
+                          name={`markers[${l.serviceSlug}]`}
+                          inputmode="numeric"
+                          pattern="[0-9]*"
+                          value={val(`markers[${l.serviceSlug}]`) || String(l.markers)}
+                          class="w-16 border border-slate-300 rounded px-2 py-1 font-mono"
+                        />
+                      ) : (
+                        <span class="text-slate-400">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {previewError && <p class="mt-3 text-sm text-red-700">{previewError}</p>}
+            {preview && (
+              <div class="mt-4 text-sm">
+                <table class="w-full border-collapse bg-white border border-slate-900/10">
+                  <tbody>
+                    {preview.lines.map((l) => (
+                      <tr class="border-t border-slate-900/10">
+                        <td class="px-3 py-1">{l.description}</td>
+                        <td class="px-3 py-1 text-right font-mono">{usdCents(l.amountCents)}</td>
+                      </tr>
+                    ))}
+                    <tr class="border-t-2 border-slate-900/20 font-semibold">
+                      <td class="px-3 py-2">Balance due</td>
+                      <td class="px-3 py-2 text-right font-mono">
+                        {usdCents(preview.balanceCents)}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                {preview.balanceCents <= 0 ? (
+                  <p class="mt-2 text-amber-800">
+                    Nothing owed. Confirming records a settlement and marks the quote paid; you then
+                    refund {usdCents(-preview.balanceCents)} in Stripe.
+                  </p>
+                ) : (
+                  <p class="mt-2 text-slate-600">
+                    Confirming creates and emails the balance invoice for{' '}
+                    {usdCents(preview.balanceCents)}.
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div class="mt-4 flex gap-3">
+              <button
+                type="submit"
+                name="confirm"
+                value=""
+                class="px-4 py-2 rounded-sm text-sm font-medium border border-slate-900/20 bg-white"
+              >
+                Preview
+              </button>
+              {preview && (
+                <button
+                  type="submit"
+                  name="confirm"
+                  value="true"
+                  class="px-4 py-2 rounded-sm text-sm font-medium bg-[var(--color-ink)] text-[var(--color-cream)]"
+                >
+                  Confirm &amp; {preview.balanceCents <= 0 ? 'settle' : 'send invoice'}
+                </button>
+              )}
+            </div>
+          </form>
+        </section>
+      )
+    }
+  </section>
+</BaseLayout>
