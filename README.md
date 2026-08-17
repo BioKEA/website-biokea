@@ -47,6 +47,35 @@ wrangler secret put RESEND_API_KEY
 # non-secret vars (CONTACT_FROM_EMAIL, CONTACT_TO_EMAIL) live in wrangler.toml
 ```
 
+## Payments (Stripe)
+
+Customers pay a 50% deposit on a quote from `/quote/<token>`; staff issue the
+balance from `/admin/quotes/<number>`. Design: `docs/superpowers/specs/2026-08-16-stripe-payments-design.md`.
+
+Worker secrets (once per mode):
+
+```bash
+npx wrangler secret put STRIPE_SECRET_KEY        # sk_test_… first, sk_live_… at go-live
+npx wrangler secret put STRIPE_WEBHOOK_SECRET    # from the dashboard webhook endpoint
+```
+
+`wrangler.toml` vars: `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD` (Cloudflare Access app for `/admin/*`). `wrangler.toml` also enables `compatibility_flags = ["nodejs_compat"]` — the stripe SDK needs Node built-ins on Workers.
+
+Stripe dashboard (once, in test mode, then repeat in live):
+
+1. Settings → Payments → Payment methods: enable **ACH Direct Debit** and **Bank transfers**.
+2. Settings → Billing → Invoices: upload logo/brand colour; turn on "Email finalized invoices to customers" and receipts.
+3. Developers → Webhooks → Add endpoint `https://biokea.ai/api/stripe/webhook`, events
+   `invoice.paid`, `invoice.voided`, `invoice.marked_uncollectible`; copy the signing secret → `STRIPE_WEBHOOK_SECRET`.
+
+Cloudflare Zero Trust (once): Access → Applications → Add → Self-hosted; domain `biokea.ai`,
+paths `/admin/*` and `/api/admin/*`; policy Allow emails ending `@biokea.ai` (Google or One-time PIN);
+copy the team domain and the app's Audience (AUD) tag into `wrangler.toml`.
+
+Local dev: copy `.dev.vars.example` → `.dev.vars` (test keys; `.dev.vars.example` lists every key including the Stripe test keys), run `npm run dev`, and in another
+terminal `stripe listen --forward-to localhost:4321/api/stripe/webhook` (paste its `whsec_…` into `.dev.vars`).
+Set `CF_ACCESS_DEV_EMAIL` to reach `/admin` locally.
+
 ## Architecture
 
 ```
