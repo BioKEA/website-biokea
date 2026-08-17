@@ -61,3 +61,60 @@ test('the widget recalculates from its own controls off-site', async ({ page }) 
   await page.locator('[data-count-input="barcoding"]').blur();
   await expect(page.locator('[data-total-academic]')).toHaveText('$7,200');
 });
+
+// Turnstile renders `.cf-turnstile` elements when its script loads. A widget
+// mounted after that has already happened would otherwise show a dead box.
+test('a late mount renders Turnstile explicitly when the API is already loaded', async ({
+  page,
+}) => {
+  await embed(page);
+
+  const result = await page.evaluate(() => {
+    const calls: string[] = [];
+    (window as unknown as { turnstile: unknown }).turnstile = {
+      render: (el: HTMLElement, opts: { sitekey: string }) => {
+        calls.push(opts.sitekey);
+        el.setAttribute('data-rendered', '1');
+        return 'widget-1';
+      },
+    };
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const widget = (
+      window as unknown as {
+        BioKEAQuote: { mount(el: HTMLElement, o: Record<string, unknown>): { destroy(): void } };
+      }
+    ).BioKEAQuote.mount(host, { turnstileSiteKey: '1x00000000000000000000AA' });
+    const out = {
+      calls,
+      marked: host.querySelector('.cf-turnstile')?.getAttribute('data-rendered') ?? null,
+      injectedScripts: document.querySelectorAll('script[src*="challenges.cloudflare.com"]').length,
+    };
+    widget.destroy();
+    return out;
+  });
+
+  expect(result.calls).toEqual(['1x00000000000000000000AA']);
+  expect(result.marked).toBe('1');
+  // The API was already there, so no second copy of the script.
+  expect(result.injectedScripts).toBe(0);
+});
+
+test('destroy() releases the mount element so it can be mounted again', async ({ page }) => {
+  await embed(page);
+
+  expect(
+    await page.evaluate(() => {
+      const host = document.createElement('div');
+      host.dataset.bkMounted = '1';
+      document.body.appendChild(host);
+      const api = (
+        window as unknown as {
+          BioKEAQuote: { mount(el: HTMLElement): { destroy(): void } };
+        }
+      ).BioKEAQuote;
+      api.mount(host).destroy();
+      return { flag: host.dataset.bkMounted ?? null, html: host.innerHTML };
+    }),
+  ).toEqual({ flag: null, html: '' });
+});

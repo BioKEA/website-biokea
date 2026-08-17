@@ -13,11 +13,6 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
-// Injected by vite.widget.config.ts's `define` when building the quote
-// widget bundle (src/widget/*) from PUBLIC_TURNSTILE_SITE_KEY. Empty
-// string when the key isn't set, which disables Turnstile in the widget.
-declare const __TURNSTILE_SITE_KEY__: string;
-
 // `cloudflare:workers` is a virtual module provided by the Cloudflare
 // Workers runtime (and by @astrojs/cloudflare's platformProxy in dev).
 // Astro v6 + @astrojs/cloudflare v13 require it for runtime env access

@@ -8,6 +8,7 @@
 import { pricedServices } from '@/data/pricing';
 import { buildQuote, type Quote, type QuoteLineInput } from '@/lib/pricing/quote';
 import { depositLines, depositTotalCents, usdCents } from '@/lib/payments/terms';
+import { configSignature } from './state';
 import {
   esc,
   renderDeadzone,
@@ -32,6 +33,19 @@ export interface QuoteWidget {
 
 const SITE_ORIGIN = 'https://biokea.ai';
 const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Just enough of the Turnstile API to render a widget explicitly.
+interface TurnstileApi {
+  render(el: HTMLElement, opts: { sitekey: string }): unknown;
+}
+
+/** The API hands back a token and a URL; neither is rendered without a
+ * shape check first, so a surprising response can't put a javascript: link
+ * in the status line or a junk token in the deposit form's action. */
+const isQuoteToken = (v: unknown): v is string => typeof v === 'string' && UUID_RE.test(v);
+const safeUrl = (v: unknown): string | null =>
+  typeof v === 'string' && (v.startsWith('https://') || v.startsWith('/')) ? v : null;
 
 // Non-linear slider: 0–100 maps onto 1–6000 with resolution where it
 // matters. A linear scale would squash 1–300 into a few pixels.
@@ -47,9 +61,28 @@ function defaultApiBase(): string {
   return SITE_ORIGIN;
 }
 
-function ensureTurnstileScript(siteKey: string): void {
+/**
+ * Turnstile renders `.cf-turnstile` elements implicitly when its script
+ * loads — which is no help if we mount after that has already happened
+ * (a second widget on the page, or a late/dynamic mount), leaving a dead
+ * empty box. So: render explicitly when the API is already there, and fall
+ * back to injecting the script and letting implicit rendering do it.
+ */
+function setupTurnstile(root: HTMLElement, siteKey: string): void {
   if (!siteKey) return;
-  if ((window as unknown as { turnstile?: unknown }).turnstile) return;
+  const el = root.querySelector<HTMLElement>('.cf-turnstile');
+  const api = (window as Window & { turnstile?: TurnstileApi }).turnstile;
+  if (api && el) {
+    if (el.dataset.bkRendered === '1') return;
+    el.dataset.bkRendered = '1';
+    try {
+      api.render(el, { sitekey: siteKey });
+    } catch {
+      // A captcha that won't render must not take the configurator with it;
+      // the server still rejects a submission with no token.
+    }
+    return;
+  }
   if (document.querySelector(`script[src^="${TURNSTILE_SRC}"]`)) return;
   const s = document.createElement('script');
   s.src = TURNSTILE_SRC;
@@ -63,7 +96,7 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
   const source = opts.source ?? 'site';
 
   root.innerHTML = renderWidgetHtml(pricedServices, { turnstileSiteKey: opts.turnstileSiteKey });
-  if (opts.turnstileSiteKey) ensureTurnstileScript(opts.turnstileSiteKey);
+  if (opts.turnstileSiteKey) setupTurnstile(root, opts.turnstileSiteKey);
 
   const $ = <T extends Element>(sel: string) => root.querySelector<T>(sel);
   const $$ = <T extends Element>(sel: string) => Array.from(root.querySelectorAll<T>(sel));
@@ -105,8 +138,26 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
     return lines;
   }
 
+  // The configuration the visible deposit panel was created for; null when
+  // no panel is showing. See invalidateDeposit().
+  let depositSignature: string | null = null;
+
+  function invalidateDeposit(): void {
+    depositSignature = null;
+    depositPanel.hidden = true;
+    depositForm.removeAttribute('action');
+    status.textContent = 'Configuration changed — email a new quote to pay a deposit on it.';
+    status.style.color = '';
+  }
+
   function render() {
     const lines = readConfig();
+    // A deposit is a deposit on one specific quote. The moment the config
+    // stops matching it, the panel would be posting the old token at the old
+    // amount, so it goes away.
+    if (depositSignature !== null && configSignature(lines) !== depositSignature) {
+      invalidateDeposit();
+    }
     if (lines.length === 0) {
       $('[data-total-academic]')!.textContent = '$0';
       $('[data-total-commercial]')!.textContent = '$0';
@@ -183,7 +234,8 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
     });
   });
 
-  function revealDeposit(quote: Quote, token: string): void {
+  function revealDeposit(quote: Quote, token: string, signature: string): void {
+    depositSignature = signature;
     depositForm.action = `${apiBase}/api/quote/${token}/deposit`;
     const academic = $<HTMLElement>('[data-deposit-academic]');
     const commercial = $<HTMLElement>('[data-deposit-commercial]');
@@ -220,14 +272,25 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
       });
       const body = await res.json();
       if (res.ok && body.ok) {
-        status.innerHTML = `Sent — your quote is <strong>${esc(body.quoteNumber)}</strong>. <a class="bk-link" href="${esc(body.url)}">View it</a>.`;
+        const url = safeUrl(body.url);
+        status.innerHTML =
+          `Sent — your quote is <strong>${esc(body.quoteNumber)}</strong>.` +
+          (url ? ` <a class="bk-link" href="${esc(url)}">View it</a>.` : '');
         status.style.color = 'var(--color-teal, #0f766e)';
         form.reset();
         // A quote that needs a capacity conversation has no firm price, so
-        // there is nothing honest to take a deposit on.
+        // there is nothing honest to take a deposit on. Nor is there anything
+        // to pay if the configuration moved on while the request was in
+        // flight — the quote that came back is not what's on screen.
         const quote = buildQuote(lines);
-        if (body.paymentsEnabled && body.token && !quote.needsConversation) {
-          revealDeposit(quote, String(body.token));
+        const signature = configSignature(lines);
+        if (
+          body.paymentsEnabled &&
+          isQuoteToken(body.token) &&
+          !quote.needsConversation &&
+          configSignature(readConfig()) === signature
+        ) {
+          revealDeposit(quote, body.token, signature);
         }
       } else {
         status.textContent = body.error ?? 'Something went wrong. Email contact@biokea.ai.';
@@ -246,6 +309,9 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
       for (const { target, type, fn } of bound) target.removeEventListener(type, fn);
       bound.length = 0;
       root.innerHTML = '';
+      // entry.ts sets this to keep a double include from mounting twice;
+      // after destroy() the element is mountable again.
+      delete root.dataset.bkMounted;
     },
   };
 }
