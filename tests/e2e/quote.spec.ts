@@ -101,3 +101,55 @@ test('an unknown quote token returns 404', async ({ page }) => {
   const res = await page.goto('/quote/00000000-0000-0000-0000-000000000000');
   expect(res?.status()).toBe(404);
 });
+
+test('the deposit panel is hidden until a quote is created', async ({ page }) => {
+  await page.goto('/quote');
+  await expect(page.locator('[data-total-academic]')).not.toBeEmpty();
+  await expect(page.locator('[data-deposit-panel]')).toBeHidden();
+});
+
+// The success path needs an API, so it is stubbed: the point under test is
+// what the widget does with a created quote, not what the endpoint returns.
+const QUOTE_TOKEN = '11111111-1111-1111-1111-111111111111';
+
+test('a created deposit panel is retired when the configuration changes', async ({ page }) => {
+  await page.route('**/api/quote', async (route) => {
+    if (route.request().method() !== 'POST') return route.fallback();
+    await route.fulfill({
+      json: {
+        ok: true,
+        quoteNumber: 'BK-1',
+        url: `https://biokea.ai/quote/${QUOTE_TOKEN}`,
+        token: QUOTE_TOKEN,
+        paymentsEnabled: true,
+      },
+    });
+  });
+  await page.goto('/quote');
+
+  await page.locator('[data-open-form]').click();
+  await page.locator('#quote-name').fill('Test Person');
+  await page.locator('#quote-email').fill('test@example.com');
+  await page.locator('[data-quote-form] button[type="submit"]').click();
+
+  const panel = page.locator('[data-deposit-panel]');
+  await expect(panel).toBeVisible();
+  await expect(page.locator('[data-quote-status]')).toContainText('BK-1');
+  await expect(page.locator('[data-deposit-form]')).toHaveAttribute(
+    'action',
+    new RegExp(`/api/quote/${QUOTE_TOKEN}/deposit$`),
+  );
+  // 100 specimens at the $16 academic rate → $1,600, half of it up front.
+  await expect(page.locator('[data-deposit-academic]')).toHaveText('$800.00');
+
+  // The quote priced 100 specimens; 600 is a different project.
+  await page.locator('[data-count-input="barcoding"]').fill('600');
+  await expect(panel).toBeHidden();
+  await expect(page.locator('[data-deposit-form]')).not.toHaveAttribute('action');
+  await expect(page.locator('[data-deposit-note]')).toBeVisible();
+  await expect(page.locator('[data-deposit-note]')).toHaveText(
+    'Configuration changed — email a new quote to pay a deposit on it.',
+  );
+  // The "Sent — quote …" line is untouched by the invalidation.
+  await expect(page.locator('[data-quote-status]')).toContainText('BK-1');
+});

@@ -2,8 +2,8 @@
 //
 // Parses the balance form (POST body on submit, query string on the admin
 // page's preview round-trip). Split out of the API route module: the route
-// imports the Stripe gateway, and dragging that into the admin page's
-// module graph broke Vite's dev SSR resolution for the `stripe` package.
+// imports the payments gateway, and dragging that into the admin page's
+// module graph broke Vite's dev SSR resolution.
 import type { QuoteLineInput } from '@/lib/pricing/quote';
 
 const COUNT_KEY = /^counts\[([a-z0-9-]{1,64})\]$/;

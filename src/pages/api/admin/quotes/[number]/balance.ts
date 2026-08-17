@@ -8,7 +8,7 @@
 import type { APIContext } from 'astro';
 import { env } from 'cloudflare:workers';
 import { type PaymentsDb, SupabaseDb } from '@/lib/payments/db';
-import { type PaymentsGateway, makeStripe, stripeGateway } from '@/lib/payments/gateway';
+import { type PaymentsGateway, shopifyGateway } from '@/lib/payments/gateway';
 import { INVOICE_DAYS_UNTIL_DUE, computeBalance } from '@/lib/payments/terms';
 import { parseBalanceForm } from '@/lib/payments/balance-form';
 
@@ -21,9 +21,9 @@ export interface BalanceDeps {
 }
 
 // Re-exported so existing importers (this route's own tests, Task 10) keep
-// working. Moved to balance-form.ts (no Stripe import) because importing it
-// from here into the admin page dragged this route's Stripe gateway into
-// the page's module graph and broke Vite's dev SSR resolution of `stripe`.
+// working. Moved to balance-form.ts because importing it from here into the
+// admin page dragged this route's gateway import into the page's module
+// graph and broke Vite's dev SSR resolution.
 export { parseBalanceForm };
 
 const seeOther = (location: string) => new Response(null, { status: 303, headers: { location } });
@@ -61,7 +61,9 @@ export async function handleBalance(
   try {
     computed = computeBalance(form.inputs, quote.audience, {
       amountCents: deposit.amount_cents,
-      invoiceLabel: deposit.stripe_invoice_id ?? 'deposit',
+      invoiceLabel: deposit.order_ref
+        ? `order ${deposit.order_ref}`
+        : (deposit.external_id ?? 'deposit'),
       paidAt: deposit.paid_at ?? deposit.created_at,
     });
   } catch {
@@ -90,14 +92,11 @@ export async function handleBalance(
   });
   if (inserted === 'conflict') return seeOther(`${admin}?error=state`);
 
-  const customFields = [{ name: 'Quote', value: quote.quote_number }];
-  if (quote.po_number) customFields.push({ name: 'PO number', value: quote.po_number });
-
   let created;
   try {
     created = await deps.gateway.createInvoice({
       customer: {
-        id: quote.stripe_customer_id,
+        id: quote.external_customer_id,
         email: quote.email,
         name: quote.name,
         organization: quote.organization,
@@ -106,32 +105,44 @@ export async function handleBalance(
       kind: 'balance',
       quoteId: quote.id,
       quoteNumber: quote.quote_number,
-      lines: computed.lines,
-      footer: `Balance for BioKEA quote ${quote.quote_number}, computed on actual sample counts.`,
-      customFields,
-      daysUntilDue: INVOICE_DAYS_UNTIL_DUE,
       // keyed on the payment row id — unique per attempt, so a voided/failed
-      // attempt never replays a stale Stripe request (spec §6 'new
-      // idempotency key suffix').
-      idempotencyKey: `balance:${inserted.id}`,
+      // attempt never replays a stale draft order (spec §6 'new idempotency
+      // key suffix').
+      paymentId: inserted.id,
+      poNumber: quote.po_number,
+      lines: computed.lines,
+      credit: computed.credit,
+      footer: `Balance for BioKEA quote ${quote.quote_number}, computed on actual sample counts.`,
+      daysUntilDue: INVOICE_DAYS_UNTIL_DUE,
     });
   } catch {
     await deps.db.deletePayment(inserted.id);
-    return seeOther(`${admin}?error=stripe`);
+    return seeOther(`${admin}?error=gateway`);
+  }
+
+  // The invoice email is already sent at this point — failing the request
+  // here would strand a live invoice with no payment record to show for
+  // it, so a mismatch is logged (the alert) rather than blocking the
+  // redirect.
+  if (created.amountDueCents !== computed.balanceCents) {
+    console.error('[payments] Shopify total mismatch', {
+      quote: quote.quote_number,
+      kind: 'balance',
+      expected: computed.balanceCents,
+      got: created.amountDueCents,
+      draft: created.externalId,
+    });
   }
 
   await deps.db.updatePayment(inserted.id, {
-    stripe_invoice_id: created.invoiceId,
-    hosted_invoice_url: created.hostedInvoiceUrl,
-    invoice_pdf: created.invoicePdf,
+    external_id: created.externalId,
+    hosted_url: created.hostedUrl,
+    pdf_url: created.pdfUrl,
     due_at: created.dueAt,
   });
-  await deps.db.updateQuote(quote.id, { stripe_customer_id: created.customerId });
-  // Conditional: only steps deposit_paid → balance_invoiced. If the
-  // webhook's invoice.paid landed while the Stripe call above was in
-  // flight, the quote is already past 'deposit_paid' and this is a
-  // no-op — never clobber a status the webhook already advanced (spec's
-  // I1 fix).
+  await deps.db.updateQuote(quote.id, { external_customer_id: created.customerId });
+  // conditional step — never clobber a status the payment webhook may
+  // already have advanced
   await deps.db.updateQuoteStatusIf(quote.id, 'deposit_paid', 'balance_invoiced');
   return seeOther(`${admin}?balance=invoiced`);
 }
@@ -140,9 +151,16 @@ export async function POST({ request, params, locals }: APIContext): Promise<Res
   const e = env as {
     SUPABASE_URL?: string;
     SUPABASE_SERVICE_ROLE_KEY?: string;
-    STRIPE_SECRET_KEY?: string;
+    SHOPIFY_STORE_DOMAIN?: string;
+    SHOPIFY_ADMIN_TOKEN?: string;
+    SHOPIFY_PAYMENT_TERMS_TEMPLATE?: string;
   };
-  if (!e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY || !e?.STRIPE_SECRET_KEY) {
+  if (
+    !e?.SUPABASE_URL ||
+    !e?.SUPABASE_SERVICE_ROLE_KEY ||
+    !e?.SHOPIFY_ADMIN_TOKEN ||
+    !e?.SHOPIFY_STORE_DOMAIN
+  ) {
     return new Response('Payments are not configured.', { status: 500 });
   }
   if (!locals.adminEmail) return new Response('Forbidden', { status: 403 }); // middleware sets it; belt and braces
@@ -150,7 +168,11 @@ export async function POST({ request, params, locals }: APIContext): Promise<Res
   if (!/^BK-\d{4}-\d{4,}$/.test(number)) return new Response('Quote not found', { status: 404 });
   return handleBalance(request, number, {
     db: new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY),
-    gateway: stripeGateway(makeStripe(e.STRIPE_SECRET_KEY)),
+    gateway: shopifyGateway({
+      storeDomain: e.SHOPIFY_STORE_DOMAIN,
+      adminToken: e.SHOPIFY_ADMIN_TOKEN,
+      paymentTermsTemplate: e.SHOPIFY_PAYMENT_TERMS_TEMPLATE ?? 'NET_30',
+    }),
     actorEmail: locals.adminEmail,
   });
 }

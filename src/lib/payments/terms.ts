@@ -57,7 +57,7 @@ export function assertDepositSane(
 
 export interface DepositCredit {
   amountCents: number; // the PAID deposit row's amount — never recomputed
-  invoiceLabel: string; // Stripe invoice number for the memo line
+  invoiceLabel: string; // human label for the memo (order name or draft id)
   paidAt: string; // ISO
 }
 
@@ -69,6 +69,7 @@ export function computeBalance(
   actualTotalCents: number;
   balanceCents: number;
   lines: InvoiceLineSpec[];
+  credit: { title: string; amountCents: number };
   actualLines: QuoteLine[];
 } {
   const actual = buildQuote(inputs); // throws on bad input, same as /api/quote
@@ -78,18 +79,20 @@ export function computeBalance(
       description:
         `${l.serviceTitle} — ${plural(l.count, l.unitLabel)}${markerNote(l.markers)}` +
         ` @ $${p.effectiveRate}/${l.unitLabel}, ${audience} rate`,
-      amountCents: p.total * 100,
+      amountCents: Math.round(p.total * 100),
     };
   });
-  const actualTotalCents = actual.total[audience] * 100;
-  lines.push({
-    description: `Less deposit received (invoice ${deposit.invoiceLabel}, paid ${deposit.paidAt.slice(0, 10)})`,
-    amountCents: -deposit.amountCents,
-  });
+  const actualTotalCents = Math.round(actual.total[audience] * 100);
   return {
     actualTotalCents,
     balanceCents: actualTotalCents - deposit.amountCents,
     lines,
+    // `invoiceLabel` already carries any "invoice"/"order" prefix the
+    // caller wants in the memo (see the deposit/balance endpoints).
+    credit: {
+      title: `Deposit received (${deposit.invoiceLabel}, paid ${deposit.paidAt.slice(0, 10)})`,
+      amountCents: deposit.amountCents,
+    },
     actualLines: actual.lines,
   };
 }

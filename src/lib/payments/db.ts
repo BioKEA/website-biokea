@@ -1,7 +1,7 @@
 //
 // Supabase access for the payments flow, behind a small interface so the
 // endpoints are unit-tested against MemoryDb. Every call uses the
-// service-role key: `quotes`, `quote_payments`, `stripe_events` all have
+// service-role key: `quotes`, `quote_payments`, `webhook_events` all have
 // RLS enabled with zero policies (see migrations/0005 and 0006).
 import type { PaymentRecord, QuoteRecord, QuoteStatus } from './types';
 
@@ -10,9 +10,12 @@ export type NewPayment = Pick<PaymentRecord, 'quote_id' | 'kind' | 'amount_cents
     Pick<
       PaymentRecord,
       | 'status'
-      | 'stripe_invoice_id'
-      | 'hosted_invoice_url'
-      | 'invoice_pdf'
+      | 'provider'
+      | 'external_id'
+      | 'hosted_url'
+      | 'pdf_url'
+      | 'order_ref'
+      | 'external_order_id'
       | 'due_at'
       | 'paid_at'
       | 'actual_lines'
@@ -22,13 +25,20 @@ export type NewPayment = Pick<PaymentRecord, 'quote_id' | 'kind' | 'amount_cents
 export type QuotePatch = Partial<
   Pick<
     QuoteRecord,
-    'status' | 'audience' | 'academic_attested_at' | 'po_number' | 'stripe_customer_id'
+    'status' | 'audience' | 'academic_attested_at' | 'po_number' | 'external_customer_id'
   >
 >;
 export type PaymentPatch = Partial<
   Pick<
     PaymentRecord,
-    'status' | 'stripe_invoice_id' | 'hosted_invoice_url' | 'invoice_pdf' | 'due_at' | 'paid_at'
+    | 'status'
+    | 'external_id'
+    | 'hosted_url'
+    | 'pdf_url'
+    | 'order_ref'
+    | 'external_order_id'
+    | 'due_at'
+    | 'paid_at'
   >
 >;
 
@@ -38,18 +48,19 @@ export interface PaymentsDb {
   getQuoteById(id: string): Promise<QuoteRecord | null>;
   listRecentQuotes(limit: number): Promise<QuoteRecord[]>;
   listPayments(quoteId: string): Promise<PaymentRecord[]>;
-  findPaymentByInvoiceId(stripeInvoiceId: string): Promise<PaymentRecord | null>;
+  findPaymentByInvoiceId(externalId: string): Promise<PaymentRecord | null>;
+  findPaymentByExternalOrderId(externalOrderId: string): Promise<PaymentRecord | null>;
   insertPayment(row: NewPayment): Promise<PaymentRecord | 'conflict'>;
   updatePayment(id: string, patch: PaymentPatch): Promise<void>;
   deletePayment(id: string): Promise<void>;
   updateQuote(id: string, patch: QuotePatch): Promise<void>;
   // Conditional update: only advances the quote's status when it still
   // matches `from` — protects against clobbering a status the webhook
-  // already moved on while a Stripe call was in flight (spec's I1 fix).
+  // already moved on while a gateway call was in flight (spec's I1 fix).
   // Returns whether the update happened.
   updateQuoteStatusIf(id: string, from: QuoteStatus, to: QuoteStatus): Promise<boolean>;
-  recordStripeEvent(id: string, type: string): Promise<boolean>;
-  deleteStripeEvent(id: string): Promise<void>;
+  recordWebhookEvent(id: string, type: string): Promise<boolean>;
+  deleteWebhookEvent(id: string): Promise<void>;
 }
 
 export class SupabaseDb implements PaymentsDb {
@@ -103,7 +114,12 @@ export class SupabaseDb implements PaymentsDb {
   }
   findPaymentByInvoiceId(inv: string) {
     return this.one<PaymentRecord>(
-      `quote_payments?stripe_invoice_id=eq.${encodeURIComponent(inv)}&select=*&limit=1`,
+      `quote_payments?external_id=eq.${encodeURIComponent(inv)}&select=*&limit=1`,
+    );
+  }
+  findPaymentByExternalOrderId(orderId: string) {
+    return this.one<PaymentRecord>(
+      `quote_payments?external_order_id=eq.${encodeURIComponent(orderId)}&select=*&limit=1`,
     );
   }
 
@@ -159,25 +175,25 @@ export class SupabaseDb implements PaymentsDb {
 
   // Insert-or-skip on the primary key. With ignore-duplicates the
   // representation is empty when the row already existed.
-  async recordStripeEvent(id: string, type: string): Promise<boolean> {
-    const res = await fetch(`${this.url}/rest/v1/stripe_events`, {
+  async recordWebhookEvent(id: string, type: string): Promise<boolean> {
+    const res = await fetch(`${this.url}/rest/v1/webhook_events`, {
       method: 'POST',
       headers: this.headers({ Prefer: 'resolution=ignore-duplicates,return=representation' }),
-      body: JSON.stringify({ id, type }),
+      body: JSON.stringify({ id, type, provider: 'shopify' }),
     });
-    if (!res.ok) throw new Error(`stripe_events insert failed: ${res.status}`);
+    if (!res.ok) throw new Error(`webhook_events insert failed: ${res.status}`);
     const rows = (await res.json()) as unknown[];
     return rows.length > 0;
   }
 
   // Used to un-record an event when processing after the dedupe check
-  // fails, so a Stripe retry sees it as fresh rather than losing the work.
-  async deleteStripeEvent(id: string): Promise<void> {
-    const res = await fetch(`${this.url}/rest/v1/stripe_events?id=eq.${encodeURIComponent(id)}`, {
+  // fails, so a retry sees it as fresh rather than losing the work.
+  async deleteWebhookEvent(id: string): Promise<void> {
+    const res = await fetch(`${this.url}/rest/v1/webhook_events?id=eq.${encodeURIComponent(id)}`, {
       method: 'DELETE',
       headers: this.headers(),
     });
-    if (!res.ok) throw new Error(`stripe_events delete failed: ${res.status}`);
+    if (!res.ok) throw new Error(`webhook_events delete failed: ${res.status}`);
   }
 }
 
@@ -209,7 +225,10 @@ export class MemoryDb implements PaymentsDb {
       .sort((a, b) => b.created_at.localeCompare(a.created_at));
   }
   async findPaymentByInvoiceId(inv: string) {
-    return this.payments.find((p) => p.stripe_invoice_id === inv) ?? null;
+    return this.payments.find((p) => p.external_id === inv) ?? null;
+  }
+  async findPaymentByExternalOrderId(orderId: string) {
+    return this.payments.find((p) => p.external_order_id === orderId) ?? null;
   }
   async insertPayment(row: NewPayment): Promise<PaymentRecord | 'conflict'> {
     const status = row.status ?? 'open';
@@ -224,9 +243,12 @@ export class MemoryDb implements PaymentsDb {
       id: `p${++this.seq}`,
       currency: 'usd',
       status,
-      stripe_invoice_id: null,
-      hosted_invoice_url: null,
-      invoice_pdf: null,
+      provider: 'shopify',
+      external_id: null,
+      hosted_url: null,
+      pdf_url: null,
+      order_ref: null,
+      external_order_id: null,
       due_at: null,
       paid_at: null,
       actual_lines: null,
@@ -254,12 +276,12 @@ export class MemoryDb implements PaymentsDb {
     q.status = to;
     return true;
   }
-  async recordStripeEvent(id: string) {
+  async recordWebhookEvent(id: string) {
     if (this.events.has(id)) return false;
     this.events.add(id);
     return true;
   }
-  async deleteStripeEvent(id: string) {
+  async deleteWebhookEvent(id: string) {
     this.events.delete(id);
   }
 }

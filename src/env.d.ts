@@ -29,9 +29,15 @@ declare module 'cloudflare:workers' {
     // only — never expose to the client.
     SUPABASE_SERVICE_ROLE_KEY?: string;
     TURNSTILE_SECRET_KEY?: string;
-    // Stripe — Worker secrets. sk_test_… in dev/.dev.vars, sk_live_… in prod.
-    STRIPE_SECRET_KEY?: string;
-    STRIPE_WEBHOOK_SECRET?: string;
+    // Shopify — Worker secrets. Custom-app Admin API token (scopes
+    // write_draft_orders, read_orders, read_products) and the webhook
+    // signing key from Settings → Notifications → Webhooks.
+    SHOPIFY_ADMIN_TOKEN?: string;
+    SHOPIFY_WEBHOOK_SECRET?: string;
+    // Shopify — plain vars (not secret).
+    SHOPIFY_STORE_DOMAIN?: string; // biokea.myshopify.com
+    SHOPIFY_STORE_HANDLE?: string; // biokea
+    SHOPIFY_PAYMENT_TERMS_TEMPLATE?: string; // e.g. NET_30; default NET_30
     // Cloudflare Access (admin gate) — plain vars in wrangler.toml.
     CF_ACCESS_TEAM_DOMAIN?: string; // e.g. biokea.cloudflareaccess.com
     CF_ACCESS_AUD?: string; // Application Audience tag

@@ -28,6 +28,14 @@ jobs:
       - run: npm run check
       - run: npm test
       - run: npx playwright install --with-deps chromium
+      # `npm run dev` (Playwright's webServer) builds the widget too, but
+      # doing it here surfaces a widget build failure as its own red step.
+      # No PUBLIC_TURNSTILE_SITE_KEY on purpose: the e2e run should not pull
+      # challenges.cloudflare.com, and the dev server enforces no captcha
+      # either. The deploy job's `npm run build` (prebuild) bakes in the
+      # real key.
+      - name: Build the quote widget
+        run: npm run widget:build
       - run: npm run test:e2e
       - name: Upload Playwright report on failure
         if: failure()

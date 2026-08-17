@@ -42,9 +42,14 @@ test('comparison table renders both services', async ({ page }) => {
   await expect(page.getByRole('columnheader', { name: 'eDNA Metabarcoding' })).toBeVisible();
 });
 
-test('pricing hero leads with Build a quote and offers Talk to us', async ({ page }) => {
+test('pricing hero CTA configures a deposit in the store and offers a quote-only path', async ({
+  page,
+}) => {
   await page.goto('/pricing');
-  await expect(page.getByRole('link', { name: 'Build a quote' }).first()).toHaveAttribute(
+  await expect(
+    page.getByRole('link', { name: /Configure & pay a 50% deposit online/i }),
+  ).toHaveAttribute('href', 'https://store.biokea.ai/products/specimen-barcoding');
+  await expect(page.getByRole('link', { name: 'or build a quote here' })).toHaveAttribute(
     'href',
     '/quote',
   );
@@ -90,7 +95,7 @@ test('no internal cost-model comment leaks into the served HTML', async ({ page 
   expect(body).not.toContain('cost model');
 });
 
-test('pricing page links to the quote configurator', async ({ page }) => {
+test('pricing page still links to the quote configurator', async ({ page }) => {
   await page.goto('/pricing');
   await expect(page.getByRole('link', { name: /Build a quote/i }).first()).toHaveAttribute(
     'href',

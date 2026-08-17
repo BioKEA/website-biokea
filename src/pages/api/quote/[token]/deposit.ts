@@ -1,7 +1,8 @@
 // src/pages/api/quote/[token]/deposit.ts
 //
-// "Pay 50% deposit" on /quote/<token>. Creates the Stripe customer +
-// deposit invoice and sends the browser to Stripe's hosted invoice page.
+// "Pay 50% deposit" on /quote/<token>. Creates the Shopify draft order +
+// sends the deposit invoice, then sends the browser to Shopify's hosted
+// invoice (checkout) page.
 // A plain form post so it works without JavaScript; every non-success
 // path is a 303 back to the quote page with ?pay=… (spec §5.3, with the
 // redirect deviation noted in the plan's Global Constraints).
@@ -9,7 +10,7 @@ import type { APIContext } from 'astro';
 import { env } from 'cloudflare:workers';
 import { z } from 'zod';
 import { type PaymentsDb, SupabaseDb } from '@/lib/payments/db';
-import { type PaymentsGateway, makeStripe, stripeGateway } from '@/lib/payments/gateway';
+import { type PaymentsGateway, shopifyGateway } from '@/lib/payments/gateway';
 import {
   DEPOSIT_FRACTION,
   INVOICE_DAYS_UNTIL_DUE,
@@ -48,7 +49,7 @@ async function liveDepositUrl(db: PaymentsDb, quote: QuoteRecord): Promise<strin
   const live = payments.find(
     (p) => p.kind === 'deposit' && (p.status === 'open' || p.status === 'paid'),
   );
-  return live?.hosted_invoice_url ?? null;
+  return live?.hosted_url ?? null;
 }
 
 export async function handleDeposit(
@@ -106,14 +107,12 @@ export async function handleDeposit(
 
   const poNumber = form.po_number && form.po_number.length > 0 ? form.po_number : null;
   const pct = `${Math.round(DEPOSIT_FRACTION * 100)}%`;
-  const customFields = [{ name: 'Quote', value: quote.quote_number }];
-  if (poNumber) customFields.push({ name: 'PO number', value: poNumber });
 
   let created;
   try {
     created = await deps.gateway.createInvoice({
       customer: {
-        id: quote.stripe_customer_id,
+        id: quote.external_customer_id,
         email: quote.email,
         name: quote.name,
         organization: quote.organization,
@@ -122,50 +121,69 @@ export async function handleDeposit(
       kind: 'deposit',
       quoteId: quote.id,
       quoteNumber: quote.quote_number,
+      // keyed on the payment row id — unique per attempt, so a voided/failed
+      // attempt never replays a stale draft order (spec §6 'new idempotency
+      // key suffix').
+      paymentId: inserted.id,
+      poNumber,
       lines,
       footer:
         `${pct} deposit toward BioKEA quote ${quote.quote_number} (valid to ${quote.expires_at.slice(0, 10)}).` +
-        ` The balance is invoiced on actual sample counts when results are delivered.`,
-      customFields,
+        ` The balance is invoiced on actual sample counts when results are delivered.` +
+        ` Pay here or from the emailed invoice; questions: contact@biokea.ai.`,
       daysUntilDue: INVOICE_DAYS_UNTIL_DUE,
-      // keyed on the payment row id — unique per attempt, so a voided/failed
-      // attempt never replays a stale Stripe request (spec §6 'new
-      // idempotency key suffix').
-      idempotencyKey: `deposit:${inserted.id}`,
     });
   } catch {
     await deps.db.deletePayment(inserted.id);
     return back(token, 'failed');
   }
 
+  // The invoice email is already sent at this point — failing the request
+  // here would strand a live invoice with no payment record to show for
+  // it, so a mismatch is logged (the alert) rather than blocking checkout.
+  if (created.amountDueCents !== amountCents) {
+    console.error('[payments] Shopify total mismatch', {
+      quote: quote.quote_number,
+      kind: 'deposit',
+      expected: amountCents,
+      got: created.amountDueCents,
+      draft: created.externalId,
+    });
+  }
+
   await deps.db.updatePayment(inserted.id, {
-    stripe_invoice_id: created.invoiceId,
-    hosted_invoice_url: created.hostedInvoiceUrl,
-    invoice_pdf: created.invoicePdf,
+    external_id: created.externalId,
+    hosted_url: created.hostedUrl,
+    pdf_url: created.pdfUrl,
     due_at: created.dueAt,
   });
   await deps.db.updateQuote(quote.id, {
     audience: form.audience,
     academic_attested_at: form.audience === 'academic' ? now().toISOString() : null,
     po_number: poNumber,
-    stripe_customer_id: created.customerId,
+    external_customer_id: created.customerId,
   });
-  // Conditional: only steps quoted → deposit_invoiced. If the webhook's
-  // invoice.paid landed while the Stripe call above was in flight, the
-  // quote is already past 'quoted' and this is a no-op — never clobber a
-  // status the webhook already advanced (spec's I1 fix).
+  // conditional step — never clobber a status the payment webhook may
+  // already have advanced
   await deps.db.updateQuoteStatusIf(quote.id, 'quoted', 'deposit_invoiced');
 
-  return seeOther(created.hostedInvoiceUrl);
+  return seeOther(created.hostedUrl);
 }
 
 export async function POST({ request, params }: APIContext): Promise<Response> {
   const e = env as {
     SUPABASE_URL?: string;
     SUPABASE_SERVICE_ROLE_KEY?: string;
-    STRIPE_SECRET_KEY?: string;
+    SHOPIFY_STORE_DOMAIN?: string;
+    SHOPIFY_ADMIN_TOKEN?: string;
+    SHOPIFY_PAYMENT_TERMS_TEMPLATE?: string;
   };
-  if (!e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY || !e?.STRIPE_SECRET_KEY) {
+  if (
+    !e?.SUPABASE_URL ||
+    !e?.SUPABASE_SERVICE_ROLE_KEY ||
+    !e?.SHOPIFY_ADMIN_TOKEN ||
+    !e?.SHOPIFY_STORE_DOMAIN
+  ) {
     return new Response('Payments are not configured.', { status: 500 });
   }
   const token = params.token ?? '';
@@ -174,6 +192,10 @@ export async function POST({ request, params }: APIContext): Promise<Response> {
   }
   return handleDeposit(request, token, {
     db: new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY),
-    gateway: stripeGateway(makeStripe(e.STRIPE_SECRET_KEY)),
+    gateway: shopifyGateway({
+      storeDomain: e.SHOPIFY_STORE_DOMAIN,
+      adminToken: e.SHOPIFY_ADMIN_TOKEN,
+      paymentTermsTemplate: e.SHOPIFY_PAYMENT_TERMS_TEMPLATE ?? 'NET_30',
+    }),
   });
 }

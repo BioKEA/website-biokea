@@ -1,4 +1,4 @@
-// The four notifications the Stripe webhook sends. Pure builders — the
+// The four notifications the Shopify webhook sends. Pure builders — the
 // webhook handler decides when; these decide what. Spec §5.6.
 import type { EmailMessage } from './resend';
 import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
@@ -55,7 +55,7 @@ function labBody(q: QuoteRecord, p: PaymentRecord, headline: string): string {
   lines.push(
     ``,
     `Amount: ${usdCents(p.amount_cents)} · paid ${date(p.paid_at)}`,
-    p.invoice_pdf ? `Invoice PDF: ${p.invoice_pdf}` : '',
+    p.pdf_url ? `Invoice PDF: ${p.pdf_url}` : '',
     ``,
     `Admin: ${adminUrl(q)}`,
   );
@@ -76,7 +76,7 @@ export function depositPaidCustomerEmail(q: QuoteRecord, p: PaymentRecord): Emai
       `sequencing; the balance is invoiced on the actual counts when results are delivered.`,
       ``,
       `Your quote: ${quoteUrl(q)}`,
-      p.invoice_pdf ? `Receipt / invoice PDF: ${p.invoice_pdf}` : '',
+      p.pdf_url ? `Receipt / invoice PDF: ${p.pdf_url}` : '',
       ``,
       `Questions? Just reply to this email.`,
       ``,
@@ -110,7 +110,7 @@ export function balancePaidCustomerEmail(q: QuoteRecord, p: PaymentRecord): Emai
       `Thanks — your balance of ${usdCents(p.amount_cents)} for quote ${q.quote_number} is paid, and the project is settled in full.`,
       ``,
       `Your quote: ${quoteUrl(q)}`,
-      p.invoice_pdf ? `Invoice PDF: ${p.invoice_pdf}` : '',
+      p.pdf_url ? `Invoice PDF: ${p.pdf_url}` : '',
       ``,
       `Thank you for working with BioKEA.`,
       ``,
@@ -128,5 +128,27 @@ export function balancePaidLabEmail(q: QuoteRecord, p: PaymentRecord, labTo: str
     replyTo: q.email,
     subject: `[paid in full] ${q.quote_number} · ${who(q)} · ${usdCents(p.amount_cents)}`,
     text: labBody(q, p, `Balance paid on ${q.quote_number} — project settled.`),
+  };
+}
+
+// Shopify's refunds/create webhook: no status change (staff act in Shopify),
+// just a heads-up to the lab inbox. Spec §4.4.
+export function refundLabEmail(
+  q: QuoteRecord,
+  p: PaymentRecord,
+  orderRef: string,
+  labTo: string,
+): EmailMessage {
+  return {
+    to: labTo,
+    replyTo: q.email,
+    subject: `[refund] ${q.quote_number} · ${who(q)} · order ${orderRef}`,
+    text: [
+      `A refund was recorded in Shopify on order ${orderRef} for quote ${q.quote_number}.`,
+      `No status change was made; review in Shopify admin.`,
+      ``,
+      `Amount on file: ${usdCents(p.amount_cents)}`,
+      `Admin: ${adminUrl(q)}`,
+    ].join('\n'),
   };
 }

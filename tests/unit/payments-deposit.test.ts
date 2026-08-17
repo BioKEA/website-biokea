@@ -30,7 +30,7 @@ function quote(over: Partial<QuoteRecord> = {}): QuoteRecord {
     audience: null,
     academic_attested_at: null,
     po_number: null,
-    stripe_customer_id: null,
+    external_customer_id: null,
     ...over,
   };
 }
@@ -82,7 +82,7 @@ describe('handleDeposit', () => {
       { db, gateway, now: NOW },
     );
     expect(res.status).toBe(303);
-    expect(res.headers.get('location')).toBe('https://invoice.stripe.test/in_test_1');
+    expect(res.headers.get('location')).toBe('https://store.biokea.test/invoices/test-1');
 
     const spec = gateway.created[0];
     expect(spec.kind).toBe('deposit');
@@ -95,13 +95,10 @@ describe('handleDeposit', () => {
     });
     expect(spec.quoteNumber).toBe('BK-2026-0142');
     expect(spec.daysUntilDue).toBe(30);
-    expect(spec.idempotencyKey).toBe('deposit:p1');
-    expect(spec.customFields).toEqual([
-      { name: 'Quote', value: 'BK-2026-0142' },
-      { name: 'PO number', value: 'PO-77' },
-    ]);
+    expect(spec.paymentId).toBe('p1');
+    expect(spec.poNumber).toBe('PO-77');
     expect(spec.footer).toBe(
-      '50% deposit toward BioKEA quote BK-2026-0142 (valid to 2026-09-19). The balance is invoiced on actual sample counts when results are delivered.',
+      '50% deposit toward BioKEA quote BK-2026-0142 (valid to 2026-09-19). The balance is invoiced on actual sample counts when results are delivered. Pay here or from the emailed invoice; questions: contact@biokea.ai.',
     );
     const expected =
       Math.round(q.lines[0].commercial.total * 100 * 0.5) +
@@ -114,15 +111,15 @@ describe('handleDeposit', () => {
       kind: 'deposit',
       status: 'open',
       amount_cents: expected,
-      stripe_invoice_id: 'in_test_1',
-      hosted_invoice_url: 'https://invoice.stripe.test/in_test_1',
+      external_id: 'gid://shopify/DraftOrder/test-1',
+      hosted_url: 'https://store.biokea.test/invoices/test-1',
       due_at: '2026-10-01T00:00:00.000Z',
     });
     expect(db.quotes[0]).toMatchObject({
       status: 'deposit_invoiced',
       audience: 'commercial',
       po_number: 'PO-77',
-      stripe_customer_id: 'cus_test_1',
+      external_customer_id: null,
       academic_attested_at: null,
     });
   });
@@ -135,7 +132,7 @@ describe('handleDeposit', () => {
     });
     expect(db.quotes[0].audience).toBe('academic');
     expect(db.quotes[0].academic_attested_at).toBe('2026-09-01T00:00:00.000Z');
-    expect(gateway.created[0].customFields).toEqual([{ name: 'Quote', value: 'BK-2026-0142' }]);
+    expect(gateway.created[0].poNumber).toBeNull();
   });
 
   it('refuses academic without the attestation, and unknown audiences', async () => {
@@ -170,14 +167,14 @@ describe('handleDeposit', () => {
     expect(gateway.created).toHaveLength(0);
   });
 
-  it('is idempotent: a second submit returns the existing live invoice URL without calling Stripe again', async () => {
+  it('is idempotent: a second submit returns the existing live invoice URL without calling the gateway again', async () => {
     await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, { db, gateway, now: NOW });
     const res = await handleDeposit(post(TOKEN, { audience: 'academic', attest: 'true' }), TOKEN, {
       db,
       gateway,
       now: NOW,
     });
-    expect(res.headers.get('location')).toBe('https://invoice.stripe.test/in_test_1');
+    expect(res.headers.get('location')).toBe('https://store.biokea.test/invoices/test-1');
     expect(gateway.created).toHaveLength(1);
     expect(db.payments).toHaveLength(1);
     expect(db.quotes[0].audience).toBe('commercial'); // first choice sticks
@@ -191,11 +188,11 @@ describe('handleDeposit', () => {
       gateway,
       now: NOW,
     });
-    expect(res.headers.get('location')).toBe('https://invoice.stripe.test/in_test_1');
+    expect(res.headers.get('location')).toBe('https://store.biokea.test/invoices/test-1');
   });
 
-  it('rolls back the row and redirects with ?pay=failed when Stripe throws', async () => {
-    gateway.failNext = new Error('stripe down');
+  it('rolls back the row and redirects with ?pay=failed when the gateway throws', async () => {
+    gateway.failNext = new Error('gateway down');
     const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
       db,
       gateway,
@@ -210,7 +207,7 @@ describe('handleDeposit', () => {
       gateway,
       now: NOW,
     });
-    expect(again.headers.get('location')).toBe('https://invoice.stripe.test/in_test_1');
+    expect(again.headers.get('location')).toBe('https://store.biokea.test/invoices/test-1');
   });
 
   it('trims and length-limits the PO number', async () => {
@@ -231,7 +228,7 @@ describe('handleDeposit', () => {
     expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=unavailable`);
   });
 
-  it('on a lost insert race, redirects to the winning invoice without calling Stripe', async () => {
+  it('on a lost insert race, redirects to the winning invoice without calling the gateway', async () => {
     const racy = new RacyDb();
     racy.quotes.push(quote());
     racy.winner = {
@@ -241,9 +238,12 @@ describe('handleDeposit', () => {
       status: 'open',
       amount_cents: 1,
       currency: 'usd',
-      stripe_invoice_id: 'in_w',
-      hosted_invoice_url: 'https://invoice.stripe.test/in_w',
-      invoice_pdf: null,
+      provider: 'shopify',
+      external_id: 'in_w',
+      hosted_url: 'https://invoice.example.test/in_w',
+      pdf_url: null,
+      order_ref: null,
+      external_order_id: null,
       due_at: null,
       paid_at: null,
       actual_lines: null,
@@ -255,7 +255,7 @@ describe('handleDeposit', () => {
       gateway,
       now: NOW,
     });
-    expect(res.headers.get('location')).toBe('https://invoice.stripe.test/in_w');
+    expect(res.headers.get('location')).toBe('https://invoice.example.test/in_w');
     expect(gateway.created).toHaveLength(0);
   });
 
@@ -272,7 +272,7 @@ describe('handleDeposit', () => {
     expect(gateway.created).toHaveLength(0);
   });
 
-  it('never clobbers a status the webhook already advanced while the Stripe call was in flight', async () => {
+  it('never clobbers a status the webhook already advanced while the gateway call was in flight', async () => {
     class RacingGateway extends MemoryGateway {
       constructor(private readonly db: MemoryDb) {
         super();
@@ -292,10 +292,32 @@ describe('handleDeposit', () => {
     expect(res.status).toBe(303);
     expect(db.quotes[0].status).toBe('deposit_paid');
     expect(db.quotes[0].audience).toBe('commercial');
-    expect(db.quotes[0].stripe_customer_id).toBe('cus_test_1');
+    expect(db.quotes[0].external_customer_id).toBeNull();
   });
 
-  it('logs and redirects with ?pay=failed when the deposit sanity check fails, without calling Stripe', async () => {
+  it("logs (but still redirects to the hosted invoice) when Shopify's total disagrees with our cents", async () => {
+    class MismatchGateway extends MemoryGateway {
+      override async createInvoice(spec: Parameters<MemoryGateway['createInvoice']>[0]) {
+        const out = await super.createInvoice(spec);
+        return { ...out, amountDueCents: out.amountDueCents + 1 };
+      }
+    }
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+      db,
+      gateway: new MismatchGateway(),
+      now: NOW,
+    });
+    expect(res.status).toBe(303);
+    expect(res.headers.get('location')).toBe('https://store.biokea.test/invoices/test-1');
+    expect(errSpy).toHaveBeenCalledWith(
+      expect.stringContaining('total mismatch'),
+      expect.objectContaining({ quote: 'BK-2026-0142', kind: 'deposit' }),
+    );
+    errSpy.mockRestore();
+  });
+
+  it('logs and redirects with ?pay=failed when the deposit sanity check fails, without calling the gateway', async () => {
     db.quotes[0] = quote({ total_commercial: 1 }); // tampered total vs. the line prices
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {

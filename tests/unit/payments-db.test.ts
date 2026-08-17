@@ -130,7 +130,7 @@ describe('SupabaseDb', () => {
     expect(JSON.parse(String(calls[1].init.body))).toEqual({ status: 'deposit_paid' });
   });
 
-  it('records a Stripe event once: true the first time, false on the duplicate', async () => {
+  it('records a webhook event once: true the first time, false on the duplicate', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async (url: string, init: RequestInit) => {
@@ -139,18 +139,23 @@ describe('SupabaseDb', () => {
       }),
     );
     const db = new SupabaseDb(URL, KEY);
-    expect(await db.recordStripeEvent('evt_1', 'invoice.paid')).toBe(true);
+    expect(await db.recordWebhookEvent('evt_1', 'invoice.paid')).toBe(true);
     expect((calls[0].init.headers as Record<string, string>).Prefer).toBe(
       'resolution=ignore-duplicates,return=representation',
     );
+    expect(JSON.parse(String(calls[0].init.body))).toEqual({
+      id: 'evt_1',
+      type: 'invoice.paid',
+      provider: 'shopify',
+    });
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => jsonRes([], 201)),
     );
-    expect(await db.recordStripeEvent('evt_1', 'invoice.paid')).toBe(false);
+    expect(await db.recordWebhookEvent('evt_1', 'invoice.paid')).toBe(false);
   });
 
-  it('deletes a Stripe event with DELETE ...?id=eq.', async () => {
+  it('deletes a webhook event with DELETE ...?id=eq.', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async (url: string, init: RequestInit) => {
@@ -159,8 +164,8 @@ describe('SupabaseDb', () => {
       }),
     );
     const db = new SupabaseDb(URL, KEY);
-    await db.deleteStripeEvent('evt_1');
-    expect(calls[0].url).toBe(`${URL}/rest/v1/stripe_events?id=eq.evt_1`);
+    await db.deleteWebhookEvent('evt_1');
+    expect(calls[0].url).toBe(`${URL}/rest/v1/webhook_events?id=eq.evt_1`);
     expect(calls[0].init.method).toBe('DELETE');
   });
 
@@ -199,8 +204,21 @@ describe('SupabaseDb', () => {
       `${URL}/rest/v1/quote_payments?quote_id=eq.q1&select=*&order=created_at.desc`,
     );
     expect(await db.findPaymentByInvoiceId('in_2')).toMatchObject({ id: 'p2' });
-    expect(calls[1].url).toBe(
-      `${URL}/rest/v1/quote_payments?stripe_invoice_id=eq.in_2&select=*&limit=1`,
+    expect(calls[1].url).toBe(`${URL}/rest/v1/quote_payments?external_id=eq.in_2&select=*&limit=1`);
+  });
+
+  it('finds a payment by external_order_id', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        calls.push({ url, init: {} });
+        return jsonRes([{ id: 'p3' }]);
+      }),
+    );
+    const db = new SupabaseDb(URL, KEY);
+    expect(await db.findPaymentByExternalOrderId('5551')).toMatchObject({ id: 'p3' });
+    expect(calls[0].url).toBe(
+      `${URL}/rest/v1/quote_payments?external_order_id=eq.5551&select=*&limit=1`,
     );
   });
 });
@@ -221,15 +239,15 @@ describe('MemoryDb', () => {
 
   it('records events once', async () => {
     const db = new MemoryDb();
-    expect(await db.recordStripeEvent('e', 'invoice.paid')).toBe(true);
-    expect(await db.recordStripeEvent('e', 'invoice.paid')).toBe(false);
+    expect(await db.recordWebhookEvent('e', 'invoice.paid')).toBe(true);
+    expect(await db.recordWebhookEvent('e', 'invoice.paid')).toBe(false);
   });
 
   it('un-records an event on delete so a later record succeeds again', async () => {
     const db = new MemoryDb();
-    expect(await db.recordStripeEvent('e', 'invoice.paid')).toBe(true);
-    await db.deleteStripeEvent('e');
-    expect(await db.recordStripeEvent('e', 'invoice.paid')).toBe(true);
+    expect(await db.recordWebhookEvent('e', 'invoice.paid')).toBe(true);
+    await db.deleteWebhookEvent('e');
+    expect(await db.recordWebhookEvent('e', 'invoice.paid')).toBe(true);
   });
 
   it('conditionally updates a quote status only when it still matches "from"', async () => {
@@ -251,11 +269,21 @@ describe('MemoryDb', () => {
       audience: null,
       academic_attested_at: null,
       po_number: null,
-      stripe_customer_id: null,
+      external_customer_id: null,
     });
     expect(await db.updateQuoteStatusIf('q1', 'quoted', 'deposit_invoiced')).toBe(true);
     expect(db.quotes[0].status).toBe('deposit_invoiced');
     expect(await db.updateQuoteStatusIf('q1', 'quoted', 'deposit_invoiced')).toBe(false);
     expect(db.quotes[0].status).toBe('deposit_invoiced');
+  });
+
+  it('finds a payment by external_order_id', async () => {
+    const db = new MemoryDb();
+    const inserted = await db.insertPayment({ quote_id: 'q1', kind: 'deposit', amount_cents: 1 });
+    await db.updatePayment((inserted as { id: string }).id, { external_order_id: '5551' });
+    expect(await db.findPaymentByExternalOrderId('5551')).toMatchObject({
+      id: (inserted as { id: string }).id,
+    });
+    expect(await db.findPaymentByExternalOrderId('nope')).toBeNull();
   });
 });

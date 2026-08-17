@@ -72,7 +72,7 @@ describe('depositTotalCents + assertDepositSane', () => {
 describe('computeBalance', () => {
   const deposit = {
     amountCents: 480000,
-    invoiceLabel: 'A1B2C3D4-0001',
+    invoiceLabel: 'invoice A1B2C3D4-0001',
     paidAt: '2026-09-01T00:00:00Z',
   };
 
@@ -82,14 +82,15 @@ describe('computeBalance', () => {
       buildQuote([{ serviceSlug: 'barcoding', count: 743 }]).total.academic * 100;
     expect(r.actualTotalCents).toBe(expectedTotal);
     expect(r.balanceCents).toBe(expectedTotal - 480000);
-    expect(r.lines).toHaveLength(2);
+    expect(r.lines).toHaveLength(1);
     expect(r.lines[0].amountCents).toBe(expectedTotal);
     expect(r.lines[0].description).toMatch(
       /^Voucher-Linked Specimen Barcoding — 743 specimens @ \$\d+\/specimen, academic rate$/,
     );
-    expect(r.lines[1]).toEqual({
-      description: 'Less deposit received (invoice A1B2C3D4-0001, paid 2026-09-01)',
-      amountCents: -480000,
+    expect(r.lines.every((l) => l.amountCents >= 0)).toBe(true);
+    expect(r.credit).toEqual({
+      title: 'Deposit received (invoice A1B2C3D4-0001, paid 2026-09-01)',
+      amountCents: 480000,
     });
     expect(r.actualLines[0].count).toBe(743);
   });

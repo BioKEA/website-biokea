@@ -7,13 +7,29 @@ import { env } from 'cloudflare:workers';
 import { SupabaseDb } from '@/lib/payments/db';
 import { computeBalance, usdCents } from '@/lib/payments/terms';
 import { parseBalanceForm } from '@/lib/payments/balance-form';
+import { numericId } from '@/lib/payments/shopify-ids';
 import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
 
 export const prerender = false;
 
 if (!Astro.locals.adminEmail) return new Response('Forbidden', { status: 403 });
 
-const e = env as { SUPABASE_URL?: string; SUPABASE_SERVICE_ROLE_KEY?: string };
+const e = env as {
+  SUPABASE_URL?: string;
+  SUPABASE_SERVICE_ROLE_KEY?: string;
+  SHOPIFY_STORE_HANDLE?: string;
+};
+const storeHandle = e.SHOPIFY_STORE_HANDLE ?? 'biokea';
+const shopifyAdminUrl = (path: string) => `https://admin.shopify.com/store/${storeHandle}/${path}`;
+// A malformed external_id (shouldn't happen, but this is a display-only
+// admin page) must not 500 the whole quote view — just render no link.
+const safeNumericId = (gid: string): string | null => {
+  try {
+    return numericId(gid);
+  } catch {
+    return null;
+  }
+};
 const number = Astro.params.number ?? '';
 if (!/^BK-\d{4}-\d{4,}$/.test(number) || !e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY) {
   return new Response('Quote not found', { status: 404 });
@@ -58,7 +74,9 @@ if (url.searchParams.get('preview') === '1' && deposit && quote.audience) {
     try {
       preview = computeBalance(parsed.inputs, quote.audience, {
         amountCents: deposit.amount_cents,
-        invoiceLabel: deposit.stripe_invoice_id ?? 'deposit',
+        invoiceLabel: deposit.order_ref
+          ? `order ${deposit.order_ref}`
+          : (deposit.external_id ?? 'deposit'),
         paidAt: deposit.paid_at ?? deposit.created_at,
       });
     } catch (err) {
@@ -87,20 +105,6 @@ const val = (k: string) => previewInputs.get(k) ?? '';
         quote.expires_at.slice(0, 10)
       }
       · <a class="underline" href={`/quote/${quote.access_token}`}>customer view</a>
-      {
-        quote.stripe_customer_id && (
-          <>
-            {' '}
-            ·{' '}
-            <a
-              class="underline"
-              href={`https://dashboard.stripe.com/customers/${quote.stripe_customer_id}`}
-            >
-              Stripe customer
-            </a>
-          </>
-        )
-      }
     </p>
 
     {
@@ -109,8 +113,8 @@ const val = (k: string) => previewInputs.get(k) ?? '';
           {flash.error === 'state' &&
             'The quote is not ready for a balance (needs a paid deposit and status deposit_paid).'}
           {flash.error === 'input' && 'Those counts could not be priced — check the numbers.'}
-          {flash.error === 'stripe' &&
-            'Stripe rejected the invoice. Nothing was recorded; try again.'}
+          {flash.error === 'gateway' &&
+            'Shopify rejected the invoice. Nothing was recorded; try again.'}
         </p>
       )
     }
@@ -125,8 +129,8 @@ const val = (k: string) => previewInputs.get(k) ?? '';
       flash.balance === 'settled' && (
         <p class="mt-6 text-sm text-amber-800 border-l-2 border-amber-600 pl-3">
           Nothing owed — actual total came in at or under the deposit.{' '}
-          <strong>Refund {refundDisplay}</strong> in Stripe: Payments → the deposit payment →
-          Refund. The quote is marked paid.
+          <strong>Refund {refundDisplay}</strong> in Shopify: Orders → the deposit order → Refund.
+          The quote is marked paid.
         </p>
       )
     }
@@ -187,22 +191,27 @@ const val = (k: string) => previewInputs.get(k) ?? '';
                 <td class="px-3 py-2">{p.due_at?.slice(0, 10) ?? '—'}</td>
                 <td class="px-3 py-2">{p.paid_at?.slice(0, 10) ?? '—'}</td>
                 <td class="px-3 py-2 text-xs">
-                  {p.hosted_invoice_url && (
-                    <a class="underline" href={p.hosted_invoice_url}>
+                  {p.hosted_url && (
+                    <a class="underline" href={p.hosted_url}>
                       hosted
                     </a>
                   )}{' '}
-                  {p.invoice_pdf && (
-                    <a class="underline" href={p.invoice_pdf}>
+                  {p.pdf_url && (
+                    <a class="underline" href={p.pdf_url}>
                       pdf
                     </a>
                   )}{' '}
-                  {p.stripe_invoice_id && (
+                  {p.external_id && safeNumericId(p.external_id) && (
                     <a
                       class="underline"
-                      href={`https://dashboard.stripe.com/invoices/${p.stripe_invoice_id}`}
+                      href={shopifyAdminUrl(`draft_orders/${safeNumericId(p.external_id)}`)}
                     >
-                      stripe
+                      shopify draft
+                    </a>
+                  )}{' '}
+                  {p.external_order_id && (
+                    <a class="underline" href={shopifyAdminUrl(`orders/${p.external_order_id}`)}>
+                      shopify order
                     </a>
                   )}
                 </td>
@@ -284,6 +293,12 @@ const val = (k: string) => previewInputs.get(k) ?? '';
                         <td class="px-3 py-1 text-right font-mono">{usdCents(l.amountCents)}</td>
                       </tr>
                     ))}
+                    <tr class="border-t border-slate-900/10 text-slate-500">
+                      <td class="px-3 py-1">{preview.credit.title}</td>
+                      <td class="px-3 py-1 text-right font-mono">
+                        − {usdCents(preview.credit.amountCents)}
+                      </td>
+                    </tr>
                     <tr class="border-t-2 border-slate-900/20 font-semibold">
                       <td class="px-3 py-2">Balance due</td>
                       <td class="px-3 py-2 text-right font-mono">
@@ -295,7 +310,7 @@ const val = (k: string) => previewInputs.get(k) ?? '';
                 {preview.balanceCents <= 0 ? (
                   <p class="mt-2 text-amber-800">
                     Nothing owed. Confirming records a settlement and marks the quote paid; you then
-                    refund {usdCents(-preview.balanceCents)} in Stripe.
+                    refund {usdCents(-preview.balanceCents)} in Shopify.
                   </p>
                 ) : (
                   <p class="mt-2 text-slate-600">

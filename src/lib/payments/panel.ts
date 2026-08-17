@@ -13,10 +13,10 @@ export type PanelView =
       phase: PaymentKind;
       amountCents: number;
       dueAt: string | null;
-      hostedInvoiceUrl: string | null;
-      invoicePdf: string | null;
+      hostedUrl: string | null;
+      pdfUrl: string | null;
     }
-  | { kind: 'deposit_paid'; amountCents: number; paidAt: string; invoicePdf: string | null }
+  | { kind: 'deposit_paid'; amountCents: number; paidAt: string; pdfUrl: string | null }
   | { kind: 'paid'; depositPdf: string | null; balancePdf: string | null };
 
 const LIVE = new Set(['open', 'paid', 'settled']);
@@ -44,8 +44,8 @@ export function panelView(quote: QuoteRecord, payments: PaymentRecord[], now: Da
         phase: 'deposit',
         amountCents: deposit.amount_cents,
         dueAt: deposit.due_at,
-        hostedInvoiceUrl: deposit.hosted_invoice_url,
-        invoicePdf: deposit.invoice_pdf,
+        hostedUrl: deposit.hosted_url,
+        pdfUrl: deposit.pdf_url,
       };
     case 'deposit_paid':
       if (!deposit || !deposit.paid_at) return { kind: 'none' };
@@ -53,7 +53,7 @@ export function panelView(quote: QuoteRecord, payments: PaymentRecord[], now: Da
         kind: 'deposit_paid',
         amountCents: deposit.amount_cents,
         paidAt: deposit.paid_at,
-        invoicePdf: deposit.invoice_pdf,
+        pdfUrl: deposit.pdf_url,
       };
     case 'balance_invoiced':
       if (!balance) return { kind: 'none' };
@@ -62,14 +62,14 @@ export function panelView(quote: QuoteRecord, payments: PaymentRecord[], now: Da
         phase: 'balance',
         amountCents: balance.amount_cents,
         dueAt: balance.due_at,
-        hostedInvoiceUrl: balance.hosted_invoice_url,
-        invoicePdf: balance.invoice_pdf,
+        hostedUrl: balance.hosted_url,
+        pdfUrl: balance.pdf_url,
       };
     case 'paid':
       return {
         kind: 'paid',
-        depositPdf: deposit?.invoice_pdf ?? null,
-        balancePdf: balance?.invoice_pdf ?? null,
+        depositPdf: deposit?.pdf_url ?? null,
+        balancePdf: balance?.pdf_url ?? null,
       };
     default:
       // Covers a pre-migration row whose `status` column hasn't been

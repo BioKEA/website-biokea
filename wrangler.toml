@@ -1,8 +1,6 @@
 name = "biokeawebsite"
 compatibility_date = "2026-04-18"
-# The stripe SDK imports Node built-ins (util, crypto, events…) even with the
-# fetch HTTP client, so the Workers runtime needs the Node compatibility layer.
-# Enabled by wrangler for both `wrangler deploy` and astro dev's platformProxy.
+# Kept for Node built-in compatibility on Workers (harmless if unused).
 compatibility_flags = ["nodejs_compat"]
 
 # Astro's Cloudflare adapter emits the worker entry + static assets;
@@ -28,11 +26,22 @@ SUPABASE_PUBLISHABLE_KEY = "sb_publishable_HmeteofpCTVchDfmzrMAxg_y0ea1IM1"
 CF_ACCESS_TEAM_DOMAIN = "biokea.cloudflareaccess.com"
 CF_ACCESS_AUD = "53739c704f8ebcff2b67597d0f3ab8ff6deaf74f1cdb34ea9c6b0be653e8e1b7"
 
+# Shopify store (store.biokea.ai / biokea.myshopify.com). The gateway talks
+# to the GraphQL Admin API directly (no SDK). SHOPIFY_STORE_HANDLE is the
+# slug in Shopify admin URLs (https://admin.shopify.com/store/<handle>/…),
+# used to link staff to draft orders / orders from the admin pages.
+# SHOPIFY_PAYMENT_TERMS_TEMPLATE names the net-terms template looked up via
+# paymentTermsTemplates at invoice time; if the lookup fails, invoices fall
+# back to due-on-receipt rather than blocking.
+SHOPIFY_STORE_DOMAIN = "biokea.myshopify.com"
+SHOPIFY_STORE_HANDLE = "biokea"
+SHOPIFY_PAYMENT_TERMS_TEMPLATE = "NET_30"
+
 # Secrets — set once per environment:
 #   wrangler secret put RESEND_API_KEY
 #   wrangler secret put TURNSTILE_SECRET_KEY   # optional; enables captcha
-#   wrangler secret put STRIPE_SECRET_KEY
-#   wrangler secret put STRIPE_WEBHOOK_SECRET
+#   wrangler secret put SHOPIFY_ADMIN_TOKEN
+#   wrangler secret put SHOPIFY_WEBHOOK_SECRET
 #
 # If TURNSTILE_SECRET_KEY is unset, the contact + subscribe endpoints
 # skip captcha verification. Pair it with PUBLIC_TURNSTILE_SITE_KEY at

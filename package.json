@@ -4,8 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "astro dev",
+    "dev": "npm run widget:build && astro dev",
     "build": "astro build",
+    "prebuild": "npm run widget:build",
+    "widget:build": "vite build --config vite.widget.config.ts",
     "agentis:previews": "node scripts/capture-agentis-previews.mjs",
     "preview": "astro preview",
     "check": "astro check",
@@ -28,7 +30,6 @@
     "@tailwindcss/vite": "^4.2.0",
     "astro": "^6.0.0",
     "jose": "^6.2.9",
-    "stripe": "^19.3.0",
     "tailwindcss": "^4.2.0",
     "zod": "^4.0.0"
   },
@@ -46,6 +47,7 @@
     "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.0",
     "typescript": "^5.9.3",
+    "vite": "^7.0.0",
     "vitest": "^4.1.4"
   }
 }

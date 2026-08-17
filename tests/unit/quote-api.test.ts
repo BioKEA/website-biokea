@@ -9,10 +9,12 @@ const env = {
   CONTACT_TO_EMAIL: 'contact@biokea.ai',
 };
 
-function makeRequest(body: unknown) {
+function makeRequest(body: unknown, origin?: string) {
+  const headers: Record<string, string> = { 'content-type': 'application/json' };
+  if (origin) headers.origin = origin;
   return new Request('https://biokea.ai/api/quote', {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -101,6 +103,40 @@ describe('quote endpoint', () => {
     expect(body.ok).toBe(true);
     expect(body.quoteNumber).toBe('BK-2026-0001');
     expect(body.url).toContain('/quote/tok-123');
+  });
+
+  it('includes the access token and defaults paymentsEnabled to false', async () => {
+    const res = await handleQuote(makeRequest(validBody), env, undefined, { dev: false });
+    const body = await res.json();
+    expect(body.token).toBe('tok-123');
+    expect(body.paymentsEnabled).toBe(false);
+  });
+
+  it('sets paymentsEnabled true when opts requests it', async () => {
+    const res = await handleQuote(makeRequest(validBody), env, undefined, {
+      paymentsEnabled: true,
+      dev: false,
+    });
+    const body = await res.json();
+    expect(body.paymentsEnabled).toBe(true);
+  });
+
+  it('echoes the CORS header for the store origin and omits it for a disallowed origin', async () => {
+    const allowed = await handleQuote(
+      makeRequest(validBody, 'https://store.biokea.ai'),
+      env,
+      undefined,
+      { dev: false },
+    );
+    expect(allowed.headers.get('access-control-allow-origin')).toBe('https://store.biokea.ai');
+
+    const denied = await handleQuote(
+      makeRequest(validBody, 'https://evil.example'),
+      env,
+      undefined,
+      { dev: false },
+    );
+    expect(denied.headers.get('access-control-allow-origin')).toBeNull();
   });
 
   it('emails the quote via Resend', async () => {

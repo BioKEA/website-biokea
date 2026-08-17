@@ -14,6 +14,10 @@
 /styles/
 /test-results/
 
+# Built by `npm run widget:build` (prebuild, and `npm run dev`). The
+# embeddable /quote widget bundle — an artifact, never committed.
+/public/widget/
+
 # Original .zip source bundles for the six games. Each game now lives
 # in its own private GitHub repo (BioKEA/game-<slug>); these zips are
 # kept locally as an archive but aren't tracked.

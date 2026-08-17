@@ -1,8 +1,9 @@
 // src/pages/api/quote.ts
-import type { APIContext } from 'astro';
+import type { APIContext, APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { z } from 'zod';
 import { buildQuote } from '@/lib/pricing/quote';
+import { preflight, withCors } from '@/lib/cors';
 
 export const prerender = false;
 
@@ -34,6 +35,15 @@ interface Env {
   CONTACT_FROM_EMAIL: string;
   CONTACT_TO_EMAIL: string;
   TURNSTILE_SECRET_KEY?: string;
+  // Typed here for `paymentsEnabled`; the full Shopify gateway config lands
+  // in src/env.d.ts in Task 5.
+  SHOPIFY_ADMIN_TOKEN?: string;
+  SHOPIFY_STORE_DOMAIN?: string;
+}
+
+interface HandleQuoteOpts {
+  paymentsEnabled?: boolean;
+  dev?: boolean;
 }
 
 function json(body: unknown, status: number): Response {
@@ -57,7 +67,22 @@ async function verifyTurnstile(token: string, secret: string, remoteIp?: string)
 
 const usd = (n: number) => '$' + n.toLocaleString('en-US');
 
-export async function handleQuote(request: Request, e: Env, remoteIp?: string): Promise<Response> {
+export async function handleQuote(
+  request: Request,
+  e: Env,
+  remoteIp?: string,
+  opts?: HandleQuoteOpts,
+): Promise<Response> {
+  const res = await handleQuoteInner(request, e, remoteIp, opts);
+  return withCors(res, request.headers.get('origin'), opts?.dev ?? false);
+}
+
+async function handleQuoteInner(
+  request: Request,
+  e: Env,
+  remoteIp?: string,
+  opts?: HandleQuoteOpts,
+): Promise<Response> {
   let raw: unknown;
   try {
     raw = await request.json();
@@ -243,7 +268,10 @@ export async function handleQuote(request: Request, e: Env, remoteIp?: string): 
     // ignore — the quote is saved and the customer already has their link
   }
 
-  return json({ ok: true, quoteNumber, url }, 200);
+  return json(
+    { ok: true, quoteNumber, url, token: accessToken, paymentsEnabled: !!opts?.paymentsEnabled },
+    200,
+  );
 }
 
 export async function POST({ request, clientAddress }: APIContext): Promise<Response> {
@@ -255,7 +283,16 @@ export async function POST({ request, clientAddress }: APIContext): Promise<Resp
     !e?.CONTACT_FROM_EMAIL ||
     !e?.CONTACT_TO_EMAIL
   ) {
-    return json({ ok: false, error: 'Quotes are not configured.' }, 500);
+    return withCors(
+      json({ ok: false, error: 'Quotes are not configured.' }, 500),
+      request.headers.get('origin'),
+      import.meta.env.DEV,
+    );
   }
-  return handleQuote(request, e, clientAddress);
+  return handleQuote(request, e, clientAddress, {
+    paymentsEnabled: !!(e.SHOPIFY_ADMIN_TOKEN && e.SHOPIFY_STORE_DOMAIN),
+    dev: import.meta.env.DEV,
+  });
 }
+
+export const OPTIONS: APIRoute = ({ request }) => preflight(request, import.meta.env.DEV);

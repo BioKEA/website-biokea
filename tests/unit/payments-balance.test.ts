@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { buildQuote } from '@/lib/pricing/quote';
 import { MemoryDb } from '@/lib/payments/db';
 import { MemoryGateway } from '@/lib/payments/gateway';
@@ -30,7 +30,7 @@ function quote(over: Partial<QuoteRecord> = {}): QuoteRecord {
     audience: 'academic',
     academic_attested_at: '2026-09-01T00:00:00Z',
     po_number: 'PO-77',
-    stripe_customer_id: 'cus_1',
+    external_customer_id: 'cus_1',
     ...over,
   };
 }
@@ -54,7 +54,8 @@ beforeEach(async () => {
     kind: 'deposit',
     amount_cents: DEPOSIT,
     status: 'paid',
-    stripe_invoice_id: 'in_1',
+    external_id: 'gid://shopify/DraftOrder/1',
+    order_ref: '#1001',
     paid_at: '2026-09-02T10:00:00Z',
   });
 });
@@ -123,29 +124,25 @@ describe('handleBalance', () => {
     const spec = gateway.created[0];
     expect(spec.kind).toBe('balance');
     expect(spec.customer.id).toBe('cus_1');
-    expect(spec.idempotencyKey).toBe('balance:p2');
-    expect(spec.customFields).toEqual([
-      { name: 'Quote', value: N },
-      { name: 'PO number', value: 'PO-77' },
-    ]);
+    expect(spec.paymentId).toBe('p2');
+    expect(spec.poNumber).toBe('PO-77');
     expect(spec.footer).toBe(`Balance for BioKEA quote ${N}, computed on actual sample counts.`);
     const actual = buildQuote([
       { serviceSlug: 'barcoding', count: 743 },
       { serviceSlug: 'metabarcoding', count: 58, markers: 2 },
     ]);
-    expect(spec.lines.at(-1)).toEqual({
-      description: 'Less deposit received (invoice in_1, paid 2026-09-02)',
-      amountCents: -DEPOSIT,
+    expect(spec.credit).toEqual({
+      title: 'Deposit received (order #1001, paid 2026-09-02)',
+      amountCents: DEPOSIT,
     });
-    expect(spec.lines.reduce((s, l) => s + l.amountCents, 0)).toBe(
-      actual.total.academic * 100 - DEPOSIT,
-    );
+    expect(spec.lines.every((l) => l.amountCents >= 0)).toBe(true);
+    expect(spec.lines.reduce((s, l) => s + l.amountCents, 0)).toBe(actual.total.academic * 100);
 
     const balance = db.payments.find((p) => p.kind === 'balance')!;
     expect(balance).toMatchObject({
       status: 'open',
       amount_cents: actual.total.academic * 100 - DEPOSIT,
-      stripe_invoice_id: 'in_test_1',
+      external_id: 'gid://shopify/DraftOrder/test-1',
       created_by: 'michelle@biokea.ai',
     });
     expect(balance.actual_lines).toEqual([
@@ -169,7 +166,7 @@ describe('handleBalance', () => {
     expect(db.payments.find((p) => p.kind === 'balance')).toMatchObject({
       status: 'settled',
       amount_cents: actual - DEPOSIT,
-      stripe_invoice_id: null,
+      external_id: null,
       created_by: 'michelle@biokea.ai',
     });
     expect(db.quotes[0].status).toBe('paid');
@@ -210,22 +207,43 @@ describe('handleBalance', () => {
     await db.updatePayment(first.id, { status: 'void' });
     await db.updateQuote('q1', { status: 'deposit_paid' });
     await handleBalance(post({ 'counts[barcoding]': '750', confirm: 'true' }), N, deps());
-    expect(gateway.created[1].idempotencyKey).toBe('balance:p3');
+    expect(gateway.created[1].paymentId).toBe('p3');
     expect(db.payments.filter((p) => p.kind === 'balance')).toHaveLength(2);
   });
 
-  it('rolls back and reports a Stripe failure', async () => {
+  it("logs (but still redirects to invoiced) when Shopify's total disagrees with our cents", async () => {
+    class MismatchGateway extends MemoryGateway {
+      override async createInvoice(spec: Parameters<MemoryGateway['createInvoice']>[0]) {
+        const out = await super.createInvoice(spec);
+        return { ...out, amountDueCents: out.amountDueCents + 1 };
+      }
+    }
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const res = await handleBalance(post({ 'counts[barcoding]': '743', confirm: 'true' }), N, {
+      db,
+      gateway: new MismatchGateway(),
+      actorEmail: 'michelle@biokea.ai',
+    });
+    expect(res.headers.get('location')).toBe(`/admin/quotes/${N}?balance=invoiced`);
+    expect(errSpy).toHaveBeenCalledWith(
+      expect.stringContaining('total mismatch'),
+      expect.objectContaining({ quote: N, kind: 'balance' }),
+    );
+    errSpy.mockRestore();
+  });
+
+  it('rolls back and reports a gateway failure', async () => {
     gateway.failNext = new Error('down');
     expect(
       (
         await handleBalance(post({ 'counts[barcoding]': '743', confirm: 'true' }), N, deps())
       ).headers.get('location'),
-    ).toBe(`/admin/quotes/${N}?error=stripe`);
+    ).toBe(`/admin/quotes/${N}?error=gateway`);
     expect(db.payments.filter((p) => p.kind === 'balance')).toHaveLength(0);
     expect(db.quotes[0].status).toBe('deposit_paid');
   });
 
-  it('never clobbers a status the webhook already advanced while the Stripe call was in flight', async () => {
+  it('never clobbers a status the webhook already advanced while the gateway call was in flight', async () => {
     class RacingGateway extends MemoryGateway {
       constructor(private readonly db: MemoryDb) {
         super();
@@ -244,6 +262,6 @@ describe('handleBalance', () => {
     });
     expect(res.headers.get('location')).toBe(`/admin/quotes/${N}?balance=invoiced`);
     expect(db.quotes[0].status).toBe('paid');
-    expect(db.quotes[0].stripe_customer_id).toBe('cus_1');
+    expect(db.quotes[0].external_customer_id).toBeNull();
   });
 });
