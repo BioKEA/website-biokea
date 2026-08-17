@@ -23,7 +23,10 @@ SUPABASE_PUBLISHABLE_KEY = "sb_publishable_HmeteofpCTVchDfmzrMAxg_y0ea1IM1"
 #
 # If TURNSTILE_SECRET_KEY is unset, the contact + subscribe endpoints
 # skip captcha verification. Pair it with PUBLIC_TURNSTILE_SITE_KEY at
-# build time so the widget renders on those pages.
+# build time so the widget renders on those pages. /api/contact requires
+# a token when the secret is set; /api/subscribe only verifies one if
+# sent (the in-game opt-in from games.biokea.ai has no widget) and leans
+# on the edge rate limit in docs/security/rate-limiting.md instead.
 #
 # Supabase service-role key — required by /api/quote and /quote/<token>.
 # The `quotes` table has RLS enabled with zero policies, so both the write

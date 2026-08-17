@@ -228,11 +228,16 @@ export async function handleSubscribe(
     return json({ ok: false, error: 'Invalid submission' }, 400);
   }
 
-  if (env.TURNSTILE_SECRET_KEY) {
-    const token = parsed.data['cf-turnstile-response'];
-    if (!token) {
-      return json({ ok: false, error: 'Captcha missing. Please reload and try again.' }, 400);
-    }
+  // Turnstile is verified when a token is sent (the /subscribe page's
+  // SubscribeForm) but is NOT required — unlike /api/contact. The in-game
+  // opt-in in each game's BiokeaLeaderboardPrompt posts from games.biokea.ai
+  // with no widget, and we chose not to embed a captcha in six game bundles.
+  // Bot pressure on this endpoint is bounded instead by the honeypot above,
+  // the unique-email constraint (one welcome per address, ever), and the
+  // Cloudflare edge rate limit on POST /api/subscribe
+  // (docs/security/rate-limiting.md).
+  const token = parsed.data['cf-turnstile-response'];
+  if (env.TURNSTILE_SECRET_KEY && token) {
     const ok = await verifyTurnstile(token, env.TURNSTILE_SECRET_KEY, remoteIp);
     if (!ok) {
       return json({ ok: false, error: 'Captcha failed. Please reload and try again.' }, 400);

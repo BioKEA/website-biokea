@@ -85,3 +85,66 @@ request made it to the Worker), then `429`s.
 - If the form grows additional endpoints (e.g., a newsletter signup), add a
   separate rule per endpoint rather than a broad `/api/*` catch-all — catch-alls
   trip test-tooling and monitoring probes.
+
+# Rate limiting `/api/subscribe`
+
+`/api/subscribe` deliberately does **not** require a Turnstile token: the
+in-game email opt-in (each game's `BiokeaLeaderboardPrompt`, posting from
+games.biokea.ai) has no captcha widget, and we chose not to embed one in six
+game bundles. It still verifies a token when one is sent (the `/subscribe`
+page), and keeps the honeypot and the unique-email constraint (one welcome
+email per address, ever). The edge rate limit is therefore the _only_ bulk
+defence for this endpoint, so treat this rule as required, not optional.
+
+What abuse costs without it: junk `subscribers` rows and one unsolicited
+welcome email per unique address from `notifications@biokea.ai` — which is
+sender-reputation damage on the same domain the quote and contact mail use.
+
+## Recommended rule
+
+**Dashboard path:** `Cloudflare dashboard → biokea.ai → Security → WAF → Rate
+limiting rules → Create rule` (a second rule alongside `contact-api-post`;
+the free plan allows one rule per zone — if you're on the free plan, combine
+them with `URI Path is in {/api/contact, /api/subscribe}` instead).
+
+```
+Rule name:     subscribe-api-post
+When incoming requests match:
+  Field:       URI Path
+  Operator:    equals
+  Value:       /api/subscribe
+  AND
+  Field:       Request Method
+  Operator:    equals
+  Value:       POST
+Then take action:
+  Action:      Block
+  Duration:    10 minutes
+  Response:    Custom response
+    Status:    429
+    Body:      {"ok":false,"error":"Too many requests — please try again in a few minutes."}
+    Content-Type: application/json
+Characteristics:
+  - IP
+Requests per period:
+  Count:       5
+  Period:      1 minute
+```
+
+5/min/IP is generous for humans (one score-post modal = one request) and
+still caps a single-IP script at ~7k addresses/day; a distributed botnet is
+the residual risk, and the honeypot + unique-email keep that to at most one
+welcome per address.
+
+## Verifying the rule works
+
+```bash
+# Invalid email → the Worker answers 400 without writing anything, so this
+# probe is safe to repeat. The 6th+ request should 429.
+for i in $(seq 1 10); do
+  curl -s -o /dev/null -w "%{http_code}\n" \
+    -X POST https://biokea.ai/api/subscribe \
+    -H "Origin: https://biokea.ai" \
+    --data "email=not-an-email&source=codon2048&consent=true"
+done
+```
