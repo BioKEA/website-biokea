@@ -295,6 +295,28 @@ describe('handleDeposit', () => {
     expect(db.quotes[0].external_customer_id).toBeNull();
   });
 
+  it("logs (but still redirects to the hosted invoice) when Shopify's total disagrees with our cents", async () => {
+    class MismatchGateway extends MemoryGateway {
+      override async createInvoice(spec: Parameters<MemoryGateway['createInvoice']>[0]) {
+        const out = await super.createInvoice(spec);
+        return { ...out, amountDueCents: out.amountDueCents + 1 };
+      }
+    }
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+      db,
+      gateway: new MismatchGateway(),
+      now: NOW,
+    });
+    expect(res.status).toBe(303);
+    expect(res.headers.get('location')).toBe('https://store.biokea.test/invoices/test-1');
+    expect(errSpy).toHaveBeenCalledWith(
+      expect.stringContaining('total mismatch'),
+      expect.objectContaining({ quote: 'BK-2026-0142', kind: 'deposit' }),
+    );
+    errSpy.mockRestore();
+  });
+
   it('logs and redirects with ?pay=failed when the deposit sanity check fails, without calling the gateway', async () => {
     db.quotes[0] = quote({ total_commercial: 1 }); // tampered total vs. the line prices
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);

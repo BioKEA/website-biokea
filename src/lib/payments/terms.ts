@@ -79,10 +79,10 @@ export function computeBalance(
       description:
         `${l.serviceTitle} — ${plural(l.count, l.unitLabel)}${markerNote(l.markers)}` +
         ` @ $${p.effectiveRate}/${l.unitLabel}, ${audience} rate`,
-      amountCents: p.total * 100,
+      amountCents: Math.round(p.total * 100),
     };
   });
-  const actualTotalCents = actual.total[audience] * 100;
+  const actualTotalCents = Math.round(actual.total[audience] * 100);
   return {
     actualTotalCents,
     balanceCents: actualTotalCents - deposit.amountCents,

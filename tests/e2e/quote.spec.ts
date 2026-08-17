@@ -146,7 +146,10 @@ test('a created deposit panel is retired when the configuration changes', async 
   await page.locator('[data-count-input="barcoding"]').fill('600');
   await expect(panel).toBeHidden();
   await expect(page.locator('[data-deposit-form]')).not.toHaveAttribute('action');
-  await expect(page.locator('[data-quote-status]')).toHaveText(
+  await expect(page.locator('[data-deposit-note]')).toBeVisible();
+  await expect(page.locator('[data-deposit-note]')).toHaveText(
     'Configuration changed — email a new quote to pay a deposit on it.',
   );
+  // The "Sent — quote …" line is untouched by the invalidation.
+  await expect(page.locator('[data-quote-status]')).toContainText('BK-1');
 });

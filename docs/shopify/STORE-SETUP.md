@@ -124,6 +124,10 @@ Merch:
   [`product-quote-section.liquid`](./product-quote-section.liquid).
 - Hide the buy button / price block on that template (theme setting or a
   template-level override) — the widget replaces it.
+- The snippet's cache-buster (`?v=` on the CSS/JS URLs) only changes once a
+  day (UTC), so a widget change deployed the same day it's tested on the
+  store needs a manual `?v=` bump in the Custom Liquid section, or a wait
+  until the next UTC day, to see it live.
 - Theme colours: pull from the site's design tokens (`src/styles/tokens.css`)
   so the store doesn't look like a different company.
 - Main nav: Services, Kits, Consumables, Merch, and a trailing
@@ -139,6 +143,12 @@ Without this step the widget on the store renders a broken/erroring
 challenge and quote submissions from `store.biokea.ai` fail Turnstile
 verification.
 
+## Housekeeping
+
+If our Worker fails between creating a draft and sending its invoice, an
+OPEN draft tagged `payment:<id>` may remain in Shopify without a matching
+payment row; it is safe to delete.
+
 ## Verify
 
 - `https://store.biokea.ai/products/specimen-barcoding` loads over HTTPS
@@ -150,3 +160,11 @@ verification.
 - Paying a deposit lands on Shopify checkout (Bogus Gateway in test mode);
   a completed test payment fires `orders/paid` and the quote page shows
   "Deposit received".
+- Complete a **net-30** draft (the PO buyer path) and confirm no
+  `draft_orders/delete` webhook arrives for it (`webhook_events` shows only
+  `orders/*` topics for that draft) and the quote does NOT drop back to
+  `quoted`.
+- Confirm the customer invoice URL forces payment (due on receipt, no net
+  terms) when no PO number was given.
+- Confirm a service draft's `totalPriceSet` equals our cents exactly (no
+  tax) — the Worker logs `[payments] Shopify total mismatch` otherwise.

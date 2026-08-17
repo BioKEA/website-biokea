@@ -1,5 +1,6 @@
 name = "biokeawebsite"
 compatibility_date = "2026-04-18"
+# Kept for Node built-in compatibility on Workers (harmless if unused).
 compatibility_flags = ["nodejs_compat"]
 
 # Astro's Cloudflare adapter emits the worker entry + static assets;

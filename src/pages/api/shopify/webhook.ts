@@ -34,6 +34,7 @@ export interface ShopifyWebhookDeps {
   email: EmailSender;
   labTo: string;
   webhookSecret: string;
+  storeDomain?: string; // when set, cross-checked against x-shopify-shop-domain
   now?: () => Date;
 }
 
@@ -171,6 +172,15 @@ export async function handleShopifyWebhook(
     return new Response('Bad signature', { status: 401 });
   }
 
+  // A valid HMAC only proves the payload was signed with our webhook
+  // secret; if we know our own store domain, cross-check the header too so
+  // a signature leaked (or shared) elsewhere can't be replayed against us.
+  const shopDomain = request.headers.get('x-shopify-shop-domain');
+  if (deps.storeDomain && shopDomain && shopDomain !== deps.storeDomain) {
+    console.error('[shopify-webhook] shop domain mismatch', shopDomain);
+    return new Response('Unknown shop domain', { status: 401 });
+  }
+
   const topic = request.headers.get('x-shopify-topic') ?? '';
   const eventId = request.headers.get('x-shopify-webhook-id');
   if (!eventId) return new Response('Missing webhook id', { status: 400 });
@@ -269,6 +279,7 @@ export async function POST({ request }: APIContext): Promise<Response> {
     SUPABASE_URL?: string;
     SUPABASE_SERVICE_ROLE_KEY?: string;
     SHOPIFY_WEBHOOK_SECRET?: string;
+    SHOPIFY_STORE_DOMAIN?: string;
     RESEND_API_KEY?: string;
     CONTACT_FROM_EMAIL?: string;
     CONTACT_TO_EMAIL?: string;
@@ -291,5 +302,6 @@ export async function POST({ request }: APIContext): Promise<Response> {
     }),
     labTo: e.CONTACT_TO_EMAIL,
     webhookSecret: e.SHOPIFY_WEBHOOK_SECRET,
+    storeDomain: e.SHOPIFY_STORE_DOMAIN,
   });
 }

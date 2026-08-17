@@ -120,6 +120,20 @@ export async function handleBalance(
     return seeOther(`${admin}?error=gateway`);
   }
 
+  // The invoice email is already sent at this point — failing the request
+  // here would strand a live invoice with no payment record to show for
+  // it, so a mismatch is logged (the alert) rather than blocking the
+  // redirect.
+  if (created.amountDueCents !== computed.balanceCents) {
+    console.error('[payments] Shopify total mismatch', {
+      quote: quote.quote_number,
+      kind: 'balance',
+      expected: computed.balanceCents,
+      got: created.amountDueCents,
+      draft: created.externalId,
+    });
+  }
+
   await deps.db.updatePayment(inserted.id, {
     external_id: created.externalId,
     hosted_url: created.hostedUrl,

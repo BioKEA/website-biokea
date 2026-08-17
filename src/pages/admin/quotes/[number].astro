@@ -21,6 +21,15 @@ const e = env as {
 };
 const storeHandle = e.SHOPIFY_STORE_HANDLE ?? 'biokea';
 const shopifyAdminUrl = (path: string) => `https://admin.shopify.com/store/${storeHandle}/${path}`;
+// A malformed external_id (shouldn't happen, but this is a display-only
+// admin page) must not 500 the whole quote view — just render no link.
+const safeNumericId = (gid: string): string | null => {
+  try {
+    return numericId(gid);
+  } catch {
+    return null;
+  }
+};
 const number = Astro.params.number ?? '';
 if (!/^BK-\d{4}-\d{4,}$/.test(number) || !e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY) {
   return new Response('Quote not found', { status: 404 });
@@ -192,10 +201,10 @@ const val = (k: string) => previewInputs.get(k) ?? '';
                       pdf
                     </a>
                   )}{' '}
-                  {p.external_id && (
+                  {p.external_id && safeNumericId(p.external_id) && (
                     <a
                       class="underline"
-                      href={shopifyAdminUrl(`draft_orders/${numericId(p.external_id)}`)}
+                      href={shopifyAdminUrl(`draft_orders/${safeNumericId(p.external_id)}`)}
                     >
                       shopify draft
                     </a>

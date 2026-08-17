@@ -173,6 +173,10 @@ export function renderWidgetHtml(
           <p data-quote-status role="status" aria-live="polite" class="bk-status"></p>
         </form>
 
+        <p data-deposit-note hidden role="status" aria-live="polite" class="bk-status">
+          Configuration changed — email a new quote to pay a deposit on it.
+        </p>
+
         <section data-deposit-panel hidden class="bk-deposit">
           <p class="bk-eyebrow bk-eyebrow--ink">Start this project</p>
           <h3 class="bk-deposit-title">Pay a 50% deposit</h3>

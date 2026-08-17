@@ -35,17 +35,23 @@ const SITE_ORIGIN = 'https://biokea.ai';
 const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Just enough of the Turnstile API to render a widget explicitly.
+// Just enough of the Turnstile API to render (and later remove) a widget
+// explicitly.
 interface TurnstileApi {
   render(el: HTMLElement, opts: { sitekey: string }): unknown;
+  remove?(el: HTMLElement): void;
 }
 
 /** The API hands back a token and a URL; neither is rendered without a
  * shape check first, so a surprising response can't put a javascript: link
- * in the status line or a junk token in the deposit form's action. */
+ * in the status line or a junk token in the deposit form's action.
+ * Protocol-relative ("//evil.example") is rejected too — it would resolve
+ * against whatever origin the widget happens to be embedded on. */
 const isQuoteToken = (v: unknown): v is string => typeof v === 'string' && UUID_RE.test(v);
 const safeUrl = (v: unknown): string | null =>
-  typeof v === 'string' && (v.startsWith('https://') || v.startsWith('/')) ? v : null;
+  typeof v === 'string' && (v.startsWith('https://') || (v.startsWith('/') && !v.startsWith('//')))
+    ? v
+    : null;
 
 // Non-linear slider: 0–100 maps onto 1–6000 with resolution where it
 // matters. A linear scale would squash 1–300 into a few pixels.
@@ -110,6 +116,7 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
   const status = $<HTMLElement>('[data-quote-status]')!;
   const depositPanel = $<HTMLElement>('[data-deposit-panel]')!;
   const depositForm = $<HTMLFormElement>('[data-deposit-form]')!;
+  const depositNote = $<HTMLElement>('[data-deposit-note]')!;
 
   // Every listener is registered through this so destroy() can undo them all.
   const bound: { target: EventTarget; type: string; fn: EventListener }[] = [];
@@ -146,8 +153,10 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
     depositSignature = null;
     depositPanel.hidden = true;
     depositForm.removeAttribute('action');
-    status.textContent = 'Configuration changed — email a new quote to pay a deposit on it.';
-    status.style.color = '';
+    // The "Sent — quote …" line in `status` stays put; the reason the
+    // deposit panel just disappeared goes in its own element instead of
+    // overwriting it.
+    depositNote.hidden = false;
   }
 
   function render() {
@@ -236,6 +245,7 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
 
   function revealDeposit(quote: Quote, token: string, signature: string): void {
     depositSignature = signature;
+    depositNote.hidden = true;
     depositForm.action = `${apiBase}/api/quote/${token}/deposit`;
     const academic = $<HTMLElement>('[data-deposit-academic]');
     const commercial = $<HTMLElement>('[data-deposit-commercial]');
@@ -306,6 +316,14 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
 
   return {
     destroy() {
+      const turnstileEl = root.querySelector<HTMLElement>('.cf-turnstile');
+      if (turnstileEl?.dataset.bkRendered === '1') {
+        try {
+          (window as Window & { turnstile?: TurnstileApi }).turnstile?.remove?.(turnstileEl);
+        } catch {
+          // A widget that won't unmount cleanly must not block destroy().
+        }
+      }
       for (const { target, type, fn } of bound) target.removeEventListener(type, fn);
       bound.length = 0;
       root.innerHTML = '';

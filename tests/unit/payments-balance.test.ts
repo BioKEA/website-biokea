@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { buildQuote } from '@/lib/pricing/quote';
 import { MemoryDb } from '@/lib/payments/db';
 import { MemoryGateway } from '@/lib/payments/gateway';
@@ -209,6 +209,27 @@ describe('handleBalance', () => {
     await handleBalance(post({ 'counts[barcoding]': '750', confirm: 'true' }), N, deps());
     expect(gateway.created[1].paymentId).toBe('p3');
     expect(db.payments.filter((p) => p.kind === 'balance')).toHaveLength(2);
+  });
+
+  it("logs (but still redirects to invoiced) when Shopify's total disagrees with our cents", async () => {
+    class MismatchGateway extends MemoryGateway {
+      override async createInvoice(spec: Parameters<MemoryGateway['createInvoice']>[0]) {
+        const out = await super.createInvoice(spec);
+        return { ...out, amountDueCents: out.amountDueCents + 1 };
+      }
+    }
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const res = await handleBalance(post({ 'counts[barcoding]': '743', confirm: 'true' }), N, {
+      db,
+      gateway: new MismatchGateway(),
+      actorEmail: 'michelle@biokea.ai',
+    });
+    expect(res.headers.get('location')).toBe(`/admin/quotes/${N}?balance=invoiced`);
+    expect(errSpy).toHaveBeenCalledWith(
+      expect.stringContaining('total mismatch'),
+      expect.objectContaining({ quote: N, kind: 'balance' }),
+    );
+    errSpy.mockRestore();
   });
 
   it('rolls back and reports a gateway failure', async () => {

@@ -99,6 +99,30 @@ describe('handleShopifyWebhook', () => {
     expect(db.events.size).toBe(0);
   });
 
+  it('401s when x-shopify-shop-domain is present and differs from the configured store domain', async () => {
+    const req = await send('orders/paid', orderPaid, 'whid_domain_1');
+    req.headers.set('x-shopify-shop-domain', 'someone-elses-store.myshopify.com');
+    const res = await handleShopifyWebhook(req, { ...deps(), storeDomain: 'biokea.myshopify.com' });
+    expect(res.status).toBe(401);
+    expect(db.payments[0].status).toBe('open');
+  });
+
+  it('proceeds when x-shopify-shop-domain matches the configured store domain', async () => {
+    const req = await send('orders/paid', orderPaid, 'whid_domain_2');
+    req.headers.set('x-shopify-shop-domain', 'biokea.myshopify.com');
+    const res = await handleShopifyWebhook(req, { ...deps(), storeDomain: 'biokea.myshopify.com' });
+    expect(res.status).toBe(200);
+    expect(db.payments[0].status).toBe('paid');
+  });
+
+  it('ignores the shop-domain header when deps has no storeDomain configured', async () => {
+    const req = await send('orders/paid', orderPaid, 'whid_domain_3');
+    req.headers.set('x-shopify-shop-domain', 'someone-elses-store.myshopify.com');
+    const res = await handleShopifyWebhook(req, deps());
+    expect(res.status).toBe(200);
+    expect(db.payments[0].status).toBe('paid');
+  });
+
   it('400s when the webhook id header is missing', async () => {
     const body = JSON.stringify(orderPaid);
     const sig = await shopifyHmacBase64(body, SECRET);

@@ -24,6 +24,7 @@ describe('renderWidgetHtml', () => {
       'data-open-form',
       'data-quote-form',
       'data-quote-status',
+      'data-deposit-note',
       'data-deposit-panel',
     ])
       expect(html).toContain(hook);

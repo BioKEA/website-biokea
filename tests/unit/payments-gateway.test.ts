@@ -126,7 +126,7 @@ describe('shopifyGateway.createInvoice', () => {
     ]);
     expect(s.calls[0].url).toBe('https://biokea.myshopify.com/admin/api/2026-01/graphql.json');
     expect(s.calls[0].headers['X-Shopify-Access-Token']).toBe('shpat_test');
-    expect(s.calls[1].variables).toEqual({ query: 'tag:payment:p1' });
+    expect(s.calls[1].variables).toEqual({ query: 'tag:"payment:p1"' });
     const input = s.calls[2].variables.input;
     expect(input.email).toBe('a@b.edu');
     expect(input.taxExempt).toBe(true);
@@ -168,6 +168,14 @@ describe('shopifyGateway.createInvoice', () => {
       dueAt: '2026-10-01T00:00:00Z',
       amountDueCents: 480000,
     });
+  });
+
+  it('omits paymentTerms for a self-serve buyer with no PO number, even when a template is found', async () => {
+    const s = fakeShopify(okAnswers);
+    await shopifyGateway(cfg, s.fetch).createInvoice({ ...spec2, poNumber: null });
+    expect(s.calls[2].variables.input.paymentTerms).toBeUndefined();
+    // the terms lookup itself still runs — only the assignment is gated
+    expect(s.calls.map((c) => c.op)).toContain('paymentTermsTemplates');
   });
 
   it('turns the credit into a fixed-amount appliedDiscount', async () => {

@@ -72,7 +72,7 @@ export async function shopifyGraphql<T>(
 }
 
 const Q_TEMPLATES = `query paymentTermsTemplates { paymentTermsTemplates { id name paymentTermsType dueInDays } }`;
-const Q_FIND = `query findDraft($query: String!) { draftOrders(first: 1, query: $query) { nodes { id name status } } }`;
+const Q_FIND = `query findDraft($query: String!) { draftOrders(first: 10, query: $query) { nodes { id name status } } }`;
 const M_CREATE = `mutation draftOrderCreate($input: DraftOrderInput!) { draftOrderCreate(input: $input) { draftOrder { id name } userErrors { field message } } }`;
 const M_SEND = `mutation draftOrderInvoiceSend($id: ID!) { draftOrderInvoiceSend(id: $id) { draftOrder { id name invoiceUrl totalPriceSet { shopMoney { amount } } paymentTerms { paymentSchedules(first: 1) { nodes { dueAt } } } } userErrors { field message } } }`;
 
@@ -117,7 +117,7 @@ export function shopifyGateway(
       const terms = await termsTemplateId();
       const found = await shopifyGraphql<{
         draftOrders: { nodes: { id: string; name: string; status: string }[] };
-      }>(cfg, Q_FIND, { query: `tag:payment:${spec.paymentId}` }, fetchImpl);
+      }>(cfg, Q_FIND, { query: `tag:"payment:${spec.paymentId}"` }, fetchImpl);
       let draft = found.draftOrders.nodes.find((n) => n.status === 'OPEN') ?? null;
       if (!draft) {
         const attrs = [
@@ -145,10 +145,13 @@ export function shopifyGateway(
           input.appliedDiscount = {
             title: spec.credit.title,
             description: spec.credit.title,
-            value: spec.credit.amountCents / 100,
+            value: Number(dollars(spec.credit.amountCents)),
             valueType: 'FIXED_AMOUNT',
           };
-        if (terms) input.paymentTerms = { paymentTermsTemplateId: terms };
+        // Net terms only when the buyer supplied a PO number (spec §2);
+        // self-serve drafts are due on receipt so the invoice URL forces
+        // payment.
+        if (terms && spec.poNumber) input.paymentTerms = { paymentTermsTemplateId: terms };
         const c = await shopifyGraphql<{
           draftOrderCreate: {
             draftOrder: { id: string; name: string } | null;
