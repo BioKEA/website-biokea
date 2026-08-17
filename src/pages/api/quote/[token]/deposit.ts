@@ -9,7 +9,7 @@ import type { APIContext } from 'astro';
 import { env } from 'cloudflare:workers';
 import { z } from 'zod';
 import { type PaymentsDb, SupabaseDb } from '@/lib/payments/db';
-import { type PaymentsGateway, makeStripe, stripeGateway } from '@/lib/payments/gateway';
+import { type PaymentsGateway, shopifyGateway } from '@/lib/payments/gateway';
 import {
   DEPOSIT_FRACTION,
   INVOICE_DAYS_UNTIL_DUE,
@@ -106,8 +106,6 @@ export async function handleDeposit(
 
   const poNumber = form.po_number && form.po_number.length > 0 ? form.po_number : null;
   const pct = `${Math.round(DEPOSIT_FRACTION * 100)}%`;
-  const customFields = [{ name: 'Quote', value: quote.quote_number }];
-  if (poNumber) customFields.push({ name: 'PO number', value: poNumber });
 
   let created;
   try {
@@ -122,16 +120,17 @@ export async function handleDeposit(
       kind: 'deposit',
       quoteId: quote.id,
       quoteNumber: quote.quote_number,
+      // keyed on the payment row id — unique per attempt, so a voided/failed
+      // attempt never replays a stale draft order (spec §6 'new idempotency
+      // key suffix').
+      paymentId: inserted.id,
+      poNumber,
       lines,
       footer:
         `${pct} deposit toward BioKEA quote ${quote.quote_number} (valid to ${quote.expires_at.slice(0, 10)}).` +
-        ` The balance is invoiced on actual sample counts when results are delivered.`,
-      customFields,
+        ` The balance is invoiced on actual sample counts when results are delivered.` +
+        ` Pay here or from the emailed invoice; questions: contact@biokea.ai.`,
       daysUntilDue: INVOICE_DAYS_UNTIL_DUE,
-      // keyed on the payment row id — unique per attempt, so a voided/failed
-      // attempt never replays a stale Stripe request (spec §6 'new
-      // idempotency key suffix').
-      idempotencyKey: `deposit:${inserted.id}`,
     });
   } catch {
     await deps.db.deletePayment(inserted.id);
@@ -163,9 +162,8 @@ export async function POST({ request, params }: APIContext): Promise<Response> {
   const e = env as {
     SUPABASE_URL?: string;
     SUPABASE_SERVICE_ROLE_KEY?: string;
-    STRIPE_SECRET_KEY?: string;
   };
-  if (!e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY || !e?.STRIPE_SECRET_KEY) {
+  if (!e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY) {
     return new Response('Payments are not configured.', { status: 500 });
   }
   const token = params.token ?? '';
@@ -174,6 +172,6 @@ export async function POST({ request, params }: APIContext): Promise<Response> {
   }
   return handleDeposit(request, token, {
     db: new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY),
-    gateway: stripeGateway(makeStripe(e.STRIPE_SECRET_KEY)),
+    gateway: shopifyGateway(),
   });
 }

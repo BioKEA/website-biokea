@@ -54,7 +54,8 @@ beforeEach(async () => {
     kind: 'deposit',
     amount_cents: DEPOSIT,
     status: 'paid',
-    external_id: 'in_1',
+    external_id: 'gid://shopify/DraftOrder/1',
+    order_ref: '#1001',
     paid_at: '2026-09-02T10:00:00Z',
   });
 });
@@ -123,29 +124,25 @@ describe('handleBalance', () => {
     const spec = gateway.created[0];
     expect(spec.kind).toBe('balance');
     expect(spec.customer.id).toBe('cus_1');
-    expect(spec.idempotencyKey).toBe('balance:p2');
-    expect(spec.customFields).toEqual([
-      { name: 'Quote', value: N },
-      { name: 'PO number', value: 'PO-77' },
-    ]);
+    expect(spec.paymentId).toBe('p2');
+    expect(spec.poNumber).toBe('PO-77');
     expect(spec.footer).toBe(`Balance for BioKEA quote ${N}, computed on actual sample counts.`);
     const actual = buildQuote([
       { serviceSlug: 'barcoding', count: 743 },
       { serviceSlug: 'metabarcoding', count: 58, markers: 2 },
     ]);
-    expect(spec.lines.at(-1)).toEqual({
-      description: 'Less deposit received (invoice in_1, paid 2026-09-02)',
-      amountCents: -DEPOSIT,
+    expect(spec.credit).toEqual({
+      title: 'Deposit received (order #1001, paid 2026-09-02)',
+      amountCents: DEPOSIT,
     });
-    expect(spec.lines.reduce((s, l) => s + l.amountCents, 0)).toBe(
-      actual.total.academic * 100 - DEPOSIT,
-    );
+    expect(spec.lines.every((l) => l.amountCents >= 0)).toBe(true);
+    expect(spec.lines.reduce((s, l) => s + l.amountCents, 0)).toBe(actual.total.academic * 100);
 
     const balance = db.payments.find((p) => p.kind === 'balance')!;
     expect(balance).toMatchObject({
       status: 'open',
       amount_cents: actual.total.academic * 100 - DEPOSIT,
-      external_id: 'in_test_1',
+      external_id: 'gid://shopify/DraftOrder/test-1',
       created_by: 'michelle@biokea.ai',
     });
     expect(balance.actual_lines).toEqual([
@@ -210,7 +207,7 @@ describe('handleBalance', () => {
     await db.updatePayment(first.id, { status: 'void' });
     await db.updateQuote('q1', { status: 'deposit_paid' });
     await handleBalance(post({ 'counts[barcoding]': '750', confirm: 'true' }), N, deps());
-    expect(gateway.created[1].idempotencyKey).toBe('balance:p3');
+    expect(gateway.created[1].paymentId).toBe('p3');
     expect(db.payments.filter((p) => p.kind === 'balance')).toHaveLength(2);
   });
 
@@ -244,6 +241,6 @@ describe('handleBalance', () => {
     });
     expect(res.headers.get('location')).toBe(`/admin/quotes/${N}?balance=invoiced`);
     expect(db.quotes[0].status).toBe('paid');
-    expect(db.quotes[0].external_customer_id).toBe('cus_1');
+    expect(db.quotes[0].external_customer_id).toBeNull();
   });
 });

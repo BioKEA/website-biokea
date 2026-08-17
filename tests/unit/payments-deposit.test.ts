@@ -82,7 +82,7 @@ describe('handleDeposit', () => {
       { db, gateway, now: NOW },
     );
     expect(res.status).toBe(303);
-    expect(res.headers.get('location')).toBe('https://invoice.stripe.test/in_test_1');
+    expect(res.headers.get('location')).toBe('https://store.biokea.test/invoices/test-1');
 
     const spec = gateway.created[0];
     expect(spec.kind).toBe('deposit');
@@ -95,13 +95,10 @@ describe('handleDeposit', () => {
     });
     expect(spec.quoteNumber).toBe('BK-2026-0142');
     expect(spec.daysUntilDue).toBe(30);
-    expect(spec.idempotencyKey).toBe('deposit:p1');
-    expect(spec.customFields).toEqual([
-      { name: 'Quote', value: 'BK-2026-0142' },
-      { name: 'PO number', value: 'PO-77' },
-    ]);
+    expect(spec.paymentId).toBe('p1');
+    expect(spec.poNumber).toBe('PO-77');
     expect(spec.footer).toBe(
-      '50% deposit toward BioKEA quote BK-2026-0142 (valid to 2026-09-19). The balance is invoiced on actual sample counts when results are delivered.',
+      '50% deposit toward BioKEA quote BK-2026-0142 (valid to 2026-09-19). The balance is invoiced on actual sample counts when results are delivered. Pay here or from the emailed invoice; questions: contact@biokea.ai.',
     );
     const expected =
       Math.round(q.lines[0].commercial.total * 100 * 0.5) +
@@ -114,15 +111,15 @@ describe('handleDeposit', () => {
       kind: 'deposit',
       status: 'open',
       amount_cents: expected,
-      external_id: 'in_test_1',
-      hosted_url: 'https://invoice.stripe.test/in_test_1',
+      external_id: 'gid://shopify/DraftOrder/test-1',
+      hosted_url: 'https://store.biokea.test/invoices/test-1',
       due_at: '2026-10-01T00:00:00.000Z',
     });
     expect(db.quotes[0]).toMatchObject({
       status: 'deposit_invoiced',
       audience: 'commercial',
       po_number: 'PO-77',
-      external_customer_id: 'cus_test_1',
+      external_customer_id: null,
       academic_attested_at: null,
     });
   });
@@ -135,7 +132,7 @@ describe('handleDeposit', () => {
     });
     expect(db.quotes[0].audience).toBe('academic');
     expect(db.quotes[0].academic_attested_at).toBe('2026-09-01T00:00:00.000Z');
-    expect(gateway.created[0].customFields).toEqual([{ name: 'Quote', value: 'BK-2026-0142' }]);
+    expect(gateway.created[0].poNumber).toBeNull();
   });
 
   it('refuses academic without the attestation, and unknown audiences', async () => {
@@ -177,7 +174,7 @@ describe('handleDeposit', () => {
       gateway,
       now: NOW,
     });
-    expect(res.headers.get('location')).toBe('https://invoice.stripe.test/in_test_1');
+    expect(res.headers.get('location')).toBe('https://store.biokea.test/invoices/test-1');
     expect(gateway.created).toHaveLength(1);
     expect(db.payments).toHaveLength(1);
     expect(db.quotes[0].audience).toBe('commercial'); // first choice sticks
@@ -191,7 +188,7 @@ describe('handleDeposit', () => {
       gateway,
       now: NOW,
     });
-    expect(res.headers.get('location')).toBe('https://invoice.stripe.test/in_test_1');
+    expect(res.headers.get('location')).toBe('https://store.biokea.test/invoices/test-1');
   });
 
   it('rolls back the row and redirects with ?pay=failed when Stripe throws', async () => {
@@ -210,7 +207,7 @@ describe('handleDeposit', () => {
       gateway,
       now: NOW,
     });
-    expect(again.headers.get('location')).toBe('https://invoice.stripe.test/in_test_1');
+    expect(again.headers.get('location')).toBe('https://store.biokea.test/invoices/test-1');
   });
 
   it('trims and length-limits the PO number', async () => {
@@ -295,7 +292,7 @@ describe('handleDeposit', () => {
     expect(res.status).toBe(303);
     expect(db.quotes[0].status).toBe('deposit_paid');
     expect(db.quotes[0].audience).toBe('commercial');
-    expect(db.quotes[0].external_customer_id).toBe('cus_test_1');
+    expect(db.quotes[0].external_customer_id).toBeNull();
   });
 
   it('logs and redirects with ?pay=failed when the deposit sanity check fails, without calling Stripe', async () => {

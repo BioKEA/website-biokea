@@ -8,7 +8,7 @@
 import type { APIContext } from 'astro';
 import { env } from 'cloudflare:workers';
 import { type PaymentsDb, SupabaseDb } from '@/lib/payments/db';
-import { type PaymentsGateway, makeStripe, stripeGateway } from '@/lib/payments/gateway';
+import { type PaymentsGateway, shopifyGateway } from '@/lib/payments/gateway';
 import { INVOICE_DAYS_UNTIL_DUE, computeBalance } from '@/lib/payments/terms';
 import { parseBalanceForm } from '@/lib/payments/balance-form';
 
@@ -61,7 +61,9 @@ export async function handleBalance(
   try {
     computed = computeBalance(form.inputs, quote.audience, {
       amountCents: deposit.amount_cents,
-      invoiceLabel: deposit.external_id ?? 'deposit',
+      invoiceLabel: deposit.order_ref
+        ? `order ${deposit.order_ref}`
+        : (deposit.external_id ?? 'deposit'),
       paidAt: deposit.paid_at ?? deposit.created_at,
     });
   } catch {
@@ -90,9 +92,6 @@ export async function handleBalance(
   });
   if (inserted === 'conflict') return seeOther(`${admin}?error=state`);
 
-  const customFields = [{ name: 'Quote', value: quote.quote_number }];
-  if (quote.po_number) customFields.push({ name: 'PO number', value: quote.po_number });
-
   let created;
   try {
     created = await deps.gateway.createInvoice({
@@ -106,14 +105,15 @@ export async function handleBalance(
       kind: 'balance',
       quoteId: quote.id,
       quoteNumber: quote.quote_number,
-      lines: computed.lines,
-      footer: `Balance for BioKEA quote ${quote.quote_number}, computed on actual sample counts.`,
-      customFields,
-      daysUntilDue: INVOICE_DAYS_UNTIL_DUE,
       // keyed on the payment row id — unique per attempt, so a voided/failed
-      // attempt never replays a stale Stripe request (spec §6 'new
-      // idempotency key suffix').
-      idempotencyKey: `balance:${inserted.id}`,
+      // attempt never replays a stale draft order (spec §6 'new idempotency
+      // key suffix').
+      paymentId: inserted.id,
+      poNumber: quote.po_number,
+      lines: computed.lines,
+      credit: computed.credit,
+      footer: `Balance for BioKEA quote ${quote.quote_number}, computed on actual sample counts.`,
+      daysUntilDue: INVOICE_DAYS_UNTIL_DUE,
     });
   } catch {
     await deps.db.deletePayment(inserted.id);
@@ -140,9 +140,8 @@ export async function POST({ request, params, locals }: APIContext): Promise<Res
   const e = env as {
     SUPABASE_URL?: string;
     SUPABASE_SERVICE_ROLE_KEY?: string;
-    STRIPE_SECRET_KEY?: string;
   };
-  if (!e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY || !e?.STRIPE_SECRET_KEY) {
+  if (!e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY) {
     return new Response('Payments are not configured.', { status: 500 });
   }
   if (!locals.adminEmail) return new Response('Forbidden', { status: 403 }); // middleware sets it; belt and braces
@@ -150,7 +149,7 @@ export async function POST({ request, params, locals }: APIContext): Promise<Res
   if (!/^BK-\d{4}-\d{4,}$/.test(number)) return new Response('Quote not found', { status: 404 });
   return handleBalance(request, number, {
     db: new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY),
-    gateway: stripeGateway(makeStripe(e.STRIPE_SECRET_KEY)),
+    gateway: shopifyGateway(),
     actorEmail: locals.adminEmail,
   });
 }
