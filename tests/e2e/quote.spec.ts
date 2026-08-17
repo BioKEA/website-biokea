@@ -101,3 +101,9 @@ test('an unknown quote token returns 404', async ({ page }) => {
   const res = await page.goto('/quote/00000000-0000-0000-0000-000000000000');
   expect(res?.status()).toBe(404);
 });
+
+test('the deposit panel is hidden until a quote is created', async ({ page }) => {
+  await page.goto('/quote');
+  await expect(page.locator('[data-total-academic]')).not.toBeEmpty();
+  await expect(page.locator('[data-deposit-panel]')).toBeHidden();
+});

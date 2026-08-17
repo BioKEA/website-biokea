@@ -1,0 +1,458 @@
+/* src/widget/quote.css
+ *
+ * Styles for the embeddable quote widget. Everything is scoped under
+ * .bk-quote because this ships to a Shopify theme as well as to biokea.ai,
+ * where there is no Tailwind and no preflight — hence the small local
+ * reset. Colours come from the site tokens when they exist (biokea.ai) and
+ * fall back to the same literal values everywhere else. Keep the fallbacks
+ * in sync with src/styles/tokens.css.
+ */
+
+.bk-quote {
+  --bk-ink: var(--color-ink, #0b1f1a);
+  --bk-cream: var(--color-cream, #f3efe6);
+  --bk-cream-warm: var(--color-cream-warm, #f6f2e9);
+  --bk-teal: var(--color-teal, #0f766e);
+  --bk-ochre: var(--color-ochre, #92400e);
+  --bk-pink: var(--color-pink, #be185d);
+  --bk-slate: var(--color-slate, #475569);
+  --bk-slate-soft: var(--color-slate-soft, #64748b);
+  --bk-hairline: rgba(15, 23, 42, 0.1);
+  --bk-line: rgba(15, 23, 42, 0.15);
+  --bk-sans: var(--font-sans, 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif);
+  --bk-mono: var(--font-mono, 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace);
+
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+  font-family: var(--bk-sans);
+  color: var(--bk-ink);
+  line-height: 1.5;
+  text-align: left;
+}
+
+/* Local reset — the store has no Tailwind preflight. Wrapped in :where()
+ * so it carries zero specificity and never out-ranks the .bk-* rules
+ * below (a plain `.bk-quote button` selector would, and did, win). */
+:where(.bk-quote) *,
+:where(.bk-quote) *::before,
+:where(.bk-quote) *::after {
+  box-sizing: border-box;
+}
+
+:where(.bk-quote) :where(p, h3, ul, li) {
+  margin: 0;
+}
+
+:where(.bk-quote) :where(ul) {
+  padding: 0;
+  list-style: none;
+}
+
+:where(.bk-quote) :where(input, textarea, button) {
+  font: inherit;
+  color: inherit;
+}
+
+/* ── layout ─────────────────────────────────────────────────────────── */
+
+.bk-grid {
+  display: grid;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .bk-grid {
+    grid-template-columns: 1fr minmax(0, 26rem);
+  }
+}
+
+.bk-services {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── service cards ──────────────────────────────────────────────────── */
+
+.bk-card {
+  background: var(--bk-cream-warm);
+  border: 1px solid var(--bk-hairline);
+  border-radius: 6px;
+  padding: 1.5rem;
+}
+
+.bk-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.bk-toggle input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--bk-teal);
+  margin: 0;
+}
+
+.bk-toggle-title {
+  font-weight: 600;
+  color: var(--bk-ink);
+}
+
+.bk-tagline {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--bk-slate);
+  line-height: 1.65;
+}
+
+.bk-body {
+  margin-top: 1.25rem;
+}
+
+.bk-field + .bk-field,
+.bk-field + .bk-included {
+  margin-top: 1rem;
+}
+
+.bk-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-family: var(--bk-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bk-slate-soft);
+}
+
+.bk-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.bk-input {
+  width: 8rem;
+  border: 1px solid var(--bk-line);
+  border-radius: 3px;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--bk-ink);
+}
+
+.bk-input--sm {
+  width: 6rem;
+}
+
+.bk-input--block {
+  width: 100%;
+}
+
+.bk-range {
+  flex: 1;
+  accent-color: var(--bk-teal);
+  min-width: 0;
+}
+
+.bk-included {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--bk-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.bk-included li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  font-size: 13px;
+  color: var(--bk-slate);
+  line-height: 1.65;
+}
+
+.bk-tick {
+  margin-top: 0.25rem;
+  flex-shrink: 0;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 9999px;
+  background: var(--bk-teal);
+  color: #fff;
+  font-size: 9px;
+  line-height: 0.875rem;
+  text-align: center;
+}
+
+/* ── summary aside ──────────────────────────────────────────────────── */
+
+.bk-summary {
+  background: var(--bk-cream-warm);
+  border: 1px solid var(--bk-hairline);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .bk-summary {
+    position: sticky;
+    top: 1.5rem;
+  }
+}
+
+.bk-summary-head {
+  background: var(--bk-ink);
+  color: var(--bk-cream);
+  padding: 1.25rem 1.5rem;
+}
+
+.bk-eyebrow {
+  font-family: var(--bk-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bk-ochre);
+}
+
+.bk-eyebrow--ink {
+  color: var(--bk-slate-soft);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+
+.bk-totals {
+  margin-top: 0.75rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.bk-total {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.bk-total-label {
+  margin-top: 0.25rem;
+  font-family: var(--bk-mono);
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.bk-summary-body {
+  padding: 1.5rem;
+}
+
+.bk-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--bk-slate);
+}
+
+.bk-line {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  padding-bottom: 0.5rem;
+}
+
+.bk-line-empty {
+  font-style: italic;
+  color: #94a3b8;
+}
+
+.bk-line-title {
+  color: var(--bk-ink);
+}
+
+.bk-line-meta {
+  margin-top: 0.125rem;
+  font-size: 0.75rem;
+  color: var(--bk-slate-soft);
+}
+
+.bk-line-prices {
+  margin-top: 0.375rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  font-family: var(--bk-mono);
+  font-size: 12px;
+}
+
+.bk-line-right {
+  text-align: right;
+}
+
+.bk-line-price {
+  color: var(--bk-ink);
+}
+
+.bk-line-tier {
+  font-size: 10px;
+  color: var(--bk-slate-soft);
+}
+
+/* ── callouts ───────────────────────────────────────────────────────── */
+
+.bk-callout,
+.bk-notice {
+  margin-top: 1rem;
+  font-size: 13px;
+  line-height: 1.65;
+  padding: 0.5rem 0.75rem;
+  border-radius: 3px;
+}
+
+.bk-callout {
+  color: var(--bk-slate);
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--bk-hairline);
+}
+
+.bk-callout--ochre {
+  color: var(--bk-ink);
+  background: rgba(146, 64, 14, 0.1);
+  border: 0;
+  border-left: 2px solid var(--bk-ochre);
+  border-radius: 0 3px 3px 0;
+}
+
+.bk-notice {
+  color: var(--bk-ink);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--bk-line);
+}
+
+.bk-quote [hidden] {
+  display: none !important;
+}
+
+.bk-fine {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--bk-slate-soft);
+  line-height: 1.65;
+}
+
+.bk-fine--spaced {
+  margin-top: 1rem;
+}
+
+.bk-muted {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--bk-slate);
+  line-height: 1.65;
+}
+
+/* ── buttons ────────────────────────────────────────────────────────── */
+
+.bk-btn {
+  border: 0;
+  border-radius: 3px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bk-btn--block {
+  display: block;
+  width: 100%;
+}
+
+.bk-btn--primary {
+  background: var(--bk-ink);
+  color: var(--bk-cream);
+}
+
+.bk-btn--teal {
+  background: var(--bk-teal);
+  color: #fff;
+}
+
+.bk-summary-body > .bk-btn {
+  margin-top: 1.25rem;
+}
+
+/* ── capture form ───────────────────────────────────────────────────── */
+
+.bk-form {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.bk-field-label {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.bk-legend {
+  font-family: var(--bk-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bk-teal);
+}
+
+.bk-hp {
+  display: none;
+}
+
+.bk-status {
+  font-size: 0.875rem;
+  color: var(--bk-slate);
+}
+
+.bk-link {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* ── deposit panel ──────────────────────────────────────────────────── */
+
+.bk-deposit {
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  background: var(--bk-cream);
+  border: 1px solid var(--bk-hairline);
+  border-radius: 6px;
+}
+
+.bk-deposit-title {
+  margin-top: 0.25rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--bk-ink);
+}
+
+.bk-deposit-form {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.bk-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.bk-choice input {
+  margin-top: 0.25rem;
+  accent-color: var(--bk-teal);
+}
+
+.bk-attest {
+  padding-left: 1.5rem;
+  font-size: 0.75rem;
+  color: var(--bk-slate);
+}
