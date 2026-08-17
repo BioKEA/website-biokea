@@ -48,7 +48,7 @@ export interface PaymentsDb {
   getQuoteById(id: string): Promise<QuoteRecord | null>;
   listRecentQuotes(limit: number): Promise<QuoteRecord[]>;
   listPayments(quoteId: string): Promise<PaymentRecord[]>;
-  findPaymentByInvoiceId(stripeInvoiceId: string): Promise<PaymentRecord | null>;
+  findPaymentByInvoiceId(externalId: string): Promise<PaymentRecord | null>;
   insertPayment(row: NewPayment): Promise<PaymentRecord | 'conflict'>;
   updatePayment(id: string, patch: PaymentPatch): Promise<void>;
   deletePayment(id: string): Promise<void>;

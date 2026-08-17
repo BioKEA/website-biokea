@@ -28,7 +28,6 @@
     "@tailwindcss/vite": "^4.2.0",
     "astro": "^6.0.0",
     "jose": "^6.2.9",
-    "stripe": "^19.3.0",
     "tailwindcss": "^4.2.0",
     "zod": "^4.0.0"
   },

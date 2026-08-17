@@ -137,6 +137,8 @@ export async function POST({ request, params, locals }: APIContext): Promise<Res
   const e = env as {
     SUPABASE_URL?: string;
     SUPABASE_SERVICE_ROLE_KEY?: string;
+    SHOPIFY_STORE_DOMAIN?: string;
+    SHOPIFY_ADMIN_TOKEN?: string;
   };
   if (!e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY) {
     return new Response('Payments are not configured.', { status: 500 });
@@ -146,7 +148,13 @@ export async function POST({ request, params, locals }: APIContext): Promise<Res
   if (!/^BK-\d{4}-\d{4,}$/.test(number)) return new Response('Quote not found', { status: 404 });
   return handleBalance(request, number, {
     db: new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY),
-    gateway: shopifyGateway(),
+    // Task 5 wires the full config (apiVersion, paymentTermsTemplate); this
+    // is a minimal placeholder so the route compiles against the real
+    // shopifyGateway(cfg, fetchImpl?) signature.
+    gateway: shopifyGateway({
+      storeDomain: e.SHOPIFY_STORE_DOMAIN ?? '',
+      adminToken: e.SHOPIFY_ADMIN_TOKEN ?? '',
+    }),
     actorEmail: locals.adminEmail,
   });
 }
