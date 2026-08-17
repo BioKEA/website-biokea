@@ -11,7 +11,7 @@ CONTACT_TO_EMAIL = "contact@biokea.ai"
 # Shared Supabase project (xkmfsxcaapyuxachtcsy) for game leaderboards
 # and the /api/subscribe endpoint. The publishable anon key is *meant*
 # to be public — it's already baked into every game's JS bundle and
-# the /mission/games/ Game Leaderboard panel — so it lives in plain
+# the games.biokea.ai leaderboard (BioKEA/games-site) — so it lives in plain
 # vars, not secrets. RLS on each table enforces what anonymous can do
 # (insert into scores + subscribers, no select on subscribers).
 SUPABASE_URL = "https://xkmfsxcaapyuxachtcsy.supabase.co"

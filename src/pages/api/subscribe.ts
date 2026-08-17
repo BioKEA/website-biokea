@@ -1,7 +1,7 @@
 // src/pages/api/subscribe.ts
 //
-// Opt-in endpoint for the "Lab updates" form on /mission/games/,
-// /subscribe, and the in-game injected pill.
+// Opt-in endpoint for the "Lab updates" form on /subscribe (linked from
+// games.biokea.ai), and the in-game injected pill.
 // Writes to public.subscribers in the shared Supabase project (RLS
 // allows anonymous inserts) and queues a welcome email via Resend.
 // Mirrors the validation+honeypot+optional-Turnstile pattern of
@@ -32,8 +32,8 @@ const SubscribeSchema = z.object({
 });
 
 interface Env {
-  // Reuse the same publishable Supabase URL+anon key the games and the
-  // /mission/games/ leaderboard panel already use. Anon insert is
+  // Reuse the same publishable Supabase URL+anon key the games and
+  // the games.biokea.ai leaderboard panel already uses. Anon insert is
   // allowed by the subscribers_public_insert RLS policy.
   SUPABASE_URL: string;
   SUPABASE_PUBLISHABLE_KEY: string;
@@ -120,7 +120,7 @@ async function sendWelcomeEmail(env: Env, email: string): Promise<WelcomeResult>
     `Thanks for subscribing.`,
     ``,
     `What you'll get from us, and only this:`,
-    `  · new game drops on biokea.ai/mission/games/`,
+    `  · new game drops on games.biokea.ai`,
     `  · papers, datasets, and lab milestones we want to share`,
     ``,
     `That's it. No spam, no shared lists, no third-party tracking.`,
@@ -134,7 +134,7 @@ async function sendWelcomeEmail(env: Env, email: string): Promise<WelcomeResult>
 <p>Thanks for subscribing.</p>
 <p>What you'll get from us, and only this:</p>
 <ul>
-  <li>new game drops on <a href="https://biokea.ai/mission/games/">biokea.ai/mission/games/</a></li>
+  <li>new game drops on <a href="https://games.biokea.ai/">games.biokea.ai</a></li>
   <li>papers, datasets, and lab milestones we want to share</li>
 </ul>
 <p>That's it. No spam, no shared lists, no third-party tracking.</p>

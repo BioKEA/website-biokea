@@ -13,7 +13,7 @@ hunt, it's fine to explain how it worked.
 ## Repo basics
 
 - Astro v6 + Cloudflare Workers (deployed via `wrangler deploy`)
-- Built-in games at `/mission/games/<slug>/` are cloned + built from
-  `BioKEA/game-<slug>` repos by `scripts/build-games.mjs`
+- The six games live at games.biokea.ai, built and deployed by
+  `BioKEA/games-site` from the `BioKEA/game-<slug>` repos
 - Supabase backs leaderboards, subscribers, and sequencing quotes
 - Resend handles transactional email

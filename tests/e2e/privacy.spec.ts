@@ -15,3 +15,11 @@ test('privacy policy no longer links to the deleted hunt page', async ({ page })
   // Scoped to the policy body: the nav's hunt link is removed separately.
   await expect(page.locator('main a[href="/mission/games/golden-sample-26"]')).toHaveCount(0);
 });
+
+test('privacy policy points at games.biokea.ai, not the retired /mission/games path', async ({
+  page,
+}) => {
+  await page.goto('/privacy');
+  await expect(page.locator('main a[href="/mission/games/"]')).toHaveCount(0);
+  await expect(page.locator('main a[href="https://games.biokea.ai/"]').first()).toBeVisible();
+});
