@@ -12,7 +12,10 @@
 // below mirror Astro's `createOriginCheckMiddleware` exactly, plus
 // ALLOWED_ORIGINS.
 
-export const ALLOWED_ORIGINS: readonly string[] = ['https://games.biokea.ai'];
+export const ALLOWED_ORIGINS: readonly string[] = [
+  'https://games.biokea.ai',
+  'https://store.biokea.ai',
+];
 
 const FORM_CONTENT_TYPES = [
   'application/x-www-form-urlencoded',

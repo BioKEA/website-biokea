@@ -38,6 +38,13 @@ describe('rejectCrossSiteForm', () => {
     ).toBeNull();
   });
 
+  it('allows form posts from store.biokea.ai (the store widget)', () => {
+    expect(ALLOWED_ORIGINS).toContain('https://store.biokea.ai');
+    expect(
+      rejectCrossSiteForm(req({ origin: 'https://store.biokea.ai', contentType: FORM }), url),
+    ).toBeNull();
+  });
+
   it('rejects form posts from any other origin with a 403', () => {
     const res = rejectCrossSiteForm(
       req({ origin: 'https://evil.example', contentType: FORM }),

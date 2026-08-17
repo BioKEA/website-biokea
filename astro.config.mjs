@@ -26,6 +26,14 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+    server: {
+      // Vite's dev server answers every OPTIONS request itself (default
+      // `cors: true`) before it ever reaches an Astro route, which would
+      // swallow /api/quote's own preflight handler (src/lib/cors.ts) in
+      // `astro dev`. Production (the built Worker) has no such middleware,
+      // so disabling it here just makes dev match prod.
+      cors: false,
+    },
   },
   prefetch: {
     prefetchAll: false,

@@ -62,3 +62,42 @@ test('/api/subscribe accepts form posts from games.biokea.ai but not from other 
   expect((await post('http://localhost:4321')).status()).not.toBe(403);
   expect((await post('https://evil.example')).status()).toBe(403);
 });
+
+// The store widget (store.biokea.ai) calls /api/quote cross-origin with a
+// JSON body, which browsers preflight. src/lib/cors.ts answers the
+// preflight and echoes the allow-origin header only for allow-listed
+// origins; POST responses carry the same header so the browser doesn't
+// block reading the body.
+test('OPTIONS /api/quote answers the CORS preflight for the store origin only', async ({
+  request,
+}) => {
+  const allowed = await request.fetch('/api/quote', {
+    method: 'OPTIONS',
+    headers: { origin: 'https://store.biokea.ai' },
+  });
+  expect(allowed.status()).toBe(204);
+  expect(allowed.headers()['access-control-allow-origin']).toBe('https://store.biokea.ai');
+
+  const denied = await request.fetch('/api/quote', {
+    method: 'OPTIONS',
+    headers: { origin: 'https://evil.example' },
+  });
+  expect(denied.status()).toBe(204);
+  expect(denied.headers()['access-control-allow-origin']).toBeUndefined();
+});
+
+// An invalid body 400s once /api/quote is configured; on a dev box without
+// .dev.vars it 500s "not configured" instead (see the /api/subscribe test
+// above for the same distinction). Either way the CORS header must be on
+// the response, since src/pages/api/quote.ts wraps every exit with
+// withCors().
+test('POST /api/quote carries the CORS header from the store origin even on a validation error', async ({
+  request,
+}) => {
+  const response = await request.post('/api/quote', {
+    headers: { origin: 'https://store.biokea.ai', 'content-type': 'application/json' },
+    data: { name: '' },
+  });
+  expect([400, 500]).toContain(response.status());
+  expect(response.headers()['access-control-allow-origin']).toBe('https://store.biokea.ai');
+});
