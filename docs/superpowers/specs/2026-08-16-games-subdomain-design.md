@@ -39,8 +39,9 @@ Three reasons, all wanted:
 - `src/pages/mission/games/leaderboard.astro` — Today / Week / All-time
   tabs; reads Supabase REST directly with the publishable key.
 - `src/components/games/HandlePicker.astro` — writes
-  `biokea:leaderboard:handle` to `localStorage`. The games read the same
-  key, which only works because they share the biokea.ai origin.
+  `biokea:player:handle` (+ `biokea:player:handle-confirmed`) to
+  `localStorage`. The games read the same key at mount, which only works
+  because they share the biokea.ai origin.
 - `src/pages/api/handle-check.ts` — server endpoint using
   `SUPABASE_SERVICE_ROLE_KEY` to give the picker instant "handle not
   allowed" feedback (mirrors the DB trigger).
@@ -135,7 +136,7 @@ script and `games.ts` stays.
 ### 3.7 Handle picker
 
 Works unchanged. The picker, the leaderboard page, and every game bundle
-now share the `games.biokea.ai` origin, so the `biokea:leaderboard:handle`
+now share the `games.biokea.ai` origin, so the `biokea:player:handle`
 `localStorage` key is visible to all of them. Handles set on biokea.ai
 before the move are not carried over; players pick again once.
 
@@ -194,8 +195,9 @@ before the move are not carried over; players pick again once.
 - `tests/e2e/index.spec.ts`: six tiles render; each play link resolves to
   `/<slug>/`; the newsletter button points at
   `https://biokea.ai/subscribe?source=games`.
-- `tests/e2e/handle.spec.ts`: picking a handle persists across a reload
-  and is visible on `/leaderboard`'s "find me" box.
+- `tests/e2e/handle.spec.ts`: with `/api/handle-check` mocked to allow,
+  picking a handle writes `biokea:player:handle` and the "Playing as"
+  state survives a reload.
 - `tests/e2e/leaderboard.spec.ts`: three tabs (Today / Week / All-time),
   no Hunt tab; `#week` deep link selects the Week tab.
 - `tests/e2e/api.spec.ts`: `/api/handle-check` accepts a clean handle and
