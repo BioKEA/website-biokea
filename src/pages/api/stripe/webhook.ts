@@ -5,13 +5,15 @@
 // the same event id short-circuits immediately. If anything after that
 // record throws (e.g. a transient Supabase failure), we un-record the
 // event and return 500 so Stripe's retry is treated as fresh instead of
-// a duplicate — the alternative is losing the work silently. Once a
-// transition is already fully applied (payment already paid — and, for
-// `paid`, the quote already reflects it — or payment already
-// void/uncollectible/settled), a redelivery under a *new* event id is a
-// no-op instead of a duplicate email or an unwanted quote reset.
-// Everything is awaited before returning — `void`'d work gets torn down
-// with the response on Workers.
+// a duplicate — the alternative is losing the work silently. Transitions
+// are keyed on both the payment's and the quote's current state (via a
+// RANK over QuoteStatus) rather than a blanket "already handled" flag,
+// so a partial-failure retry (payment already updated, quote not yet)
+// still finishes the job exactly once, a quote is never regressed once
+// it has legitimately moved on, and a stale void/uncollectible can't
+// reset a quote that's since been re-invoiced. Everything is awaited
+// before returning — `void`'d work gets torn down with the response on
+// Workers.
 import type { APIContext } from 'astro';
 import { env } from 'cloudflare:workers';
 import Stripe from 'stripe';
@@ -24,7 +26,7 @@ import {
   depositPaidCustomerEmail,
   depositPaidLabEmail,
 } from '@/lib/email/quote-payments';
-import type { PaymentKind, PaymentRecord } from '@/lib/payments/types';
+import type { PaymentKind, PaymentRecord, QuoteStatus } from '@/lib/payments/types';
 
 export const prerender = false;
 
@@ -38,6 +40,13 @@ export interface WebhookDeps {
 }
 
 const HANDLED = new Set(['invoice.paid', 'invoice.voided', 'invoice.marked_uncollectible']);
+const RANK: Record<QuoteStatus, number> = {
+  quoted: 0,
+  deposit_invoiced: 1,
+  deposit_paid: 2,
+  balance_invoiced: 3,
+  paid: 4,
+};
 const ok = () =>
   new Response(JSON.stringify({ received: true }), {
     status: 200,
@@ -95,15 +104,25 @@ export async function handleStripeWebhook(request: Request, deps: WebhookDeps): 
     };
 
     if (event.type === 'invoice.paid') {
-      const targetQuoteStatus = payment.kind === 'deposit' ? 'deposit_paid' : 'paid';
-      // Already fully applied (a redelivery under a new event id, or a
-      // retry after we un-recorded the event further along than this) —
-      // nothing left to do, and re-sending would duplicate the email.
-      if (payment.status === 'paid' && quote.status === targetQuoteStatus) return ok();
+      const target: QuoteStatus = payment.kind === 'deposit' ? 'deposit_paid' : 'paid';
+      // Stale redelivery under a new event id — also covers a quote that
+      // has legitimately advanced past the target (e.g. balance already
+      // paid too). No update, no email.
+      if (payment.status === 'paid' && RANK[quote.status] >= RANK[target]) return ok();
 
       const paidAt = now().toISOString();
       await deps.db.updatePayment(payment.id, { status: 'paid', paid_at: paidAt, ...urls });
-      await deps.db.updateQuote(quote.id, { status: targetQuoteStatus });
+      // Never regress the quote: a partial-failure retry lands here with
+      // the payment already paid from the earlier attempt but the quote
+      // not yet stepped, so this still runs; a quote that has moved on in
+      // the meantime is left alone. EmailSender never throws by contract
+      // (src/lib/email/resend.ts logs and swallows), so a partial-failure
+      // retry can only be caused by a DB write failing — meaning once we
+      // reach the emails below they have not been sent yet, and this
+      // ordering makes the retry finish the quote update and send them
+      // exactly once.
+      if (RANK[quote.status] < RANK[target])
+        await deps.db.updateQuote(quote.id, { status: target });
       const paid: PaymentRecord = { ...payment, status: 'paid', paid_at: paidAt, ...urls };
       if (payment.kind === 'deposit') {
         await deps.email(depositPaidCustomerEmail(quote, paid));
@@ -115,26 +134,37 @@ export async function handleStripeWebhook(request: Request, deps: WebhookDeps): 
       return ok();
     }
 
-    // voided / marked_uncollectible: the invoice is dead; step the quote
-    // back so the customer (deposit) or staff (balance) can issue a fresh
-    // one. Already-terminal payment → a stale redelivery, don't reset a
-    // quote that has since moved on (e.g. been re-invoiced).
-    if (
-      payment.status === 'void' ||
-      payment.status === 'uncollectible' ||
-      payment.status === 'settled'
-    ) {
-      return ok();
-    }
+    // voided / marked_uncollectible: the invoice is dead. Stripe can't
+    // void/uncollectible a paid invoice, so a paid/settled payment here is
+    // noise — ignore it. Otherwise mark the payment, then step the quote
+    // back only if it's still waiting on this exact invoice and no other
+    // live (open/paid) row of the same kind exists for the quote — that
+    // covers the normal case and a partial-failure retry, while leaving a
+    // quote alone that has since been re-invoiced.
+    if (payment.status === 'paid' || payment.status === 'settled') return ok();
+
+    const waiting: QuoteStatus =
+      payment.kind === 'deposit' ? 'deposit_invoiced' : 'balance_invoiced';
+    const stepBack: QuoteStatus = payment.kind === 'deposit' ? 'quoted' : 'deposit_paid';
     const status = event.type === 'invoice.voided' ? 'void' : 'uncollectible';
-    await deps.db.updatePayment(payment.id, { status, ...urls });
-    await deps.db.updateQuote(quote.id, {
-      status: payment.kind === 'deposit' ? 'quoted' : 'deposit_paid',
-    });
+    if (payment.status === 'open') {
+      await deps.db.updatePayment(payment.id, { status, ...urls });
+    }
+    const others = (await deps.db.listPayments(quote.id)).filter(
+      (p) =>
+        p.id !== payment.id &&
+        p.kind === payment.kind &&
+        (p.status === 'open' || p.status === 'paid'),
+    );
+    if (quote.status === waiting && others.length === 0) {
+      await deps.db.updateQuote(quote.id, { status: stepBack });
+    }
     return ok();
   } catch (err) {
     console.error('[stripe-webhook] failed processing', event.id, event.type, err);
-    await deps.db.deleteStripeEvent(event.id).catch(() => undefined);
+    await deps.db
+      .deleteStripeEvent(event.id)
+      .catch((e) => console.error('[stripe-webhook] could not un-record event', event.id, e));
     return new Response('Processing failed', { status: 500 });
   }
 }

@@ -1,5 +1,5 @@
 // tests/unit/payments-webhook.test.ts
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import Stripe from 'stripe';
 import { buildQuote } from '@/lib/pricing/quote';
 import { MemoryDb } from '@/lib/payments/db';
@@ -261,5 +261,100 @@ describe('handleStripeWebhook', () => {
     );
     expect(res.status).toBe(200);
     expect(email.sent).toHaveLength(0);
+  });
+
+  it('a stale deposit invoice.paid after the quote advanced does not regress it or resend', async () => {
+    await db.updatePayment('p1', { status: 'paid', paid_at: '2026-09-02T10:00:00Z' });
+    await db.updateQuote('q1', { status: 'balance_invoiced' });
+
+    const res = await handleStripeWebhook(event('evt_11', 'invoice.paid', depositInvoice), deps());
+    expect(res.status).toBe(200);
+    expect(db.quotes[0].status).toBe('balance_invoiced');
+    expect(email.sent).toHaveLength(0);
+  });
+
+  it('a DB failure after the payment void is recovered on redelivery', async () => {
+    class FlakyVoidDb extends MemoryDb {
+      private failedOnce = false;
+      async updateQuote(id: string, patch: QuotePatch) {
+        if (!this.failedOnce) {
+          this.failedOnce = true;
+          throw new Error('supabase down');
+        }
+        return super.updateQuote(id, patch);
+      }
+    }
+    const flaky = new FlakyVoidDb();
+    flaky.quotes.push(quote());
+    await flaky.insertPayment({
+      quote_id: 'q1',
+      kind: 'deposit',
+      amount_cents: 480000,
+      stripe_invoice_id: 'in_1',
+      hosted_invoice_url: 'https://invoice.stripe.com/i/x',
+    });
+    const failDeps = { ...deps(), db: flaky };
+
+    const res1 = await handleStripeWebhook(
+      event('evt_12', 'invoice.voided', depositInvoice),
+      failDeps,
+    );
+    expect(res1.status).toBe(500);
+    expect(flaky.events.size).toBe(0);
+    expect(flaky.payments[0].status).toBe('void');
+    expect(flaky.quotes[0].status).toBe('deposit_invoiced');
+
+    const res2 = await handleStripeWebhook(
+      event('evt_12', 'invoice.voided', depositInvoice),
+      failDeps,
+    );
+    expect(res2.status).toBe(200);
+    expect(flaky.quotes[0].status).toBe('quoted');
+  });
+
+  it('voiding a paid invoice event is ignored', async () => {
+    await db.updatePayment('p1', { status: 'paid', paid_at: '2026-09-02T10:00:00Z' });
+    await db.updateQuote('q1', { status: 'deposit_paid' });
+
+    const res = await handleStripeWebhook(
+      event('evt_13', 'invoice.voided', depositInvoice),
+      deps(),
+    );
+    expect(res.status).toBe(200);
+    expect(db.payments[0].status).toBe('paid');
+    expect(db.quotes[0].status).toBe('deposit_paid');
+  });
+
+  it('an un-record failure is logged', async () => {
+    class DoublyFlakyDb extends MemoryDb {
+      async updateQuote(): Promise<void> {
+        throw new Error('supabase down');
+      }
+      async deleteStripeEvent(): Promise<void> {
+        throw new Error('delete also down');
+      }
+    }
+    const flaky = new DoublyFlakyDb();
+    flaky.quotes.push(quote());
+    await flaky.insertPayment({
+      quote_id: 'q1',
+      kind: 'deposit',
+      amount_cents: 480000,
+      stripe_invoice_id: 'in_1',
+      hosted_invoice_url: 'https://invoice.stripe.com/i/x',
+    });
+    const failDeps = { ...deps(), db: flaky };
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    const res = await handleStripeWebhook(
+      event('evt_14', 'invoice.paid', depositInvoice),
+      failDeps,
+    );
+    expect(res.status).toBe(500);
+    expect(errSpy.mock.calls.some((args) => String(args[0]).includes('could not un-record'))).toBe(
+      true,
+    );
+
+    errSpy.mockRestore();
   });
 });
