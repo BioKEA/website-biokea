@@ -222,7 +222,7 @@ describe('handleBalance', () => {
     expect(db.quotes[0].status).toBe('deposit_paid');
   });
 
-  it('never clobbers a status the webhook already advanced while the Stripe call was in flight', async () => {
+  it('never clobbers a status the webhook already advanced while the gateway call was in flight', async () => {
     class RacingGateway extends MemoryGateway {
       constructor(private readonly db: MemoryDb) {
         super();

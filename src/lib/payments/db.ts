@@ -56,7 +56,7 @@ export interface PaymentsDb {
   updateQuote(id: string, patch: QuotePatch): Promise<void>;
   // Conditional update: only advances the quote's status when it still
   // matches `from` — protects against clobbering a status the webhook
-  // already moved on while a Stripe call was in flight (spec's I1 fix).
+  // already moved on while a gateway call was in flight (spec's I1 fix).
   // Returns whether the update happened.
   updateQuoteStatusIf(id: string, from: QuoteStatus, to: QuoteStatus): Promise<boolean>;
   recordWebhookEvent(id: string, type: string): Promise<boolean>;

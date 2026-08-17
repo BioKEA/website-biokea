@@ -1,4 +1,4 @@
-// The four notifications the Stripe webhook sends. Pure builders — the
+// The four notifications the Shopify webhook sends. Pure builders — the
 // webhook handler decides when; these decide what. Spec §5.6.
 import type { EmailMessage } from './resend';
 import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';

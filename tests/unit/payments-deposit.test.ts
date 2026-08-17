@@ -167,7 +167,7 @@ describe('handleDeposit', () => {
     expect(gateway.created).toHaveLength(0);
   });
 
-  it('is idempotent: a second submit returns the existing live invoice URL without calling Stripe again', async () => {
+  it('is idempotent: a second submit returns the existing live invoice URL without calling the gateway again', async () => {
     await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, { db, gateway, now: NOW });
     const res = await handleDeposit(post(TOKEN, { audience: 'academic', attest: 'true' }), TOKEN, {
       db,
@@ -191,8 +191,8 @@ describe('handleDeposit', () => {
     expect(res.headers.get('location')).toBe('https://store.biokea.test/invoices/test-1');
   });
 
-  it('rolls back the row and redirects with ?pay=failed when Stripe throws', async () => {
-    gateway.failNext = new Error('stripe down');
+  it('rolls back the row and redirects with ?pay=failed when the gateway throws', async () => {
+    gateway.failNext = new Error('gateway down');
     const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
       db,
       gateway,
@@ -228,7 +228,7 @@ describe('handleDeposit', () => {
     expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=unavailable`);
   });
 
-  it('on a lost insert race, redirects to the winning invoice without calling Stripe', async () => {
+  it('on a lost insert race, redirects to the winning invoice without calling the gateway', async () => {
     const racy = new RacyDb();
     racy.quotes.push(quote());
     racy.winner = {
@@ -240,7 +240,7 @@ describe('handleDeposit', () => {
       currency: 'usd',
       provider: 'shopify',
       external_id: 'in_w',
-      hosted_url: 'https://invoice.stripe.test/in_w',
+      hosted_url: 'https://invoice.example.test/in_w',
       pdf_url: null,
       order_ref: null,
       external_order_id: null,
@@ -255,7 +255,7 @@ describe('handleDeposit', () => {
       gateway,
       now: NOW,
     });
-    expect(res.headers.get('location')).toBe('https://invoice.stripe.test/in_w');
+    expect(res.headers.get('location')).toBe('https://invoice.example.test/in_w');
     expect(gateway.created).toHaveLength(0);
   });
 
@@ -272,7 +272,7 @@ describe('handleDeposit', () => {
     expect(gateway.created).toHaveLength(0);
   });
 
-  it('never clobbers a status the webhook already advanced while the Stripe call was in flight', async () => {
+  it('never clobbers a status the webhook already advanced while the gateway call was in flight', async () => {
     class RacingGateway extends MemoryGateway {
       constructor(private readonly db: MemoryDb) {
         super();
@@ -295,7 +295,7 @@ describe('handleDeposit', () => {
     expect(db.quotes[0].external_customer_id).toBeNull();
   });
 
-  it('logs and redirects with ?pay=failed when the deposit sanity check fails, without calling Stripe', async () => {
+  it('logs and redirects with ?pay=failed when the deposit sanity check fails, without calling the gateway', async () => {
     db.quotes[0] = quote({ total_commercial: 1 }); // tampered total vs. the line prices
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {

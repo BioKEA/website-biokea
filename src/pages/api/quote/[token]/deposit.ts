@@ -1,7 +1,8 @@
 // src/pages/api/quote/[token]/deposit.ts
 //
-// "Pay 50% deposit" on /quote/<token>. Creates the Stripe customer +
-// deposit invoice and sends the browser to Stripe's hosted invoice page.
+// "Pay 50% deposit" on /quote/<token>. Creates the Shopify draft order +
+// sends the deposit invoice, then sends the browser to Shopify's hosted
+// invoice (checkout) page.
 // A plain form post so it works without JavaScript; every non-success
 // path is a 303 back to the quote page with ?pay=… (spec §5.3, with the
 // redirect deviation noted in the plan's Global Constraints).

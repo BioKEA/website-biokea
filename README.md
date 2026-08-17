@@ -53,43 +53,63 @@ Supabase schema changes live in `migrations/*.sql`, applied by hand:
 
 - `migrations/0005_quotes.sql`
 - `migrations/0006_quote_payments.sql`
+- `migrations/0007_shopify.sql`
 
 Apply in the Supabase Dashboard → SQL Editor, in order; **0006 must be
 applied before the first deploy of the payments code** (existing quotes get
-`status = 'quoted'`).
+`status = 'quoted'`), and **0007 before the first deploy of the Shopify
+gateway** (renames the Stripe-era column names to provider-neutral ones —
+free, since nothing had reached production on the old names).
 
-## Payments (Stripe)
+## Payments (Shopify)
 
-Customers pay a 50% deposit on a quote from `/quote/<token>`; staff issue the
-balance from `/admin/quotes/<number>`. Design: `docs/superpowers/specs/2026-08-16-stripe-payments-design.md`.
+Customers configure a quote and pay a 50% deposit either from `/quote` (or
+`/quote/<token>` for a saved quote) or from a service product page on
+`store.biokea.ai` — both host the same quote widget bundle. Staff issue the
+balance from `/admin/quotes/<number>`. The payment rail is Shopify Draft
+Orders: no card data touches our infrastructure, and pricing stays
+authoritative on our Worker — Shopify never computes a service price.
+Design: `docs/superpowers/specs/2026-08-17-shopify-store-design.md`. Store
+setup (domain, custom app, webhooks, products, theme, Turnstile hostname):
+`docs/shopify/STORE-SETUP.md`.
+
+Secrets:
+
+```bash
+wrangler secret put SHOPIFY_ADMIN_TOKEN     # custom app Admin API token — write_draft_orders, read_orders, read_products
+wrangler secret put SHOPIFY_WEBHOOK_SECRET  # Settings → Notifications → Webhooks signing key
+```
+
+Vars (`wrangler.toml`): `SHOPIFY_STORE_DOMAIN` (`biokea.myshopify.com`),
+`SHOPIFY_STORE_HANDLE` (`biokea` — builds the `admin.shopify.com/store/<handle>/…`
+links on the admin quote page), `SHOPIFY_PAYMENT_TERMS_TEMPLATE` (optional,
+default `NET_30` — net terms on the draft order for PO buyers).
 
 Rollout order:
 
-1. Apply `migrations/0006_quote_payments.sql` in Supabase (see Migrations, above).
-2. Create the Cloudflare Access app and set `CF_ACCESS_TEAM_DOMAIN` / `CF_ACCESS_AUD` in `wrangler.toml`:
-   Zero Trust → Access → Applications → Add → Self-hosted; domain `biokea.ai`, paths `/admin/*` and
-   `/api/admin/*`; policy Allow emails ending `@biokea.ai` (Google or One-time PIN); copy the team
-   domain and the app's Audience (AUD) tag into `wrangler.toml`.
-3. `wrangler secret put STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` (test mode first):
-   ```bash
-   npx wrangler secret put STRIPE_SECRET_KEY        # sk_test_… first, sk_live_… at go-live
-   npx wrangler secret put STRIPE_WEBHOOK_SECRET    # from the dashboard webhook endpoint
-   ```
-   `wrangler.toml` also enables `compatibility_flags = ["nodejs_compat"]` — the stripe SDK needs
-   Node built-ins on Workers.
-4. Deploy.
-5. Create the Stripe webhook endpoint (`https://biokea.ai/api/stripe/webhook`, events `invoice.paid`,
-   `invoice.voided`, `invoice.marked_uncollectible`) and re-put the signing secret if it changed.
-6. Enable ACH debit + bank transfers + invoice branding in the Stripe dashboard: Settings → Payments
-   → Payment methods: enable **ACH Direct Debit** and **Bank transfers**; Settings → Billing →
-   Invoices: upload logo/brand colour; turn on "Email finalized invoices to customers" and receipts.
-7. Walk the test-mode checklist (card `4242…`, ACH test bank, bank-transfer test flow, void, balance
-   above/below the estimate), then swap live keys.
+1. Apply `migrations/0007_shopify.sql` in Supabase (see Migrations, above).
+2. Create the Cloudflare Access app and set `CF_ACCESS_TEAM_DOMAIN` / `CF_ACCESS_AUD` in `wrangler.toml`
+   (unchanged from before payments): Zero Trust → Access → Applications → Add → Self-hosted; domain
+   `biokea.ai`, paths `/admin/*` and `/api/admin/*`; policy Allow emails ending `@biokea.ai`.
+3. Walk `docs/shopify/STORE-SETUP.md` steps 1–6: create the store, connect `store.biokea.ai` (DNS-only
+   CNAME), create the `biokea-website` custom app and copy its Admin API token, create the four
+   webhook topics pointed at `https://biokea.ai/api/shopify/webhook` and copy the signing key, confirm
+   Net 30 payment terms are available, mark the service products non-taxable.
+4. `wrangler secret put SHOPIFY_ADMIN_TOKEN` / `SHOPIFY_WEBHOOK_SECRET`, confirm the vars above, deploy.
+5. `STORE-SETUP.md` steps 7–8: create the two service products (`specimen-barcoding`,
+   `edna-metabarcoding`) and the eight placeholder goods; on the `product.quote` template, add a
+   Custom Liquid section pasting in `docs/shopify/product-quote-section.liquid` — it mounts the same
+   widget bundle served from `biokea.ai/widget/quote.js` and `.css`.
+6. Add `store.biokea.ai` to the Turnstile widget's allowed hostnames (Cloudflare dashboard).
+7. Walk the test-mode checklist with Shopify's Bogus Gateway (deposit → balance → paid, draft delete,
+   net-30 invoice, refund, goods checkout, domain + TLS), then switch on Shopify Payments live.
+8. Marketing CTAs (`/pricing`, `/services`, the Nav "Store" link) already point at the store — nothing
+   left to flip.
 
-Local dev: copy `.dev.vars.example` → `.dev.vars` — it lists every key the Worker reads, including
-Stripe test keys — then run `npm run dev`, and in another terminal
-`stripe listen --forward-to localhost:4321/api/stripe/webhook` (paste its `whsec_…` into `.dev.vars`).
-Set `CF_ACCESS_DEV_EMAIL` to reach `/admin` locally.
+Local dev: copy `.dev.vars.example` → `.dev.vars` — it lists every key the Worker reads, including a
+Shopify test-app token. `npm run dev` builds the widget bundle first (`widget:build`, gitignored
+output at `public/widget/quote.{js,css}`) and then starts the dev server. Set `CF_ACCESS_DEV_EMAIL` to
+reach `/admin` locally.
 
 ## Architecture
 

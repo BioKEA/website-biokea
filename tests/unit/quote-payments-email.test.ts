@@ -42,8 +42,8 @@ const deposit: PaymentRecord = {
   currency: 'usd',
   provider: 'shopify',
   external_id: 'in_1',
-  hosted_url: 'https://invoice.stripe.com/i/x',
-  pdf_url: 'https://pay.stripe.com/x.pdf',
+  hosted_url: 'https://invoice.example.com/i/x',
+  pdf_url: 'https://pay.example.com/x.pdf',
   order_ref: null,
   external_order_id: null,
   due_at: null,
@@ -58,7 +58,7 @@ const balance: PaymentRecord = {
   kind: 'balance',
   amount_cents: 411600,
   external_id: 'in_2',
-  pdf_url: 'https://pay.stripe.com/y.pdf',
+  pdf_url: 'https://pay.example.com/y.pdf',
   paid_at: '2026-10-20T00:00:00Z',
 };
 
@@ -71,7 +71,7 @@ describe('payment emails', () => {
     expect(m.text).toContain('$4,800.00');
     expect(m.text).toContain('within 2 business days');
     expect(m.text).toContain('https://biokea.ai/quote/tok');
-    expect(m.text).toContain('https://pay.stripe.com/x.pdf');
+    expect(m.text).toContain('https://pay.example.com/x.pdf');
   });
 
   it('deposit paid → lab: lines, audience, PO, customer, admin link', () => {
@@ -90,7 +90,7 @@ describe('payment emails', () => {
     const c = balancePaidCustomerEmail(quote, balance);
     expect(c.subject).toBe('Paid in full — BioKEA quote BK-2026-0142');
     expect(c.text).toContain('$4,116.00');
-    expect(c.text).toContain('https://pay.stripe.com/y.pdf');
+    expect(c.text).toContain('https://pay.example.com/y.pdf');
     const l = balancePaidLabEmail(quote, balance, 'contact@biokea.ai');
     expect(l.subject).toBe('[paid in full] BK-2026-0142 · State University · $4,116.00');
   });

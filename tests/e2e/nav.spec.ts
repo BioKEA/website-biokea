@@ -40,7 +40,9 @@ test('the old grouped labels and the Golden Sample link are gone', async ({ page
   await expect(nav.getByRole('link', { name: /Golden Sample/i })).toHaveCount(0);
 });
 
-test('"About" dropdown reveals Mission, Projects, Works, Press, and Games', async ({ page }) => {
+test('"About" dropdown reveals Mission, Projects, Works, Press, Games, and Store', async ({
+  page,
+}) => {
   await page.goto('/');
   const nav = page.getByRole('navigation', { name: 'Primary' });
   const desktop = nav.locator('div.hidden.md\\:flex').first();
@@ -55,6 +57,10 @@ test('"About" dropdown reveals Mission, Projects, Works, Press, and Games', asyn
   await expect(desktop.getByRole('link', { name: 'Games', exact: true })).toHaveAttribute(
     'href',
     'https://games.biokea.ai',
+  );
+  await expect(desktop.getByRole('link', { name: 'Store', exact: true })).toHaveAttribute(
+    'href',
+    'https://store.biokea.ai',
   );
 });
 

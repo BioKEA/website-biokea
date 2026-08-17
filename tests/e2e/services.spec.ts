@@ -108,6 +108,19 @@ test('services FAQ links BioInfoOS to BioKEA Works', async ({ page }) => {
   await expect(link).toHaveAttribute('href', '/works#bioinfoos');
 });
 
+test('catalog CTAs configure barcoding and eDNA in the store, with a quote-only fallback', async ({
+  page,
+}) => {
+  await page.goto('/services');
+  await expect(
+    page.getByRole('link', { name: /Configure barcoding & pay a deposit online/i }),
+  ).toHaveAttribute('href', 'https://store.biokea.ai/products/specimen-barcoding');
+  await expect(
+    page.getByRole('link', { name: /Configure eDNA & pay a deposit online/i }),
+  ).toHaveAttribute('href', 'https://store.biokea.ai/products/edna-metabarcoding');
+  await expect(page.getByRole('link', { name: 'or build a quote here' })).toHaveCount(2);
+});
+
 test('barcoding and eDNA catalog rows link out to their pricing anchors', async ({ page }) => {
   await page.goto('/services');
   const barcodingRow = page

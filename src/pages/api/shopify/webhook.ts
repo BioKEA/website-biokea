@@ -130,8 +130,9 @@ function findPaymentForDraftOrder(
 }
 
 // draft_orders/delete and orders/cancelled: the draft/order died before
-// payment. Same as the old Stripe void path — mark the payment void (only
-// if still open; paid/settled is noise) and step the quote back only when
+// payment. Mirrors the pre-migration invoice-void path — mark the payment
+// void (only if still open; paid/settled is noise) and step the quote back
+// only when
 // it's still waiting on this exact payment and no other live row of the
 // same kind exists, which covers the normal case and a partial-failure
 // retry while leaving a quote alone that's since been re-invoiced.

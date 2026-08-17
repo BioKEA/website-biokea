@@ -13,7 +13,8 @@ const { token } = Astro.params;
 const e = env as unknown as {
   SUPABASE_URL?: string;
   SUPABASE_SERVICE_ROLE_KEY?: string;
-  STRIPE_SECRET_KEY?: string;
+  SHOPIFY_ADMIN_TOKEN?: string;
+  SHOPIFY_STORE_DOMAIN?: string;
 };
 
 // UUID shape check first — avoids a pointless round trip on junk tokens.
@@ -40,7 +41,7 @@ const usd = (n: number) => '$' + n.toLocaleString('en-US');
 const fmtDate = (iso: string) => iso.slice(0, 10);
 const expired = Date.parse(quote.expires_at) < Date.now();
 const panel = panelView(quote, payments, new Date());
-const paymentsLive = !!e?.STRIPE_SECRET_KEY; // hide the offer if Stripe isn't configured on this deployment
+const paymentsLive = !!(e?.SHOPIFY_ADMIN_TOKEN && e?.SHOPIFY_STORE_DOMAIN); // hide the offer if Shopify isn't configured on this deployment
 const payFlash = Astro.url.searchParams.get('pay'); // 'unavailable' | 'failed' | 'attest' | null
 ---
 
@@ -169,9 +170,8 @@ const payFlash = Astro.url.searchParams.get('pay'); // 'unavailable' | 'failed' 
             Pay a 50% deposit online
           </h2>
           <p class="mt-1 text-sm text-slate-600 leading-relaxed">
-            You'll get a Stripe invoice you can pay by card, ACH debit, or bank transfer — or
-            forward to your accounts-payable team. The balance is invoiced on the actual sample
-            counts when results are delivered.
+            You'll get a Shopify invoice you can pay by card, Shop Pay, or PayPal — or forward to
+            accounts payable. The balance is invoiced on actual counts when results are delivered.
           </p>
           <form
             method="post"
@@ -255,8 +255,6 @@ const payFlash = Astro.url.searchParams.get('pay'); // 'unavailable' | 'failed' 
             {panel.hostedUrl && (
               <a
                 href={panel.hostedUrl}
-                target="_blank"
-                rel="noopener"
                 class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2 rounded-sm text-sm font-medium"
               >
                 Pay now →

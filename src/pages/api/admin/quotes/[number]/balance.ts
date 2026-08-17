@@ -21,9 +21,9 @@ export interface BalanceDeps {
 }
 
 // Re-exported so existing importers (this route's own tests, Task 10) keep
-// working. Moved to balance-form.ts (no Stripe import) because importing it
-// from here into the admin page dragged this route's Stripe gateway into
-// the page's module graph and broke Vite's dev SSR resolution of `stripe`.
+// working. Moved to balance-form.ts because importing it from here into the
+// admin page dragged this route's gateway import into the page's module
+// graph and broke Vite's dev SSR resolution.
 export { parseBalanceForm };
 
 const seeOther = (location: string) => new Response(null, { status: 303, headers: { location } });

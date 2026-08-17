@@ -38,8 +38,8 @@ function payment(over: Partial<PaymentRecord>): PaymentRecord {
     currency: 'usd',
     provider: 'shopify',
     external_id: 'in_1',
-    hosted_url: 'https://invoice.stripe.com/i/x',
-    pdf_url: 'https://pay.stripe.com/x.pdf',
+    hosted_url: 'https://invoice.example.com/i/x',
+    pdf_url: 'https://pay.example.com/x.pdf',
     order_ref: null,
     external_order_id: null,
     due_at: '2026-10-01T00:00:00Z',
@@ -76,8 +76,8 @@ describe('panelView', () => {
       phase: 'deposit',
       amountCents: 480000,
       dueAt: '2026-10-01T00:00:00Z',
-      hostedUrl: 'https://invoice.stripe.com/i/x',
-      pdfUrl: 'https://pay.stripe.com/x.pdf',
+      hostedUrl: 'https://invoice.example.com/i/x',
+      pdfUrl: 'https://pay.example.com/x.pdf',
     });
   });
 
@@ -91,7 +91,7 @@ describe('panelView', () => {
       kind: 'deposit_paid',
       amountCents: 480000,
       paidAt: '2026-09-02T10:00:00Z',
-      pdfUrl: 'https://pay.stripe.com/x.pdf',
+      pdfUrl: 'https://pay.example.com/x.pdf',
     });
   });
 
@@ -105,7 +105,7 @@ describe('panelView', () => {
           kind: 'balance',
           amount_cents: 411600,
           external_id: 'in_2',
-          hosted_url: 'https://invoice.stripe.com/i/y',
+          hosted_url: 'https://invoice.example.com/i/y',
           pdf_url: null,
         }),
       ],
@@ -115,7 +115,7 @@ describe('panelView', () => {
     if (v.kind !== 'invoiced') return;
     expect(v.phase).toBe('balance');
     expect(v.amountCents).toBe(411600);
-    expect(v.hostedUrl).toBe('https://invoice.stripe.com/i/y');
+    expect(v.hostedUrl).toBe('https://invoice.example.com/i/y');
   });
 
   it('shows paid in full with both PDFs (balance PDF absent when settled without an invoice)', () => {
@@ -127,7 +127,7 @@ describe('panelView', () => {
           id: 'p2',
           kind: 'balance',
           status: 'paid',
-          pdf_url: 'https://pay.stripe.com/y.pdf',
+          pdf_url: 'https://pay.example.com/y.pdf',
           paid_at: '2026-10-20T00:00:00Z',
         }),
       ],
@@ -135,8 +135,8 @@ describe('panelView', () => {
     );
     expect(paid).toEqual({
       kind: 'paid',
-      depositPdf: 'https://pay.stripe.com/x.pdf',
-      balancePdf: 'https://pay.stripe.com/y.pdf',
+      depositPdf: 'https://pay.example.com/x.pdf',
+      balancePdf: 'https://pay.example.com/y.pdf',
     });
     const settled = panelView(
       quote({ status: 'paid' }),
@@ -156,7 +156,7 @@ describe('panelView', () => {
     );
     expect(settled).toEqual({
       kind: 'paid',
-      depositPdf: 'https://pay.stripe.com/x.pdf',
+      depositPdf: 'https://pay.example.com/x.pdf',
       balancePdf: null,
     });
   });
