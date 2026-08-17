@@ -157,17 +157,16 @@ before the move are not carried over; players pick again once.
 
 ### 4.2 Rewritten
 
-| File                                       | Change                                                                                                                                                                        |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `package.json`                             | `"build": "astro build"` — no games prebuild.                                                                                                                                 |
-| `.github/workflows/deploy.yml`             | Drop `GITHUB_TOKEN`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` from the build step env and the comments describing them.                                                     |
-| `src/components/layout/Nav.astro`          | About ▾ "Games" → `https://games.biokea.ai` (external; keep it in the About group).                                                                                           |
-| `src/pages/subscribe.astro`                | The `/mission/games/` link in the body copy → `https://games.biokea.ai/`.                                                                                                     |
-| `src/pages/api/subscribe.ts`               | Header + inline comments; welcome email's "new game drops on biokea.ai/mission/games/" (text and HTML) → `games.biokea.ai`. `source` values keep working (`games`, per-slug). |
-| `src/components/forms/SubscribeForm.astro` | Comment referencing `/mission/games/` updated.                                                                                                                                |
-| `src/pages/privacy.astro`                  | Subscription clause's `/mission/games/` link → `https://games.biokea.ai/`; game-scores clause notes scores are submitted from games at games.biokea.ai. Bump `lastUpdated`.   |
-| `CLAUDE.md`, `README.md`                   | Repo-basics bullet: games are built and served by `BioKEA/games-site` at games.biokea.ai; drop the build-games note.                                                          |
-| `wrangler.toml`                            | Comment on `SUPABASE_PUBLISHABLE_KEY` no longer cites the `/mission/games/` leaderboard panel.                                                                                |
+| File                              | Change                                                                                                                                                                        |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `package.json`                    | `"build": "astro build"` — no games prebuild.                                                                                                                                 |
+| `.github/workflows/deploy.yml`    | Drop `GITHUB_TOKEN`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` from the build step env and the comments describing them.                                                     |
+| `src/components/layout/Nav.astro` | About ▾ "Games" → `https://games.biokea.ai` (external; keep it in the About group).                                                                                           |
+| `src/pages/subscribe.astro`       | The `/mission/games/` link in the body copy → `https://games.biokea.ai/`.                                                                                                     |
+| `src/pages/api/subscribe.ts`      | Header + inline comments; welcome email's "new game drops on biokea.ai/mission/games/" (text and HTML) → `games.biokea.ai`. `source` values keep working (`games`, per-slug). |
+| `src/pages/privacy.astro`         | Subscription clause's `/mission/games/` link → `https://games.biokea.ai/`; game-scores clause notes scores are submitted from games at games.biokea.ai. Bump `lastUpdated`.   |
+| `CLAUDE.md`, `README.md`          | Repo-basics bullet: games are built and served by `BioKEA/games-site` at games.biokea.ai; drop the build-games note.                                                          |
+| `wrangler.toml`                   | Comment on `SUPABASE_PUBLISHABLE_KEY` no longer cites the `/mission/games/` leaderboard panel.                                                                                |
 
 ### 4.3 Kept
 
