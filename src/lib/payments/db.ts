@@ -44,6 +44,7 @@ export interface PaymentsDb {
   deletePayment(id: string): Promise<void>;
   updateQuote(id: string, patch: QuotePatch): Promise<void>;
   recordStripeEvent(id: string, type: string): Promise<boolean>;
+  deleteStripeEvent(id: string): Promise<void>;
 }
 
 export class SupabaseDb implements PaymentsDb {
@@ -149,6 +150,16 @@ export class SupabaseDb implements PaymentsDb {
     const rows = (await res.json()) as unknown[];
     return rows.length > 0;
   }
+
+  // Used to un-record an event when processing after the dedupe check
+  // fails, so a Stripe retry sees it as fresh rather than losing the work.
+  async deleteStripeEvent(id: string): Promise<void> {
+    const res = await fetch(`${this.url}/rest/v1/stripe_events?id=eq.${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: this.headers(),
+    });
+    if (!res.ok) throw new Error(`stripe_events delete failed: ${res.status}`);
+  }
 }
 
 // In-memory implementation for unit tests and local fakes. Mirrors the
@@ -222,5 +233,8 @@ export class MemoryDb implements PaymentsDb {
     if (this.events.has(id)) return false;
     this.events.add(id);
     return true;
+  }
+  async deleteStripeEvent(id: string) {
+    this.events.delete(id);
   }
 }

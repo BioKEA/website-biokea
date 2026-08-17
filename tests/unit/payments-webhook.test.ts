@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import Stripe from 'stripe';
 import { buildQuote } from '@/lib/pricing/quote';
 import { MemoryDb } from '@/lib/payments/db';
+import type { QuotePatch } from '@/lib/payments/db';
 import { memorySender } from '@/lib/email/resend';
 import { handleStripeWebhook } from '@/pages/api/stripe/webhook';
 import type { QuoteRecord } from '@/lib/payments/types';
@@ -188,6 +189,77 @@ describe('handleStripeWebhook', () => {
         .status,
     ).toBe(200);
     expect(db.payments[0].status).toBe('open');
+    expect(email.sent).toHaveLength(0);
+  });
+
+  it('a DB failure mid-processing returns 500, un-records the event, and the redelivery succeeds', async () => {
+    class FlakyDb extends MemoryDb {
+      private failedOnce = false;
+      async updateQuote(id: string, patch: QuotePatch) {
+        if (!this.failedOnce) {
+          this.failedOnce = true;
+          throw new Error('supabase down');
+        }
+        return super.updateQuote(id, patch);
+      }
+    }
+    const flaky = new FlakyDb();
+    flaky.quotes.push(quote());
+    await flaky.insertPayment({
+      quote_id: 'q1',
+      kind: 'deposit',
+      amount_cents: 480000,
+      stripe_invoice_id: 'in_1',
+      hosted_invoice_url: 'https://invoice.stripe.com/i/x',
+    });
+    const failDeps = { ...deps(), db: flaky };
+
+    const res1 = await handleStripeWebhook(
+      event('evt_9', 'invoice.paid', depositInvoice),
+      failDeps,
+    );
+    expect(res1.status).toBe(500);
+    expect(flaky.events.size).toBe(0);
+    expect(flaky.quotes[0].status).toBe('deposit_invoiced');
+    expect(email.sent).toHaveLength(0);
+
+    const res2 = await handleStripeWebhook(
+      event('evt_9', 'invoice.paid', depositInvoice),
+      failDeps,
+    );
+    expect(res2.status).toBe(200);
+    expect(flaky.quotes[0].status).toBe('deposit_paid');
+    expect(email.sent).toHaveLength(2);
+  });
+
+  it('a redelivered void for an old deposit does not reset a re-invoiced quote', async () => {
+    await db.updatePayment('p1', { status: 'void' });
+    await db.insertPayment({
+      quote_id: 'q1',
+      kind: 'deposit',
+      amount_cents: 480000,
+      stripe_invoice_id: 'in_9',
+    });
+    await db.updateQuote('q1', { status: 'deposit_invoiced' });
+
+    const res = await handleStripeWebhook(
+      event('evt_10', 'invoice.voided', depositInvoice),
+      deps(),
+    );
+    expect(res.status).toBe(200);
+    expect(db.quotes[0].status).toBe('deposit_invoiced');
+    expect(db.payments[0].status).toBe('void');
+  });
+
+  it('invoice.paid redelivered under a new event id for an already-paid payment sends no second email', async () => {
+    await db.updatePayment('p1', { status: 'paid', paid_at: '2026-09-02T10:00:00Z' });
+    await db.updateQuote('q1', { status: 'deposit_paid' });
+
+    const res = await handleStripeWebhook(
+      event('evt_dup2', 'invoice.paid', depositInvoice),
+      deps(),
+    );
+    expect(res.status).toBe(200);
     expect(email.sent).toHaveLength(0);
   });
 });

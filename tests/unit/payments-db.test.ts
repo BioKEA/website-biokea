@@ -139,6 +139,20 @@ describe('SupabaseDb', () => {
     expect(await db.recordStripeEvent('evt_1', 'invoice.paid')).toBe(false);
   });
 
+  it('deletes a Stripe event with DELETE ...?id=eq.', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init: RequestInit) => {
+        calls.push({ url, init });
+        return new Response(null, { status: 204 });
+      }),
+    );
+    const db = new SupabaseDb(URL, KEY);
+    await db.deleteStripeEvent('evt_1');
+    expect(calls[0].url).toBe(`${URL}/rest/v1/stripe_events?id=eq.evt_1`);
+    expect(calls[0].init.method).toBe('DELETE');
+  });
+
   it('lists payments newest first and finds by invoice id', async () => {
     vi.stubGlobal(
       'fetch',
@@ -177,5 +191,12 @@ describe('MemoryDb', () => {
     const db = new MemoryDb();
     expect(await db.recordStripeEvent('e', 'invoice.paid')).toBe(true);
     expect(await db.recordStripeEvent('e', 'invoice.paid')).toBe(false);
+  });
+
+  it('un-records an event on delete so a later record succeeds again', async () => {
+    const db = new MemoryDb();
+    expect(await db.recordStripeEvent('e', 'invoice.paid')).toBe(true);
+    await db.deleteStripeEvent('e');
+    expect(await db.recordStripeEvent('e', 'invoice.paid')).toBe(true);
   });
 });

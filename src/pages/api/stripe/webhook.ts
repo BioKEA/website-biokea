@@ -1,8 +1,17 @@
 //
 // Mirrors Stripe invoice state onto quotes/quote_payments and sends the
 // notifications. Signature is the only auth (spec §5.3, §7). Idempotent
-// via stripe_events. Everything is awaited before returning — `void`'d
-// work gets torn down with the response on Workers.
+// via stripe_events, recorded up front so a burst of redeliveries under
+// the same event id short-circuits immediately. If anything after that
+// record throws (e.g. a transient Supabase failure), we un-record the
+// event and return 500 so Stripe's retry is treated as fresh instead of
+// a duplicate — the alternative is losing the work silently. Once a
+// transition is already fully applied (payment already paid — and, for
+// `paid`, the quote already reflects it — or payment already
+// void/uncollectible/settled), a redelivery under a *new* event id is a
+// no-op instead of a duplicate email or an unwanted quote reset.
+// Everything is awaited before returning — `void`'d work gets torn down
+// with the response on Workers.
 import type { APIContext } from 'astro';
 import { env } from 'cloudflare:workers';
 import Stripe from 'stripe';
@@ -65,6 +74,7 @@ export async function handleStripeWebhook(request: Request, deps: WebhookDeps): 
       Stripe.createSubtleCryptoProvider(),
     );
   } catch {
+    console.error('[stripe-webhook] bad signature');
     return new Response('Bad signature', { status: 400 });
   }
 
@@ -72,42 +82,61 @@ export async function handleStripeWebhook(request: Request, deps: WebhookDeps): 
   const fresh = await deps.db.recordStripeEvent(event.id, event.type);
   if (!fresh) return ok();
 
-  const invoice = event.data.object as Stripe.Invoice;
-  const payment = await findPayment(deps.db, invoice);
-  if (!payment) return ok(); // ad-hoc dashboard invoice, not ours to track
-  const quote = await deps.db.getQuoteById(payment.quote_id);
-  if (!quote) return ok();
+  try {
+    const invoice = event.data.object as Stripe.Invoice;
+    const payment = await findPayment(deps.db, invoice);
+    if (!payment) return ok(); // ad-hoc dashboard invoice, not ours to track
+    const quote = await deps.db.getQuoteById(payment.quote_id);
+    if (!quote) return ok();
 
-  const urls = {
-    hosted_invoice_url: invoice.hosted_invoice_url ?? payment.hosted_invoice_url,
-    invoice_pdf: invoice.invoice_pdf ?? payment.invoice_pdf,
-  };
+    const urls = {
+      hosted_invoice_url: invoice.hosted_invoice_url ?? payment.hosted_invoice_url,
+      invoice_pdf: invoice.invoice_pdf ?? payment.invoice_pdf,
+    };
 
-  if (event.type === 'invoice.paid') {
-    const paidAt = now().toISOString();
-    await deps.db.updatePayment(payment.id, { status: 'paid', paid_at: paidAt, ...urls });
-    await deps.db.updateQuote(quote.id, {
-      status: payment.kind === 'deposit' ? 'deposit_paid' : 'paid',
-    });
-    const paid: PaymentRecord = { ...payment, status: 'paid', paid_at: paidAt, ...urls };
-    if (payment.kind === 'deposit') {
-      await deps.email(depositPaidCustomerEmail(quote, paid));
-      await deps.email(depositPaidLabEmail(quote, paid, deps.labTo));
-    } else {
-      await deps.email(balancePaidCustomerEmail(quote, paid));
-      await deps.email(balancePaidLabEmail(quote, paid, deps.labTo));
+    if (event.type === 'invoice.paid') {
+      const targetQuoteStatus = payment.kind === 'deposit' ? 'deposit_paid' : 'paid';
+      // Already fully applied (a redelivery under a new event id, or a
+      // retry after we un-recorded the event further along than this) —
+      // nothing left to do, and re-sending would duplicate the email.
+      if (payment.status === 'paid' && quote.status === targetQuoteStatus) return ok();
+
+      const paidAt = now().toISOString();
+      await deps.db.updatePayment(payment.id, { status: 'paid', paid_at: paidAt, ...urls });
+      await deps.db.updateQuote(quote.id, { status: targetQuoteStatus });
+      const paid: PaymentRecord = { ...payment, status: 'paid', paid_at: paidAt, ...urls };
+      if (payment.kind === 'deposit') {
+        await deps.email(depositPaidCustomerEmail(quote, paid));
+        await deps.email(depositPaidLabEmail(quote, paid, deps.labTo));
+      } else {
+        await deps.email(balancePaidCustomerEmail(quote, paid));
+        await deps.email(balancePaidLabEmail(quote, paid, deps.labTo));
+      }
+      return ok();
     }
-    return ok();
-  }
 
-  // voided / marked_uncollectible: the invoice is dead; step the quote back
-  // so the customer (deposit) or staff (balance) can issue a fresh one.
-  const status = event.type === 'invoice.voided' ? 'void' : 'uncollectible';
-  await deps.db.updatePayment(payment.id, { status, ...urls });
-  await deps.db.updateQuote(quote.id, {
-    status: payment.kind === 'deposit' ? 'quoted' : 'deposit_paid',
-  });
-  return ok();
+    // voided / marked_uncollectible: the invoice is dead; step the quote
+    // back so the customer (deposit) or staff (balance) can issue a fresh
+    // one. Already-terminal payment → a stale redelivery, don't reset a
+    // quote that has since moved on (e.g. been re-invoiced).
+    if (
+      payment.status === 'void' ||
+      payment.status === 'uncollectible' ||
+      payment.status === 'settled'
+    ) {
+      return ok();
+    }
+    const status = event.type === 'invoice.voided' ? 'void' : 'uncollectible';
+    await deps.db.updatePayment(payment.id, { status, ...urls });
+    await deps.db.updateQuote(quote.id, {
+      status: payment.kind === 'deposit' ? 'quoted' : 'deposit_paid',
+    });
+    return ok();
+  } catch (err) {
+    console.error('[stripe-webhook] failed processing', event.id, event.type, err);
+    await deps.db.deleteStripeEvent(event.id).catch(() => undefined);
+    return new Response('Processing failed', { status: 500 });
+  }
 }
 
 export async function POST({ request }: APIContext): Promise<Response> {
