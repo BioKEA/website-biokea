@@ -29,7 +29,7 @@ export interface QuoteRecord {
   audience: Audience | null;
   academic_attested_at: string | null;
   po_number: string | null;
-  stripe_customer_id: string | null;
+  external_customer_id: string | null;
 }
 
 export interface PaymentRecord {
@@ -39,9 +39,12 @@ export interface PaymentRecord {
   status: PaymentStatus;
   amount_cents: number;
   currency: string;
-  stripe_invoice_id: string | null;
-  hosted_invoice_url: string | null;
-  invoice_pdf: string | null;
+  provider: 'shopify';
+  external_id: string | null;
+  hosted_url: string | null;
+  pdf_url: string | null;
+  order_ref: string | null;
+  external_order_id: string | null;
   due_at: string | null;
   paid_at: string | null;
   actual_lines: QuoteLineInput[] | null;

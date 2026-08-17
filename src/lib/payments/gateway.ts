@@ -7,7 +7,7 @@ import Stripe from 'stripe';
 import type { InvoiceLineSpec, PaymentKind } from './types';
 
 export interface InvoiceCustomer {
-  id: string | null; // existing Stripe customer id, or null to create one
+  id: string | null; // existing external customer id, or null to create one
   email: string;
   name: string;
   organization: string | null;
@@ -27,11 +27,11 @@ export interface CreateInvoiceSpec {
 }
 
 export interface CreatedInvoice {
-  customerId: string;
-  invoiceId: string;
-  invoiceNumber: string | null;
-  hostedInvoiceUrl: string;
-  invoicePdf: string | null;
+  customerId: string | null;
+  externalId: string;
+  number: string | null;
+  hostedUrl: string;
+  pdfUrl: string | null;
   dueAt: string | null;
   amountDueCents: number;
 }
@@ -109,10 +109,10 @@ export function stripeGateway(stripe: Stripe): PaymentsGateway {
 
       return {
         customerId,
-        invoiceId: sent.id,
-        invoiceNumber: sent.number ?? null,
-        hostedInvoiceUrl: sent.hosted_invoice_url ?? '',
-        invoicePdf: sent.invoice_pdf ?? null,
+        externalId: sent.id,
+        number: sent.number ?? null,
+        hostedUrl: sent.hosted_invoice_url ?? '',
+        pdfUrl: sent.invoice_pdf ?? null,
         dueAt: sent.due_date ? new Date(sent.due_date * 1000).toISOString() : null,
         amountDueCents: sent.amount_due,
       };
@@ -135,10 +135,10 @@ export class MemoryGateway implements PaymentsGateway {
     const n = ++this.seq;
     return {
       customerId: spec.customer.id ?? `cus_test_${n}`,
-      invoiceId: `in_test_${n}`,
-      invoiceNumber: `TEST-${String(n).padStart(4, '0')}`,
-      hostedInvoiceUrl: `https://invoice.stripe.test/in_test_${n}`,
-      invoicePdf: `https://invoice.stripe.test/in_test_${n}.pdf`,
+      externalId: `in_test_${n}`,
+      number: `TEST-${String(n).padStart(4, '0')}`,
+      hostedUrl: `https://invoice.stripe.test/in_test_${n}`,
+      pdfUrl: `https://invoice.stripe.test/in_test_${n}.pdf`,
       dueAt: '2026-10-01T00:00:00.000Z',
       amountDueCents: spec.lines.reduce((s, l) => s + l.amountCents, 0),
     };

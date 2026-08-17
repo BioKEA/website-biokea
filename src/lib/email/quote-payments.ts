@@ -55,7 +55,7 @@ function labBody(q: QuoteRecord, p: PaymentRecord, headline: string): string {
   lines.push(
     ``,
     `Amount: ${usdCents(p.amount_cents)} · paid ${date(p.paid_at)}`,
-    p.invoice_pdf ? `Invoice PDF: ${p.invoice_pdf}` : '',
+    p.pdf_url ? `Invoice PDF: ${p.pdf_url}` : '',
     ``,
     `Admin: ${adminUrl(q)}`,
   );
@@ -76,7 +76,7 @@ export function depositPaidCustomerEmail(q: QuoteRecord, p: PaymentRecord): Emai
       `sequencing; the balance is invoiced on the actual counts when results are delivered.`,
       ``,
       `Your quote: ${quoteUrl(q)}`,
-      p.invoice_pdf ? `Receipt / invoice PDF: ${p.invoice_pdf}` : '',
+      p.pdf_url ? `Receipt / invoice PDF: ${p.pdf_url}` : '',
       ``,
       `Questions? Just reply to this email.`,
       ``,
@@ -110,7 +110,7 @@ export function balancePaidCustomerEmail(q: QuoteRecord, p: PaymentRecord): Emai
       `Thanks — your balance of ${usdCents(p.amount_cents)} for quote ${q.quote_number} is paid, and the project is settled in full.`,
       ``,
       `Your quote: ${quoteUrl(q)}`,
-      p.invoice_pdf ? `Invoice PDF: ${p.invoice_pdf}` : '',
+      p.pdf_url ? `Invoice PDF: ${p.pdf_url}` : '',
       ``,
       `Thank you for working with BioKEA.`,
       ``,

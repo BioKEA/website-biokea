@@ -24,7 +24,7 @@ function quote(over: Partial<QuoteRecord> = {}): QuoteRecord {
     audience: null,
     academic_attested_at: null,
     po_number: null,
-    stripe_customer_id: null,
+    external_customer_id: null,
     ...over,
   };
 }
@@ -36,9 +36,12 @@ function payment(over: Partial<PaymentRecord>): PaymentRecord {
     status: 'open',
     amount_cents: 480000,
     currency: 'usd',
-    stripe_invoice_id: 'in_1',
-    hosted_invoice_url: 'https://invoice.stripe.com/i/x',
-    invoice_pdf: 'https://pay.stripe.com/x.pdf',
+    provider: 'shopify',
+    external_id: 'in_1',
+    hosted_url: 'https://invoice.stripe.com/i/x',
+    pdf_url: 'https://pay.stripe.com/x.pdf',
+    order_ref: null,
+    external_order_id: null,
     due_at: '2026-10-01T00:00:00Z',
     paid_at: null,
     actual_lines: null,
@@ -73,8 +76,8 @@ describe('panelView', () => {
       phase: 'deposit',
       amountCents: 480000,
       dueAt: '2026-10-01T00:00:00Z',
-      hostedInvoiceUrl: 'https://invoice.stripe.com/i/x',
-      invoicePdf: 'https://pay.stripe.com/x.pdf',
+      hostedUrl: 'https://invoice.stripe.com/i/x',
+      pdfUrl: 'https://pay.stripe.com/x.pdf',
     });
   });
 
@@ -88,7 +91,7 @@ describe('panelView', () => {
       kind: 'deposit_paid',
       amountCents: 480000,
       paidAt: '2026-09-02T10:00:00Z',
-      invoicePdf: 'https://pay.stripe.com/x.pdf',
+      pdfUrl: 'https://pay.stripe.com/x.pdf',
     });
   });
 
@@ -101,9 +104,9 @@ describe('panelView', () => {
           id: 'p2',
           kind: 'balance',
           amount_cents: 411600,
-          stripe_invoice_id: 'in_2',
-          hosted_invoice_url: 'https://invoice.stripe.com/i/y',
-          invoice_pdf: null,
+          external_id: 'in_2',
+          hosted_url: 'https://invoice.stripe.com/i/y',
+          pdf_url: null,
         }),
       ],
       now,
@@ -112,7 +115,7 @@ describe('panelView', () => {
     if (v.kind !== 'invoiced') return;
     expect(v.phase).toBe('balance');
     expect(v.amountCents).toBe(411600);
-    expect(v.hostedInvoiceUrl).toBe('https://invoice.stripe.com/i/y');
+    expect(v.hostedUrl).toBe('https://invoice.stripe.com/i/y');
   });
 
   it('shows paid in full with both PDFs (balance PDF absent when settled without an invoice)', () => {
@@ -124,7 +127,7 @@ describe('panelView', () => {
           id: 'p2',
           kind: 'balance',
           status: 'paid',
-          invoice_pdf: 'https://pay.stripe.com/y.pdf',
+          pdf_url: 'https://pay.stripe.com/y.pdf',
           paid_at: '2026-10-20T00:00:00Z',
         }),
       ],
@@ -144,9 +147,9 @@ describe('panelView', () => {
           kind: 'balance',
           status: 'settled',
           amount_cents: -1200,
-          stripe_invoice_id: null,
-          invoice_pdf: null,
-          hosted_invoice_url: null,
+          external_id: null,
+          pdf_url: null,
+          hosted_url: null,
         }),
       ],
       now,
@@ -167,11 +170,11 @@ describe('panelView', () => {
     const v = panelView(
       quote({ status: 'deposit_invoiced' }),
       [
-        payment({ id: 'old', status: 'void', hosted_invoice_url: 'https://old' }),
-        payment({ id: 'new', hosted_invoice_url: 'https://new' }),
+        payment({ id: 'old', status: 'void', hosted_url: 'https://old' }),
+        payment({ id: 'new', hosted_url: 'https://new' }),
       ],
       now,
     );
-    expect(v.kind === 'invoiced' && v.hostedInvoiceUrl).toBe('https://new');
+    expect(v.kind === 'invoiced' && v.hostedUrl).toBe('https://new');
   });
 });

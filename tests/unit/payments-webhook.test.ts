@@ -32,7 +32,7 @@ function quote(over: Partial<QuoteRecord> = {}): QuoteRecord {
     audience: 'academic',
     academic_attested_at: '2026-09-01T00:00:00Z',
     po_number: null,
-    stripe_customer_id: 'cus_1',
+    external_customer_id: 'cus_1',
     ...over,
   };
 }
@@ -77,8 +77,8 @@ beforeEach(async () => {
     quote_id: 'q1',
     kind: 'deposit',
     amount_cents: 480000,
-    stripe_invoice_id: 'in_1',
-    hosted_invoice_url: 'https://invoice.stripe.com/i/x',
+    external_id: 'in_1',
+    hosted_url: 'https://invoice.stripe.com/i/x',
   });
 });
 
@@ -99,7 +99,7 @@ describe('handleStripeWebhook', () => {
     expect(db.payments[0]).toMatchObject({
       status: 'paid',
       paid_at: '2026-09-02T10:00:00.000Z',
-      invoice_pdf: 'https://pay.stripe.com/x.pdf',
+      pdf_url: 'https://pay.stripe.com/x.pdf',
     });
     expect(db.quotes[0].status).toBe('deposit_paid');
     expect(email.sent.map((m) => m.subject)).toEqual([
@@ -138,7 +138,7 @@ describe('handleStripeWebhook', () => {
       quote_id: 'q1',
       kind: 'balance',
       amount_cents: 411600,
-      stripe_invoice_id: 'in_2',
+      external_id: 'in_2',
     });
     const balanceInvoice = {
       id: 'in_2',
@@ -154,7 +154,7 @@ describe('handleStripeWebhook', () => {
       quote_id: 'q1',
       kind: 'balance',
       amount_cents: 411600,
-      stripe_invoice_id: 'in_3',
+      external_id: 'in_3',
     });
     await db.updateQuote('q1', { status: 'balance_invoiced' });
     await handleStripeWebhook(
@@ -169,9 +169,9 @@ describe('handleStripeWebhook', () => {
   });
 
   it('falls back to metadata (quote_id + kind) when the row has no invoice id yet, and fills it in', async () => {
-    await db.updatePayment('p1', { stripe_invoice_id: null });
+    await db.updatePayment('p1', { external_id: null });
     await handleStripeWebhook(event('evt_6', 'invoice.paid', depositInvoice), deps());
-    expect(db.payments[0]).toMatchObject({ status: 'paid', stripe_invoice_id: 'in_1' });
+    expect(db.payments[0]).toMatchObject({ status: 'paid', external_id: 'in_1' });
     expect(db.quotes[0].status).toBe('deposit_paid');
   });
 
@@ -209,8 +209,8 @@ describe('handleStripeWebhook', () => {
       quote_id: 'q1',
       kind: 'deposit',
       amount_cents: 480000,
-      stripe_invoice_id: 'in_1',
-      hosted_invoice_url: 'https://invoice.stripe.com/i/x',
+      external_id: 'in_1',
+      hosted_url: 'https://invoice.stripe.com/i/x',
     });
     const failDeps = { ...deps(), db: flaky };
 
@@ -238,7 +238,7 @@ describe('handleStripeWebhook', () => {
       quote_id: 'q1',
       kind: 'deposit',
       amount_cents: 480000,
-      stripe_invoice_id: 'in_9',
+      external_id: 'in_9',
     });
     await db.updateQuote('q1', { status: 'deposit_invoiced' });
 
@@ -290,8 +290,8 @@ describe('handleStripeWebhook', () => {
       quote_id: 'q1',
       kind: 'deposit',
       amount_cents: 480000,
-      stripe_invoice_id: 'in_1',
-      hosted_invoice_url: 'https://invoice.stripe.com/i/x',
+      external_id: 'in_1',
+      hosted_url: 'https://invoice.stripe.com/i/x',
     });
     const failDeps = { ...deps(), db: flaky };
 
@@ -337,8 +337,8 @@ describe('handleStripeWebhook', () => {
       quote_id: 'q1',
       kind: 'deposit',
       amount_cents: 480000,
-      stripe_invoice_id: 'in_1',
-      hosted_invoice_url: 'https://invoice.stripe.com/i/x',
+      external_id: 'in_1',
+      hosted_url: 'https://invoice.stripe.com/i/x',
     });
     const outageDeps = { ...deps(), db: outage };
 
@@ -355,7 +355,7 @@ describe('handleStripeWebhook', () => {
       async updateQuote(): Promise<void> {
         throw new Error('supabase down');
       }
-      async deleteStripeEvent(): Promise<void> {
+      async deleteWebhookEvent(): Promise<void> {
         throw new Error('delete also down');
       }
     }
@@ -365,8 +365,8 @@ describe('handleStripeWebhook', () => {
       quote_id: 'q1',
       kind: 'deposit',
       amount_cents: 480000,
-      stripe_invoice_id: 'in_1',
-      hosted_invoice_url: 'https://invoice.stripe.com/i/x',
+      external_id: 'in_1',
+      hosted_url: 'https://invoice.stripe.com/i/x',
     });
     const failDeps = { ...deps(), db: flaky };
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);

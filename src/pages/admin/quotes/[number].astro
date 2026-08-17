@@ -58,7 +58,7 @@ if (url.searchParams.get('preview') === '1' && deposit && quote.audience) {
     try {
       preview = computeBalance(parsed.inputs, quote.audience, {
         amountCents: deposit.amount_cents,
-        invoiceLabel: deposit.stripe_invoice_id ?? 'deposit',
+        invoiceLabel: deposit.external_id ?? 'deposit',
         paidAt: deposit.paid_at ?? deposit.created_at,
       });
     } catch (err) {
@@ -88,13 +88,13 @@ const val = (k: string) => previewInputs.get(k) ?? '';
       }
       · <a class="underline" href={`/quote/${quote.access_token}`}>customer view</a>
       {
-        quote.stripe_customer_id && (
+        quote.external_customer_id && (
           <>
             {' '}
             ·{' '}
             <a
               class="underline"
-              href={`https://dashboard.stripe.com/customers/${quote.stripe_customer_id}`}
+              href={`https://dashboard.stripe.com/customers/${quote.external_customer_id}`}
             >
               Stripe customer
             </a>
@@ -187,20 +187,20 @@ const val = (k: string) => previewInputs.get(k) ?? '';
                 <td class="px-3 py-2">{p.due_at?.slice(0, 10) ?? '—'}</td>
                 <td class="px-3 py-2">{p.paid_at?.slice(0, 10) ?? '—'}</td>
                 <td class="px-3 py-2 text-xs">
-                  {p.hosted_invoice_url && (
-                    <a class="underline" href={p.hosted_invoice_url}>
+                  {p.hosted_url && (
+                    <a class="underline" href={p.hosted_url}>
                       hosted
                     </a>
                   )}{' '}
-                  {p.invoice_pdf && (
-                    <a class="underline" href={p.invoice_pdf}>
+                  {p.pdf_url && (
+                    <a class="underline" href={p.pdf_url}>
                       pdf
                     </a>
                   )}{' '}
-                  {p.stripe_invoice_id && (
+                  {p.external_id && (
                     <a
                       class="underline"
-                      href={`https://dashboard.stripe.com/invoices/${p.stripe_invoice_id}`}
+                      href={`https://dashboard.stripe.com/invoices/${p.external_id}`}
                     >
                       stripe
                     </a>

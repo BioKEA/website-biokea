@@ -30,7 +30,7 @@ function quote(over: Partial<QuoteRecord> = {}): QuoteRecord {
     audience: 'academic',
     academic_attested_at: '2026-09-01T00:00:00Z',
     po_number: 'PO-77',
-    stripe_customer_id: 'cus_1',
+    external_customer_id: 'cus_1',
     ...over,
   };
 }
@@ -54,7 +54,7 @@ beforeEach(async () => {
     kind: 'deposit',
     amount_cents: DEPOSIT,
     status: 'paid',
-    stripe_invoice_id: 'in_1',
+    external_id: 'in_1',
     paid_at: '2026-09-02T10:00:00Z',
   });
 });
@@ -145,7 +145,7 @@ describe('handleBalance', () => {
     expect(balance).toMatchObject({
       status: 'open',
       amount_cents: actual.total.academic * 100 - DEPOSIT,
-      stripe_invoice_id: 'in_test_1',
+      external_id: 'in_test_1',
       created_by: 'michelle@biokea.ai',
     });
     expect(balance.actual_lines).toEqual([
@@ -169,7 +169,7 @@ describe('handleBalance', () => {
     expect(db.payments.find((p) => p.kind === 'balance')).toMatchObject({
       status: 'settled',
       amount_cents: actual - DEPOSIT,
-      stripe_invoice_id: null,
+      external_id: null,
       created_by: 'michelle@biokea.ai',
     });
     expect(db.quotes[0].status).toBe('paid');
@@ -244,6 +244,6 @@ describe('handleBalance', () => {
     });
     expect(res.headers.get('location')).toBe(`/admin/quotes/${N}?balance=invoiced`);
     expect(db.quotes[0].status).toBe('paid');
-    expect(db.quotes[0].stripe_customer_id).toBe('cus_1');
+    expect(db.quotes[0].external_customer_id).toBe('cus_1');
   });
 });

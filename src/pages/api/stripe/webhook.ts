@@ -1,7 +1,7 @@
 //
 // Mirrors Stripe invoice state onto quotes/quote_payments and sends the
 // notifications. Signature is the only auth (spec §5.3, §7). Idempotent
-// via stripe_events, recorded up front so a burst of redeliveries under
+// via webhook_events, recorded up front so a burst of redeliveries under
 // the same event id short-circuits immediately. If anything after that
 // record throws (e.g. a transient Supabase failure), we un-record the
 // event and return 500 so Stripe's retry is treated as fresh instead of
@@ -56,16 +56,16 @@ const ok = () =>
 async function findPayment(db: PaymentsDb, invoice: Stripe.Invoice): Promise<PaymentRecord | null> {
   const byId = await db.findPaymentByInvoiceId(invoice.id);
   if (byId) return byId;
-  // Race: our row exists but its stripe_invoice_id was not written yet.
+  // Race: our row exists but its external_id was not written yet.
   const quoteId = invoice.metadata?.quote_id;
   const kind = invoice.metadata?.kind as PaymentKind | undefined;
   if (!quoteId || (kind !== 'deposit' && kind !== 'balance')) return null;
   const open = (await db.listPayments(quoteId)).find(
-    (p) => p.kind === kind && p.status === 'open' && p.stripe_invoice_id === null,
+    (p) => p.kind === kind && p.status === 'open' && p.external_id === null,
   );
   if (!open) return null;
-  await db.updatePayment(open.id, { stripe_invoice_id: invoice.id });
-  return { ...open, stripe_invoice_id: invoice.id };
+  await db.updatePayment(open.id, { external_id: invoice.id });
+  return { ...open, external_id: invoice.id };
 }
 
 export async function handleStripeWebhook(request: Request, deps: WebhookDeps): Promise<Response> {
@@ -88,7 +88,7 @@ export async function handleStripeWebhook(request: Request, deps: WebhookDeps): 
   }
 
   if (!HANDLED.has(event.type)) return ok();
-  const fresh = await deps.db.recordStripeEvent(event.id, event.type);
+  const fresh = await deps.db.recordWebhookEvent(event.id, event.type);
   if (!fresh) return ok();
 
   try {
@@ -99,8 +99,8 @@ export async function handleStripeWebhook(request: Request, deps: WebhookDeps): 
     if (!quote) return ok();
 
     const urls = {
-      hosted_invoice_url: invoice.hosted_invoice_url ?? payment.hosted_invoice_url,
-      invoice_pdf: invoice.invoice_pdf ?? payment.invoice_pdf,
+      hosted_url: invoice.hosted_invoice_url ?? payment.hosted_url,
+      pdf_url: invoice.invoice_pdf ?? payment.pdf_url,
     };
 
     if (event.type === 'invoice.paid') {
@@ -163,7 +163,7 @@ export async function handleStripeWebhook(request: Request, deps: WebhookDeps): 
   } catch (err) {
     console.error('[stripe-webhook] failed processing', event.id, event.type, err);
     await deps.db
-      .deleteStripeEvent(event.id)
+      .deleteWebhookEvent(event.id)
       .catch((e) => console.error('[stripe-webhook] could not un-record event', event.id, e));
     return new Response('Processing failed', { status: 500 });
   }

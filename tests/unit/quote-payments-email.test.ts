@@ -30,7 +30,7 @@ const quote: QuoteRecord = {
   audience: 'academic',
   academic_attested_at: '2026-09-01T00:00:00Z',
   po_number: 'PO-77',
-  stripe_customer_id: 'cus_1',
+  external_customer_id: 'cus_1',
 };
 const deposit: PaymentRecord = {
   id: 'p1',
@@ -39,9 +39,12 @@ const deposit: PaymentRecord = {
   status: 'paid',
   amount_cents: 480000,
   currency: 'usd',
-  stripe_invoice_id: 'in_1',
-  hosted_invoice_url: 'https://invoice.stripe.com/i/x',
-  invoice_pdf: 'https://pay.stripe.com/x.pdf',
+  provider: 'shopify',
+  external_id: 'in_1',
+  hosted_url: 'https://invoice.stripe.com/i/x',
+  pdf_url: 'https://pay.stripe.com/x.pdf',
+  order_ref: null,
+  external_order_id: null,
   due_at: null,
   paid_at: '2026-09-02T10:00:00Z',
   actual_lines: null,
@@ -53,8 +56,8 @@ const balance: PaymentRecord = {
   id: 'p2',
   kind: 'balance',
   amount_cents: 411600,
-  stripe_invoice_id: 'in_2',
-  invoice_pdf: 'https://pay.stripe.com/y.pdf',
+  external_id: 'in_2',
+  pdf_url: 'https://pay.stripe.com/y.pdf',
   paid_at: '2026-10-20T00:00:00Z',
 };
 

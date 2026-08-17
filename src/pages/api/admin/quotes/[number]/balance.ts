@@ -61,7 +61,7 @@ export async function handleBalance(
   try {
     computed = computeBalance(form.inputs, quote.audience, {
       amountCents: deposit.amount_cents,
-      invoiceLabel: deposit.stripe_invoice_id ?? 'deposit',
+      invoiceLabel: deposit.external_id ?? 'deposit',
       paidAt: deposit.paid_at ?? deposit.created_at,
     });
   } catch {
@@ -97,7 +97,7 @@ export async function handleBalance(
   try {
     created = await deps.gateway.createInvoice({
       customer: {
-        id: quote.stripe_customer_id,
+        id: quote.external_customer_id,
         email: quote.email,
         name: quote.name,
         organization: quote.organization,
@@ -121,12 +121,12 @@ export async function handleBalance(
   }
 
   await deps.db.updatePayment(inserted.id, {
-    stripe_invoice_id: created.invoiceId,
-    hosted_invoice_url: created.hostedInvoiceUrl,
-    invoice_pdf: created.invoicePdf,
+    external_id: created.externalId,
+    hosted_url: created.hostedUrl,
+    pdf_url: created.pdfUrl,
     due_at: created.dueAt,
   });
-  await deps.db.updateQuote(quote.id, { stripe_customer_id: created.customerId });
+  await deps.db.updateQuote(quote.id, { external_customer_id: created.customerId });
   // Conditional: only steps deposit_paid → balance_invoiced. If the
   // webhook's invoice.paid landed while the Stripe call above was in
   // flight, the quote is already past 'deposit_paid' and this is a

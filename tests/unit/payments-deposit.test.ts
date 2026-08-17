@@ -30,7 +30,7 @@ function quote(over: Partial<QuoteRecord> = {}): QuoteRecord {
     audience: null,
     academic_attested_at: null,
     po_number: null,
-    stripe_customer_id: null,
+    external_customer_id: null,
     ...over,
   };
 }
@@ -114,15 +114,15 @@ describe('handleDeposit', () => {
       kind: 'deposit',
       status: 'open',
       amount_cents: expected,
-      stripe_invoice_id: 'in_test_1',
-      hosted_invoice_url: 'https://invoice.stripe.test/in_test_1',
+      external_id: 'in_test_1',
+      hosted_url: 'https://invoice.stripe.test/in_test_1',
       due_at: '2026-10-01T00:00:00.000Z',
     });
     expect(db.quotes[0]).toMatchObject({
       status: 'deposit_invoiced',
       audience: 'commercial',
       po_number: 'PO-77',
-      stripe_customer_id: 'cus_test_1',
+      external_customer_id: 'cus_test_1',
       academic_attested_at: null,
     });
   });
@@ -241,9 +241,12 @@ describe('handleDeposit', () => {
       status: 'open',
       amount_cents: 1,
       currency: 'usd',
-      stripe_invoice_id: 'in_w',
-      hosted_invoice_url: 'https://invoice.stripe.test/in_w',
-      invoice_pdf: null,
+      provider: 'shopify',
+      external_id: 'in_w',
+      hosted_url: 'https://invoice.stripe.test/in_w',
+      pdf_url: null,
+      order_ref: null,
+      external_order_id: null,
       due_at: null,
       paid_at: null,
       actual_lines: null,
@@ -292,7 +295,7 @@ describe('handleDeposit', () => {
     expect(res.status).toBe(303);
     expect(db.quotes[0].status).toBe('deposit_paid');
     expect(db.quotes[0].audience).toBe('commercial');
-    expect(db.quotes[0].stripe_customer_id).toBe('cus_test_1');
+    expect(db.quotes[0].external_customer_id).toBe('cus_test_1');
   });
 
   it('logs and redirects with ?pay=failed when the deposit sanity check fails, without calling Stripe', async () => {

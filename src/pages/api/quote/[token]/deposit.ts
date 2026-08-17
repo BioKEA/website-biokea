@@ -48,7 +48,7 @@ async function liveDepositUrl(db: PaymentsDb, quote: QuoteRecord): Promise<strin
   const live = payments.find(
     (p) => p.kind === 'deposit' && (p.status === 'open' || p.status === 'paid'),
   );
-  return live?.hosted_invoice_url ?? null;
+  return live?.hosted_url ?? null;
 }
 
 export async function handleDeposit(
@@ -113,7 +113,7 @@ export async function handleDeposit(
   try {
     created = await deps.gateway.createInvoice({
       customer: {
-        id: quote.stripe_customer_id,
+        id: quote.external_customer_id,
         email: quote.email,
         name: quote.name,
         organization: quote.organization,
@@ -139,16 +139,16 @@ export async function handleDeposit(
   }
 
   await deps.db.updatePayment(inserted.id, {
-    stripe_invoice_id: created.invoiceId,
-    hosted_invoice_url: created.hostedInvoiceUrl,
-    invoice_pdf: created.invoicePdf,
+    external_id: created.externalId,
+    hosted_url: created.hostedUrl,
+    pdf_url: created.pdfUrl,
     due_at: created.dueAt,
   });
   await deps.db.updateQuote(quote.id, {
     audience: form.audience,
     academic_attested_at: form.audience === 'academic' ? now().toISOString() : null,
     po_number: poNumber,
-    stripe_customer_id: created.customerId,
+    external_customer_id: created.customerId,
   });
   // Conditional: only steps quoted → deposit_invoiced. If the webhook's
   // invoice.paid landed while the Stripe call above was in flight, the
@@ -156,7 +156,7 @@ export async function handleDeposit(
   // status the webhook already advanced (spec's I1 fix).
   await deps.db.updateQuoteStatusIf(quote.id, 'quoted', 'deposit_invoiced');
 
-  return seeOther(created.hostedInvoiceUrl);
+  return seeOther(created.hostedUrl);
 }
 
 export async function POST({ request, params }: APIContext): Promise<Response> {

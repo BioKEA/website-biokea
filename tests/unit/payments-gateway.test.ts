@@ -117,10 +117,10 @@ describe('stripeGateway.createInvoice', () => {
     expect(calls.send).toEqual(['in_1']);
     expect(out).toEqual({
       customerId: 'cus_1',
-      invoiceId: 'in_1',
-      invoiceNumber: 'A1B2C3D4-0001',
-      hostedInvoiceUrl: 'https://invoice.stripe.com/i/x',
-      invoicePdf: 'https://pay.stripe.com/x.pdf',
+      externalId: 'in_1',
+      number: 'A1B2C3D4-0001',
+      hostedUrl: 'https://invoice.stripe.com/i/x',
+      pdfUrl: 'https://pay.stripe.com/x.pdf',
       dueAt: new Date(1790000000 * 1000).toISOString(),
       amountDueCents: 480000,
     });
@@ -162,11 +162,11 @@ describe('MemoryGateway', () => {
   it('records specs and returns deterministic ids; can be told to fail once', async () => {
     const g = new MemoryGateway();
     const a = await g.createInvoice(spec);
-    expect(a.invoiceId).toBe('in_test_1');
-    expect(a.hostedInvoiceUrl).toBe('https://invoice.stripe.test/in_test_1');
+    expect(a.externalId).toBe('in_test_1');
+    expect(a.hostedUrl).toBe('https://invoice.stripe.test/in_test_1');
     expect(g.created).toHaveLength(1);
     g.failNext = new Error('stripe down');
     await expect(g.createInvoice(spec)).rejects.toThrow('stripe down');
-    expect((await g.createInvoice(spec)).invoiceId).toBe('in_test_2');
+    expect((await g.createInvoice(spec)).externalId).toBe('in_test_2');
   });
 });
