@@ -52,6 +52,14 @@ Our Worker supports both:
   credentials → **Admin API access token** (`shpat_…`) →
   `wrangler secret put SHOPIFY_ADMIN_TOKEN`.
 
+### Store domain for the Worker
+
+`SHOPIFY_STORE_DOMAIN` in `wrangler.toml` must be the store's **real**
+`*.myshopify.com` domain (Settings → Domains shows it, e.g.
+`a9zmvz-xs.myshopify.com`) — not the admin handle. Webhooks are stamped with
+that domain in `x-shopify-shop-domain` and the Worker rejects mismatches.
+`SHOPIFY_STORE_HANDLE` is the admin URL handle (`admin.shopify.com/store/<handle>`).
+
 ## 4. Webhooks
 
 Settings → Notifications → scroll to **Webhooks** → create four, all

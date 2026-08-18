@@ -33,7 +33,7 @@ CF_ACCESS_AUD = "53739c704f8ebcff2b67597d0f3ab8ff6deaf74f1cdb34ea9c6b0be653e8e1b
 # SHOPIFY_PAYMENT_TERMS_TEMPLATE names the net-terms template looked up via
 # paymentTermsTemplates at invoice time; if the lookup fails, invoices fall
 # back to due-on-receipt rather than blocking.
-SHOPIFY_STORE_DOMAIN = "biokea.myshopify.com"
+SHOPIFY_STORE_DOMAIN = "a9zmvz-xs.myshopify.com"
 SHOPIFY_STORE_HANDLE = "biokea"
 SHOPIFY_PAYMENT_TERMS_TEMPLATE = "NET_30"
 
