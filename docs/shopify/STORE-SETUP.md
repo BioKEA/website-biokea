@@ -23,15 +23,34 @@ this doc is everything that happens in the Shopify admin.
 - Back in Shopify, once verification passes, set `store.biokea.ai` as the
   **primary domain**.
 
-## 3. Custom app — Admin API access
+## 3. App credentials — Admin API access
 
-- Settings → Apps and sales channels → **Develop apps** → Create an app →
-  name it `biokea-website`.
-- Configuration → Admin API integration → Admin API scopes: enable
-  `write_draft_orders`, `read_orders`, `read_products`.
-- Install the app → API credentials → reveal and copy the **Admin API
-  access token** (starts `shpat_…`).
-- On the Worker: `wrangler secret put SHOPIFY_ADMIN_TOKEN` with that value.
+Shopify now creates apps in the **Dev Dashboard** (dev.shopify.com), which
+exposes a Client ID + Client secret rather than a permanent Admin API token.
+Our Worker supports both:
+
+**Dev Dashboard app (current Shopify UI — preferred):**
+
+- dev.shopify.com → Apps → Create app → name `biokea-website`.
+- Configure Admin API access scopes on the app version:
+  `write_draft_orders`, `read_draft_orders`, `read_orders`, `read_products`
+  → release the version.
+- Distribution → **Custom distribution** → your store → generate the
+  install link → open it → **Install**. (The store admin then lists the app
+  under Settings → Apps and sales channels.)
+- App → **Settings** → copy **Client ID** and **Client secret** (`shpss_…`).
+- On the Worker: `wrangler secret put SHOPIFY_CLIENT_ID` and
+  `wrangler secret put SHOPIFY_CLIENT_SECRET`. The Worker mints 24-hour
+  Admin API tokens itself (client-credentials grant) and refreshes them.
+- Do **not** use the `atkn_…` "app automation" token (that is for the
+  Shopify CLI) or the API secret as an Admin token.
+
+**Legacy custom app (older stores that still offer it):**
+
+- Store admin → Settings → Apps and sales channels → Develop apps → Create
+  an app → Configuration → Admin API scopes as above → Install → API
+  credentials → **Admin API access token** (`shpat_…`) →
+  `wrangler secret put SHOPIFY_ADMIN_TOKEN`.
 
 ## 4. Webhooks
 

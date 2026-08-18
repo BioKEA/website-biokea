@@ -9,6 +9,7 @@ import type { APIContext } from 'astro';
 import { env } from 'cloudflare:workers';
 import { type PaymentsDb, SupabaseDb } from '@/lib/payments/db';
 import { type PaymentsGateway, shopifyGateway } from '@/lib/payments/gateway';
+import { shopifyConfigFromEnv, type ShopifyEnv } from '@/lib/payments/shopify-env';
 import { INVOICE_DAYS_UNTIL_DUE, computeBalance } from '@/lib/payments/terms';
 import { parseBalanceForm } from '@/lib/payments/balance-form';
 
@@ -153,19 +154,9 @@ export async function handleBalance(
 }
 
 export async function POST({ request, params, locals }: APIContext): Promise<Response> {
-  const e = env as {
-    SUPABASE_URL?: string;
-    SUPABASE_SERVICE_ROLE_KEY?: string;
-    SHOPIFY_STORE_DOMAIN?: string;
-    SHOPIFY_ADMIN_TOKEN?: string;
-    SHOPIFY_PAYMENT_TERMS_TEMPLATE?: string;
-  };
-  if (
-    !e?.SUPABASE_URL ||
-    !e?.SUPABASE_SERVICE_ROLE_KEY ||
-    !e?.SHOPIFY_ADMIN_TOKEN ||
-    !e?.SHOPIFY_STORE_DOMAIN
-  ) {
+  const e = env as { SUPABASE_URL?: string; SUPABASE_SERVICE_ROLE_KEY?: string } & ShopifyEnv;
+  const shopify = shopifyConfigFromEnv(e);
+  if (!e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY || !shopify) {
     return new Response('Payments are not configured.', { status: 500 });
   }
   if (!locals.adminEmail) return new Response('Forbidden', { status: 403 }); // middleware sets it; belt and braces
@@ -173,11 +164,7 @@ export async function POST({ request, params, locals }: APIContext): Promise<Res
   if (!/^BK-\d{4}-\d{4,}$/.test(number)) return new Response('Quote not found', { status: 404 });
   return handleBalance(request, number, {
     db: new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY),
-    gateway: shopifyGateway({
-      storeDomain: e.SHOPIFY_STORE_DOMAIN,
-      adminToken: e.SHOPIFY_ADMIN_TOKEN,
-      paymentTermsTemplate: e.SHOPIFY_PAYMENT_TERMS_TEMPLATE ?? 'NET_30',
-    }),
+    gateway: shopifyGateway(shopify),
     actorEmail: locals.adminEmail,
   });
 }

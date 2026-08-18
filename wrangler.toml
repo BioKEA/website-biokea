@@ -40,7 +40,9 @@ SHOPIFY_PAYMENT_TERMS_TEMPLATE = "NET_30"
 # Secrets — set once per environment:
 #   wrangler secret put RESEND_API_KEY
 #   wrangler secret put TURNSTILE_SECRET_KEY   # optional; enables captcha
-#   wrangler secret put SHOPIFY_ADMIN_TOKEN
+#   wrangler secret put SHOPIFY_CLIENT_ID       # Dev Dashboard app → Settings → Client ID
+#   wrangler secret put SHOPIFY_CLIENT_SECRET   # … → Client secret (shpss_…); the Worker mints 24 h tokens
+#   wrangler secret put SHOPIFY_ADMIN_TOKEN     # OR a legacy custom-app token (shpat_…) instead of the two above
 #   wrangler secret put SHOPIFY_WEBHOOK_SECRET
 #
 # If TURNSTILE_SECRET_KEY is unset, the contact + subscribe endpoints

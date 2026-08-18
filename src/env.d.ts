@@ -32,7 +32,9 @@ declare module 'cloudflare:workers' {
     // Shopify — Worker secrets. Custom-app Admin API token (scopes
     // write_draft_orders, read_orders, read_products) and the webhook
     // signing key from Settings → Notifications → Webhooks.
-    SHOPIFY_ADMIN_TOKEN?: string;
+    SHOPIFY_ADMIN_TOKEN?: string; // legacy custom-app token (shpat_…), optional
+    SHOPIFY_CLIENT_ID?: string; // Dev Dashboard app client id (+ secret → minted tokens)
+    SHOPIFY_CLIENT_SECRET?: string;
     SHOPIFY_WEBHOOK_SECRET?: string;
     // Shopify — plain vars (not secret).
     SHOPIFY_STORE_DOMAIN?: string; // biokea.myshopify.com

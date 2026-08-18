@@ -42,9 +42,50 @@ export interface PaymentsGateway {
 
 export interface ShopifyConfig {
   storeDomain: string; // biokea.myshopify.com
-  adminToken: string;
+  // Either a static Admin API access token (legacy custom app, `shpat_…`) or
+  // the app's client credentials (Dev Dashboard app installed on our own
+  // store), from which the Worker mints 24-hour tokens on demand.
+  adminToken?: string;
+  clientId?: string;
+  clientSecret?: string;
   apiVersion?: string; // default '2026-01'
   paymentTermsTemplate?: string; // 'NET_30' etc.; undefined → due on receipt
+}
+
+// Client-credentials tokens live 24 h; cache them per isolate and re-mint a
+// little before expiry. Keyed by store + client id.
+const tokenCache = new Map<string, { token: string; expiresAt: number }>();
+const REFRESH_MARGIN_MS = 5 * 60 * 1000;
+export function resetShopifyTokenCache(): void {
+  tokenCache.clear();
+}
+
+async function mintToken(cfg: ShopifyConfig, fetchImpl: typeof fetch): Promise<string> {
+  const key = `${cfg.storeDomain}|${cfg.clientId}`;
+  const cached = tokenCache.get(key);
+  if (cached && cached.expiresAt - Date.now() > REFRESH_MARGIN_MS) return cached.token;
+  const res = await fetchImpl(`https://${cfg.storeDomain}/admin/oauth/access_token`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: cfg.clientId!,
+      client_secret: cfg.clientSecret!,
+      grant_type: 'client_credentials',
+    }).toString(),
+  });
+  if (!res.ok) throw new Error(`Shopify /admin/oauth/access_token ${res.status}`);
+  const json = (await res.json()) as { access_token?: string; expires_in?: number };
+  if (!json.access_token)
+    throw new Error('Shopify /admin/oauth/access_token: no access_token in response');
+  const ttlMs = (json.expires_in ?? 86399) * 1000;
+  tokenCache.set(key, { token: json.access_token, expiresAt: Date.now() + ttlMs });
+  return json.access_token;
+}
+
+async function accessToken(cfg: ShopifyConfig, fetchImpl: typeof fetch): Promise<string> {
+  if (cfg.adminToken) return cfg.adminToken;
+  if (cfg.clientId && cfg.clientSecret) return mintToken(cfg, fetchImpl);
+  throw new Error('Shopify credentials missing: need adminToken or clientId + clientSecret');
 }
 
 export const dollars = (cents: number): string => {
@@ -59,11 +100,19 @@ export async function shopifyGraphql<T>(
   fetchImpl: typeof fetch = fetch,
 ): Promise<T> {
   const url = `https://${cfg.storeDomain}/admin/api/${cfg.apiVersion ?? '2026-01'}/graphql.json`;
-  const res = await fetchImpl(url, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'X-Shopify-Access-Token': cfg.adminToken },
-    body: JSON.stringify({ query, variables }),
-  });
+  const call = async (token: string) =>
+    fetchImpl(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'X-Shopify-Access-Token': token },
+      body: JSON.stringify({ query, variables }),
+    });
+  let res = await call(await accessToken(cfg, fetchImpl));
+  // A minted token can be revoked early (app reinstalled); drop the cache
+  // and retry exactly once with a fresh one.
+  if (res.status === 401 && cfg.clientId && !cfg.adminToken) {
+    tokenCache.delete(`${cfg.storeDomain}|${cfg.clientId}`);
+    res = await call(await accessToken(cfg, fetchImpl));
+  }
   if (!res.ok) throw new Error(`Shopify GraphQL ${res.status}`);
   const json = (await res.json()) as { data?: T; errors?: { message: string }[] };
   if (json.errors?.length)

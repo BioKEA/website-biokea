@@ -4,6 +4,7 @@ import { env } from 'cloudflare:workers';
 import { z } from 'zod';
 import { buildQuote } from '@/lib/pricing/quote';
 import { preflight, withCors } from '@/lib/cors';
+import { shopifyConfigured, type ShopifyEnv } from '@/lib/payments/shopify-env';
 
 export const prerender = false;
 
@@ -28,17 +29,13 @@ const QuoteSchema = z.object({
   'cf-turnstile-response': z.string().optional(),
 });
 
-interface Env {
+interface Env extends ShopifyEnv {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
   RESEND_API_KEY: string;
   CONTACT_FROM_EMAIL: string;
   CONTACT_TO_EMAIL: string;
   TURNSTILE_SECRET_KEY?: string;
-  // Typed here for `paymentsEnabled`; the full Shopify gateway config lands
-  // in src/env.d.ts in Task 5.
-  SHOPIFY_ADMIN_TOKEN?: string;
-  SHOPIFY_STORE_DOMAIN?: string;
 }
 
 interface HandleQuoteOpts {
@@ -290,7 +287,7 @@ export async function POST({ request, clientAddress }: APIContext): Promise<Resp
     );
   }
   return handleQuote(request, e, clientAddress, {
-    paymentsEnabled: !!(e.SHOPIFY_ADMIN_TOKEN && e.SHOPIFY_STORE_DOMAIN),
+    paymentsEnabled: shopifyConfigured(e),
     dev: import.meta.env.DEV,
   });
 }

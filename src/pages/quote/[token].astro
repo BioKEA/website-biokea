@@ -3,6 +3,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
 import { env } from 'cloudflare:workers';
 import { SupabaseDb } from '@/lib/payments/db';
+import { shopifyConfigured } from '@/lib/payments/shopify-env';
 import { panelView } from '@/lib/payments/panel';
 import { usdCents } from '@/lib/payments/terms';
 import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
@@ -13,8 +14,10 @@ const { token } = Astro.params;
 const e = env as unknown as {
   SUPABASE_URL?: string;
   SUPABASE_SERVICE_ROLE_KEY?: string;
-  SHOPIFY_ADMIN_TOKEN?: string;
   SHOPIFY_STORE_DOMAIN?: string;
+  SHOPIFY_ADMIN_TOKEN?: string;
+  SHOPIFY_CLIENT_ID?: string;
+  SHOPIFY_CLIENT_SECRET?: string;
 };
 
 // UUID shape check first — avoids a pointless round trip on junk tokens.
@@ -41,7 +44,7 @@ const usd = (n: number) => '$' + n.toLocaleString('en-US');
 const fmtDate = (iso: string) => iso.slice(0, 10);
 const expired = Date.parse(quote.expires_at) < Date.now();
 const panel = panelView(quote, payments, new Date());
-const paymentsLive = !!(e?.SHOPIFY_ADMIN_TOKEN && e?.SHOPIFY_STORE_DOMAIN); // hide the offer if Shopify isn't configured on this deployment
+const paymentsLive = shopifyConfigured(e ?? {}); // hide the offer if Shopify isn't configured on this deployment
 const payFlash = Astro.url.searchParams.get('pay'); // 'unavailable' | 'failed' | 'attest' | null
 ---
 

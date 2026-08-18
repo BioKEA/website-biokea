@@ -11,6 +11,7 @@ import { env } from 'cloudflare:workers';
 import { z } from 'zod';
 import { type PaymentsDb, SupabaseDb } from '@/lib/payments/db';
 import { type PaymentsGateway, shopifyGateway } from '@/lib/payments/gateway';
+import { shopifyConfigFromEnv, type ShopifyEnv } from '@/lib/payments/shopify-env';
 import {
   DEPOSIT_FRACTION,
   INVOICE_DAYS_UNTIL_DUE,
@@ -176,19 +177,9 @@ export async function handleDeposit(
 }
 
 export async function POST({ request, params }: APIContext): Promise<Response> {
-  const e = env as {
-    SUPABASE_URL?: string;
-    SUPABASE_SERVICE_ROLE_KEY?: string;
-    SHOPIFY_STORE_DOMAIN?: string;
-    SHOPIFY_ADMIN_TOKEN?: string;
-    SHOPIFY_PAYMENT_TERMS_TEMPLATE?: string;
-  };
-  if (
-    !e?.SUPABASE_URL ||
-    !e?.SUPABASE_SERVICE_ROLE_KEY ||
-    !e?.SHOPIFY_ADMIN_TOKEN ||
-    !e?.SHOPIFY_STORE_DOMAIN
-  ) {
+  const e = env as { SUPABASE_URL?: string; SUPABASE_SERVICE_ROLE_KEY?: string } & ShopifyEnv;
+  const shopify = shopifyConfigFromEnv(e);
+  if (!e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY || !shopify) {
     return new Response('Payments are not configured.', { status: 500 });
   }
   const token = params.token ?? '';
@@ -197,10 +188,6 @@ export async function POST({ request, params }: APIContext): Promise<Response> {
   }
   return handleDeposit(request, token, {
     db: new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY),
-    gateway: shopifyGateway({
-      storeDomain: e.SHOPIFY_STORE_DOMAIN,
-      adminToken: e.SHOPIFY_ADMIN_TOKEN,
-      paymentTermsTemplate: e.SHOPIFY_PAYMENT_TERMS_TEMPLATE ?? 'NET_30',
-    }),
+    gateway: shopifyGateway(shopify),
   });
 }
