@@ -1,0 +1,8 @@
+# Cloudflare Workers static-asset headers.
+# The quote widget is embedded on store.biokea.ai (Shopify) via a <script>
+# tag; a permissive CORS header lets browsers load it even when the tag
+# carries crossorigin="anonymous", and gives full error stacks in the
+# store's console. It is a public bundle — nothing sensitive.
+/widget/*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300

@@ -156,7 +156,9 @@ Worker secret with the narrowest scopes. The widget `<script>` on the store
 is loaded from our own origin without SRI on purpose: an integrity hash would
 have to be re-pasted into the Shopify theme on every widget rebuild, and the
 threat SRI guards against (a third-party CDN) doesn't apply — biokea.ai is
-the first party here. `crossorigin="anonymous"` is still set.
+the first party here. The tag carries no `crossorigin` attribute (with
+`crossorigin="anonymous"` the browser demands a CORS header on the script;
+`/widget/*` is served with `Access-Control-Allow-Origin: *` regardless).
 
 ## 7. Testing
 

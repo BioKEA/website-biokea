@@ -124,6 +124,9 @@ Merch:
   [`product-quote-section.liquid`](./product-quote-section.liquid).
 - Hide the buy button / price block on that template (theme setting or a
   template-level override) — the widget replaces it.
+- Do **not** add `crossorigin="anonymous"` to the widget `<script>` tag — it
+  makes the browser require a CORS header on the script and blocks it if
+  the header is missing (the Worker now serves `/widget/*` with one anyway).
 - The snippet's cache-buster (`?v=` on the CSS/JS URLs) only changes once a
   day (UTC), so a widget change deployed the same day it's tested on the
   store needs a manual `?v=` bump in the Custom Liquid section, or a wait
