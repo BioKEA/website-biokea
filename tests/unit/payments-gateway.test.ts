@@ -155,9 +155,10 @@ describe('shopifyGateway.createInvoice', () => {
       },
     ]);
     expect(input.note).toBe(spec2.footer);
-    expect(input.paymentTerms).toEqual({
-      paymentTermsTemplateId: 'gid://shopify/PaymentTermsTemplate/3',
-    });
+    // NET terms require an issuedAt schedule (Shopify PaymentScheduleInput).
+    expect(input.paymentTerms.paymentTermsTemplateId).toBe('gid://shopify/PaymentTermsTemplate/3');
+    expect(input.paymentTerms.paymentSchedules).toHaveLength(1);
+    expect(input.paymentTerms.paymentSchedules[0].issuedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(input.appliedDiscount).toBeUndefined();
     expect(out).toEqual({
       customerId: null,

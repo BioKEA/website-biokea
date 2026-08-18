@@ -215,8 +215,14 @@ export function shopifyGateway(
           };
         // Net terms only when the buyer supplied a PO number (spec §2);
         // self-serve drafts are due on receipt so the invoice URL forces
-        // payment.
-        if (terms && spec.poNumber) input.paymentTerms = { paymentTermsTemplateId: terms };
+        // payment. NET templates require an issuedAt payment schedule or
+        // Shopify rejects the draft ("issuedAt is mandatory for net terms").
+        if (terms && spec.poNumber) {
+          input.paymentTerms = {
+            paymentTermsTemplateId: terms,
+            paymentSchedules: [{ issuedAt: new Date().toISOString() }],
+          };
+        }
         const c = await shopifyGraphql<{
           draftOrderCreate: {
             draftOrder: { id: string; name: string } | null;
