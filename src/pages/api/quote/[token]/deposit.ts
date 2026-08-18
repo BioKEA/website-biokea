@@ -133,7 +133,12 @@ export async function handleDeposit(
         ` Pay here or from the emailed invoice; questions: contact@biokea.ai.`,
       daysUntilDue: INVOICE_DAYS_UNTIL_DUE,
     });
-  } catch {
+  } catch (err) {
+    console.error(
+      '[deposit] gateway failed for',
+      quote.quote_number,
+      err instanceof Error ? err.message : err,
+    );
     await deps.db.deletePayment(inserted.id);
     return back(token, 'failed');
   }

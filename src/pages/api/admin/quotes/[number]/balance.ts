@@ -115,7 +115,12 @@ export async function handleBalance(
       footer: `Balance for BioKEA quote ${quote.quote_number}, computed on actual sample counts.`,
       daysUntilDue: INVOICE_DAYS_UNTIL_DUE,
     });
-  } catch {
+  } catch (err) {
+    console.error(
+      '[balance] gateway failed for',
+      quote.quote_number,
+      err instanceof Error ? err.message : err,
+    );
     await deps.db.deletePayment(inserted.id);
     return seeOther(`${admin}?error=gateway`);
   }
