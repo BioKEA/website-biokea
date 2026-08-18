@@ -126,11 +126,11 @@ describe('shopifyGateway.createInvoice', () => {
     ]);
     expect(s.calls[0].url).toBe('https://biokea.myshopify.com/admin/api/2026-01/graphql.json');
     expect(s.calls[0].headers['X-Shopify-Access-Token']).toBe('shpat_test');
-    expect(s.calls[1].variables).toEqual({ query: 'tag:"payment:p1"' });
+    expect(s.calls[1].variables).toEqual({ query: 'tag:"pay:p1"' });
     const input = s.calls[2].variables.input;
     expect(input.email).toBe('a@b.edu');
     expect(input.taxExempt).toBe(true);
-    expect(input.tags).toEqual(['biokea', 'deposit', 'payment:p1', 'quote:BK-2026-0142']);
+    expect(input.tags).toEqual(['biokea', 'deposit', 'pay:p1', 'quote:BK-2026-0142']);
     expect(input.customAttributes).toEqual([
       { key: 'quote_id', value: 'q1' },
       { key: 'quote_number', value: 'BK-2026-0142' },
@@ -252,5 +252,20 @@ describe('shopifyGateway.createInvoice', () => {
     await g.createInvoice(spec2);
     await g.createInvoice({ ...spec2, paymentId: 'p2' });
     expect(s.calls.filter((c) => c.op === 'paymentTermsTemplates')).toHaveLength(1);
+  });
+});
+
+describe('payment tag length', () => {
+  it("keeps the payment tag within Shopify's 40-character tag limit for UUID payment ids", async () => {
+    const { paymentTag, paymentIdFromTag } = await import('@/lib/payments/gateway');
+    const id = '5f9c1a2b-3d4e-4f60-8a7b-9c0d1e2f3a4b';
+    const tag = paymentTag(id);
+    expect(tag).toBe('pay:5f9c1a2b3d4e4f608a7b9c0d1e2f3a4b');
+    expect(tag.length).toBeLessThanOrEqual(40);
+    expect(paymentIdFromTag(tag)).toBe(id);
+    // non-UUID ids (tests, legacy) round-trip unchanged
+    expect(paymentTag('p1')).toBe('pay:p1');
+    expect(paymentIdFromTag('pay:p1')).toBe('p1');
+    expect(paymentIdFromTag('quote:BK-1')).toBeNull();
   });
 });

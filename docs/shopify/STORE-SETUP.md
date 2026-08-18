@@ -176,7 +176,7 @@ verification.
 ## Housekeeping
 
 If our Worker fails between creating a draft and sending its invoice, an
-OPEN draft tagged `payment:<id>` may remain in Shopify without a matching
+OPEN draft tagged `pay:<id>` may remain in Shopify without a matching
 payment row; it is safe to delete.
 
 ## Verify

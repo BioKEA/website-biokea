@@ -15,6 +15,7 @@
 // `void`'d work gets torn down with the response on Workers.
 import type { APIContext } from 'astro';
 import { env } from 'cloudflare:workers';
+import { PAYMENT_TAG_PREFIX, paymentIdFromTag } from '@/lib/payments/gateway';
 import { type PaymentsDb, SupabaseDb } from '@/lib/payments/db';
 import { type EmailSender, resendSender } from '@/lib/email/resend';
 import {
@@ -101,13 +102,14 @@ async function findPaymentByRef(
   return (await db.listPayments(quote.id)).find((p) => p.id === paymentId) ?? null;
 }
 
-// order['s] payment_id tag → note_attributes.payment_id → external_id built
+// order's pay:<id> tag → note_attributes.payment_id → external_id built
 // from the draft_order_id suffix. Spec §4.4.
 async function findPaymentForOrder(
   db: PaymentsDb,
   order: ShopifyOrder,
 ): Promise<PaymentRecord | null> {
-  const tagPaymentId = tagValue(order.tags, 'payment:');
+  const rawTag = tagValue(order.tags, PAYMENT_TAG_PREFIX);
+  const tagPaymentId = rawTag !== null ? paymentIdFromTag(PAYMENT_TAG_PREFIX + rawTag) : null;
   const tagQuoteNumber = tagValue(order.tags, 'quote:');
   const attrPaymentId = attrValue(order.note_attributes, 'payment_id');
   const attrQuoteId = attrValue(order.note_attributes, 'quote_id');

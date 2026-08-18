@@ -88,6 +88,22 @@ async function accessToken(cfg: ShopifyConfig, fetchImpl: typeof fetch): Promise
   throw new Error('Shopify credentials missing: need adminToken or clientId + clientSecret');
 }
 
+// Shopify tags are capped at 40 characters; `payment:<uuid>` is 44. Strip
+// the dashes (32 hex chars) behind a short prefix and expand on the way back.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const PAYMENT_TAG_PREFIX = 'pay:';
+export function paymentTag(paymentId: string): string {
+  const compact = UUID_RE.test(paymentId) ? paymentId.replace(/-/g, '') : paymentId;
+  return `${PAYMENT_TAG_PREFIX}${compact}`;
+}
+export function paymentIdFromTag(tag: string): string | null {
+  if (!tag.startsWith(PAYMENT_TAG_PREFIX)) return null;
+  const v = tag.slice(PAYMENT_TAG_PREFIX.length);
+  return /^[0-9a-f]{32}$/i.test(v)
+    ? `${v.slice(0, 8)}-${v.slice(8, 12)}-${v.slice(12, 16)}-${v.slice(16, 20)}-${v.slice(20)}`
+    : v;
+}
+
 export const dollars = (cents: number): string => {
   if (!Number.isInteger(cents)) throw new Error(`amount must be integer cents, got ${cents}`);
   return (cents / 100).toFixed(2);
@@ -130,7 +146,7 @@ const userErr = (errs: { message: string }[] | undefined, what: string) => {
 };
 
 // GraphQL Admin API Draft Orders implementation. Creates (or reuses, keyed
-// on the payment:<paymentId> tag) a Draft Order and sends the hosted
+// on the pay:<paymentId> tag) a Draft Order and sends the hosted
 // invoice. Spec §5.1.
 export function shopifyGateway(
   cfg: ShopifyConfig,
@@ -166,7 +182,7 @@ export function shopifyGateway(
       const terms = await termsTemplateId();
       const found = await shopifyGraphql<{
         draftOrders: { nodes: { id: string; name: string; status: string }[] };
-      }>(cfg, Q_FIND, { query: `tag:"payment:${spec.paymentId}"` }, fetchImpl);
+      }>(cfg, Q_FIND, { query: `tag:"${paymentTag(spec.paymentId)}"` }, fetchImpl);
       let draft = found.draftOrders.nodes.find((n) => n.status === 'OPEN') ?? null;
       if (!draft) {
         const attrs = [
@@ -180,7 +196,7 @@ export function shopifyGateway(
           email: spec.customer.email,
           note: spec.footer,
           taxExempt: true,
-          tags: ['biokea', spec.kind, `payment:${spec.paymentId}`, `quote:${spec.quoteNumber}`],
+          tags: ['biokea', spec.kind, paymentTag(spec.paymentId), `quote:${spec.quoteNumber}`],
           customAttributes: attrs,
           lineItems: spec.lines.map((l) => ({
             title: l.description,

@@ -55,7 +55,7 @@ const orderPaid = {
   name: '#1042',
   financial_status: 'paid',
   source_name: 'shopify_draft_order',
-  tags: 'biokea, deposit, payment:p1, quote:BK-2026-0142',
+  tags: 'biokea, deposit, pay:p1, quote:BK-2026-0142',
   note_attributes: [
     { name: 'payment_id', value: 'p1' },
     { name: 'quote_id', value: 'q1' },
@@ -284,7 +284,7 @@ describe('handleShopifyWebhook', () => {
       id: 6001,
       name: '#1050',
       financial_status: 'paid',
-      tags: 'biokea, balance, payment:p2, quote:BK-2026-0142',
+      tags: 'biokea, balance, pay:p2, quote:BK-2026-0142',
       note_attributes: [
         { name: 'payment_id', value: 'p2' },
         { name: 'quote_id', value: 'q1' },
