@@ -139,7 +139,11 @@ export async function shopifyGraphql<T>(
 const Q_TEMPLATES = `query paymentTermsTemplates { paymentTermsTemplates { id name paymentTermsType dueInDays } }`;
 const Q_FIND = `query findDraft($query: String!) { draftOrders(first: 10, query: $query) { nodes { id name status } } }`;
 const M_CREATE = `mutation draftOrderCreate($input: DraftOrderInput!) { draftOrderCreate(input: $input) { draftOrder { id name } userErrors { field message } } }`;
-const M_SEND = `mutation draftOrderInvoiceSend($id: ID!) { draftOrderInvoiceSend(id: $id) { draftOrder { id name invoiceUrl totalPriceSet { shopMoney { amount } } paymentTerms { paymentSchedules(first: 1) { nodes { dueAt } } } } userErrors { field message } } }`;
+// Selecting `paymentTerms` requires the read_payment_terms scope; only ask
+// for it when we actually attached terms, so a store without that scope can
+// still take self-serve (due-on-receipt) deposits.
+const M_SEND_WITH_TERMS = `mutation draftOrderInvoiceSend($id: ID!) { draftOrderInvoiceSend(id: $id) { draftOrder { id name invoiceUrl totalPriceSet { shopMoney { amount } } paymentTerms { paymentSchedules(first: 1) { nodes { dueAt } } } } userErrors { field message } } }`;
+const M_SEND = `mutation draftOrderInvoiceSend($id: ID!) { draftOrderInvoiceSend(id: $id) { draftOrder { id name invoiceUrl totalPriceSet { shopMoney { amount } } } userErrors { field message } } }`;
 
 const userErr = (errs: { message: string }[] | undefined, what: string) => {
   if (errs && errs.length) throw new Error(`${what}: ${errs.map((e) => e.message).join('; ')}`);
@@ -180,6 +184,7 @@ export function shopifyGateway(
   return {
     async createInvoice(spec) {
       const terms = await termsTemplateId();
+      let termsAttached = false;
       const found = await shopifyGraphql<{
         draftOrders: { nodes: { id: string; name: string; status: string }[] };
       }>(cfg, Q_FIND, { query: `tag:"${paymentTag(spec.paymentId)}"` }, fetchImpl);
@@ -222,6 +227,7 @@ export function shopifyGateway(
             paymentTermsTemplateId: terms,
             paymentSchedules: [{ issuedAt: new Date().toISOString() }],
           };
+          termsAttached = true;
         }
         const c = await shopifyGraphql<{
           draftOrderCreate: {
@@ -239,11 +245,11 @@ export function shopifyGateway(
             name: string;
             invoiceUrl: string;
             totalPriceSet: { shopMoney: { amount: string } };
-            paymentTerms: { paymentSchedules: { nodes: { dueAt: string | null }[] } } | null;
+            paymentTerms?: { paymentSchedules: { nodes: { dueAt: string | null }[] } } | null;
           };
           userErrors: { message: string }[];
         };
-      }>(cfg, M_SEND, { id: draft.id }, fetchImpl);
+      }>(cfg, termsAttached ? M_SEND_WITH_TERMS : M_SEND, { id: draft.id }, fetchImpl);
       userErr(s.draftOrderInvoiceSend.userErrors, 'draftOrderInvoiceSend');
       const d = s.draftOrderInvoiceSend.draftOrder;
       return {

@@ -42,8 +42,18 @@ export interface DepositDeps {
 }
 
 const seeOther = (location: string) => new Response(null, { status: 303, headers: { location } });
-const back = (token: string, reason: 'unavailable' | 'failed' | 'attest') =>
-  seeOther(`/quote/${token}?pay=${reason}`);
+// Carry the buyer's selections through the bounce so the panel comes back
+// prefilled, and anchor to it so they land on the panel, not the page top.
+const back = (
+  token: string,
+  reason: 'unavailable' | 'failed' | 'attest',
+  keep?: { audience?: string; po?: string },
+) => {
+  const qs = new URLSearchParams({ pay: reason });
+  if (keep?.audience) qs.set('audience', keep.audience);
+  if (keep?.po) qs.set('po', keep.po);
+  return seeOther(`/quote/${token}?${qs.toString()}#pay`);
+};
 
 async function liveDepositUrl(db: PaymentsDb, quote: QuoteRecord): Promise<string | null> {
   const payments = await db.listPayments(quote.id);
@@ -83,7 +93,8 @@ export async function handleDeposit(
     return back(token, 'unavailable');
   }
 
-  if (form.audience === 'academic' && form.attest !== 'true') return back(token, 'attest');
+  if (form.audience === 'academic' && form.attest !== 'true')
+    return back(token, 'attest', { audience: form.audience, po: form.po_number || undefined });
 
   const lines = depositLines(quote.lines, form.audience);
   const amountCents = depositTotalCents(lines);
@@ -92,7 +103,7 @@ export async function handleDeposit(
     assertDepositSane(total, amountCents, lines.length);
   } catch (err) {
     console.error('[deposit] sanity check failed for', quote.quote_number, err);
-    return back(token, 'failed');
+    return back(token, 'failed', { audience: form.audience, po: form.po_number || undefined });
   }
 
   const inserted = await deps.db.insertPayment({
@@ -103,7 +114,7 @@ export async function handleDeposit(
   if (inserted === 'conflict') {
     // Lost a race with a concurrent submit; that one owns the invoice.
     const url = await liveDepositUrl(deps.db, quote);
-    return url ? seeOther(url) : back(token, 'failed');
+    return url ? seeOther(url) : back(token, 'failed', { audience: form.audience });
   }
 
   const poNumber = form.po_number && form.po_number.length > 0 ? form.po_number : null;
@@ -141,7 +152,7 @@ export async function handleDeposit(
       err instanceof Error ? err.message : err,
     );
     await deps.db.deletePayment(inserted.id);
-    return back(token, 'failed');
+    return back(token, 'failed', { audience: form.audience, po: poNumber ?? undefined });
   }
 
   // The invoice email is already sent at this point — failing the request

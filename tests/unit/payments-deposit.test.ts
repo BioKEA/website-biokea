@@ -139,12 +139,12 @@ describe('handleDeposit', () => {
     for (const fields of [{ audience: 'academic' }, { audience: 'academic', attest: 'no' }]) {
       const res = await handleDeposit(post(TOKEN, fields), TOKEN, { db, gateway, now: NOW });
       expect(res.status).toBe(303);
-      expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=attest`);
+      expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=attest&audience=academic#pay`);
     }
     for (const fields of [{ audience: 'wholesale' }, {}]) {
       const res = await handleDeposit(post(TOKEN, fields), TOKEN, { db, gateway, now: NOW });
       expect(res.status).toBe(303);
-      expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=unavailable`);
+      expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=unavailable#pay`);
     }
     expect(gateway.created).toHaveLength(0);
     expect(db.payments).toHaveLength(0);
@@ -162,7 +162,7 @@ describe('handleDeposit', () => {
         gateway,
         now: NOW,
       });
-      expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=unavailable`);
+      expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=unavailable#pay`);
     }
     expect(gateway.created).toHaveLength(0);
   });
@@ -198,7 +198,7 @@ describe('handleDeposit', () => {
       gateway,
       now: NOW,
     });
-    expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=failed`);
+    expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=failed&audience=commercial#pay`);
     expect(db.payments).toHaveLength(0);
     expect(db.quotes[0].status).toBe('quoted');
     // and the customer can try again
@@ -225,7 +225,7 @@ describe('handleDeposit', () => {
       TOKEN,
       { db, gateway, now: NOW },
     );
-    expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=unavailable`);
+    expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=unavailable#pay`);
   });
 
   it('on a lost insert race, redirects to the winning invoice without calling the gateway', async () => {
@@ -268,7 +268,7 @@ describe('handleDeposit', () => {
       gateway,
       now: NOW,
     });
-    expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=failed`);
+    expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=failed&audience=commercial#pay`);
     expect(gateway.created).toHaveLength(0);
   });
 
@@ -325,7 +325,7 @@ describe('handleDeposit', () => {
       gateway,
       now: NOW,
     });
-    expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=failed`);
+    expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=failed&audience=commercial#pay`);
     expect(gateway.created).toHaveLength(0);
     expect(db.payments).toHaveLength(0);
     expect(errSpy).toHaveBeenCalled();

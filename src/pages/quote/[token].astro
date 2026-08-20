@@ -46,6 +46,10 @@ const expired = Date.parse(quote.expires_at) < Date.now();
 const panel = panelView(quote, payments, new Date());
 const paymentsLive = shopifyConfigured(e ?? {}); // hide the offer if Shopify isn't configured on this deployment
 const payFlash = Astro.url.searchParams.get('pay'); // 'unavailable' | 'failed' | 'attest' | null
+// After a bounce the buyer's selections come back as query params so the
+// panel is prefilled — nobody should have to pick the rate twice.
+const keptAudience = Astro.url.searchParams.get('audience');
+const keptPo = Astro.url.searchParams.get('po') ?? '';
 ---
 
 <BaseLayout
@@ -182,13 +186,27 @@ const payFlash = Astro.url.searchParams.get('pay'); // 'unavailable' | 'failed' 
             class="mt-4 space-y-3 text-sm"
           >
             <label class="flex items-start gap-2">
-              <input type="radio" name="audience" value="commercial" required class="mt-1" />
+              <input
+                type="radio"
+                name="audience"
+                value="commercial"
+                required
+                class="mt-1"
+                checked={keptAudience === 'commercial'}
+              />
               <span>
                 <strong>Commercial rate</strong> — deposit {usdCents(panel.depositCommercialCents)}
               </span>
             </label>
             <label class="flex items-start gap-2">
-              <input type="radio" name="audience" value="academic" required class="mt-1" />
+              <input
+                type="radio"
+                name="audience"
+                value="academic"
+                required
+                class="mt-1"
+                checked={keptAudience === 'academic'}
+              />
               <span>
                 <strong>Academic / nonprofit rate</strong> — deposit{' '}
                 {usdCents(panel.depositAcademicCents)}
@@ -207,6 +225,7 @@ const payFlash = Astro.url.searchParams.get('pay'); // 'unavailable' | 'failed' 
               </span>
               <input
                 name="po_number"
+                value={keptPo}
                 maxlength="64"
                 class="mt-1 w-full max-w-xs border border-slate-300 rounded px-2 py-1.5 font-mono"
               />

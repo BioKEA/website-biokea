@@ -65,6 +65,7 @@ function fakeShopify(answers: Record<string, unknown>) {
     const op = /^\s*(?:query|mutation)\s+(\w+)/.exec(body.query)?.[1] ?? 'unknown';
     calls.push({
       op,
+      query: body.query as string,
       variables: body.variables,
       headers: init.headers as Record<string, string>,
       url,
@@ -124,6 +125,8 @@ describe('shopifyGateway.createInvoice', () => {
       'draftOrderCreate',
       'draftOrderInvoiceSend',
     ]);
+    // terms were attached, so the send may select paymentTerms (read_payment_terms scope)
+    expect(s.calls[3].query).toContain('paymentTerms');
     expect(s.calls[0].url).toBe('https://biokea.myshopify.com/admin/api/2026-01/graphql.json');
     expect(s.calls[0].headers['X-Shopify-Access-Token']).toBe('shpat_test');
     expect(s.calls[1].variables).toEqual({ query: 'tag:"pay:p1"' });
@@ -177,6 +180,9 @@ describe('shopifyGateway.createInvoice', () => {
     expect(s.calls[2].variables.input.paymentTerms).toBeUndefined();
     // the terms lookup itself still runs — only the assignment is gated
     expect(s.calls.map((c) => c.op)).toContain('paymentTermsTemplates');
+    // and the send must not select paymentTerms (needs no read_payment_terms scope)
+    const send = s.calls.find((c) => c.op === 'draftOrderInvoiceSend')!;
+    expect(send.query).not.toContain('paymentTerms');
   });
 
   it('turns the credit into a fixed-amount appliedDiscount', async () => {
