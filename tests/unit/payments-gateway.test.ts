@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   MemoryGateway,
   shopifyGateway,
@@ -274,5 +274,82 @@ describe('payment tag length', () => {
     expect(paymentTag('p1')).toBe('pay:p1');
     expect(paymentIdFromTag('pay:p1')).toBe('p1');
     expect(paymentIdFromTag('quote:BK-1')).toBeNull();
+  });
+});
+
+describe('payment-terms scope fallback', () => {
+  it('retries the draft without terms when Shopify rejects them for missing scope', async () => {
+    let creates = 0;
+    const answers: Record<string, unknown> = {
+      paymentTermsTemplates: {
+        paymentTermsTemplates: [
+          {
+            id: 'gid://shopify/PaymentTermsTemplate/3',
+            name: 'Net 30',
+            paymentTermsType: 'NET',
+            dueInDays: 30,
+          },
+        ],
+      },
+      findDraft: { draftOrders: { nodes: [] } },
+      draftOrderInvoiceSend: {
+        draftOrderInvoiceSend: {
+          draftOrder: {
+            id: 'gid://shopify/DraftOrder/12',
+            name: '#D12',
+            invoiceUrl: 'https://store.biokea.ai/12/invoices/xyz',
+            totalPriceSet: { shopMoney: { amount: '4800.00' } },
+          },
+          userErrors: [],
+        },
+      },
+    };
+    const f = (async (url: string, init: RequestInit) => {
+      const body = JSON.parse(String(init.body));
+      const op = /^\s*(?:query|mutation)\s+(\w+)/.exec(body.query)?.[1] ?? '';
+      if (op === 'draftOrderCreate') {
+        creates++;
+        if (creates === 1) {
+          expect(body.variables.input.paymentTerms).toBeDefined();
+          return new Response(
+            JSON.stringify({
+              data: {
+                draftOrderCreate: {
+                  draftOrder: null,
+                  userErrors: [
+                    {
+                      field: ['input'],
+                      message: 'The user must have access to set payment terms.',
+                    },
+                  ],
+                },
+              },
+            }),
+            { status: 200 },
+          );
+        }
+        expect(body.variables.input.paymentTerms).toBeUndefined();
+        return new Response(
+          JSON.stringify({
+            data: {
+              draftOrderCreate: {
+                draftOrder: { id: 'gid://shopify/DraftOrder/12', name: '#D12' },
+                userErrors: [],
+              },
+            },
+          }),
+          { status: 200 },
+        );
+      }
+      if (op === 'draftOrderInvoiceSend') expect(body.query).not.toContain('paymentTerms');
+      return new Response(JSON.stringify({ data: answers[op] ?? {} }), { status: 200 });
+    }) as unknown as typeof fetch;
+
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const out = await shopifyGateway(cfg, f).createInvoice(spec2); // spec2 has a PO → terms attached first
+    spy.mockRestore();
+    expect(creates).toBe(2);
+    expect(out.externalId).toBe('gid://shopify/DraftOrder/12');
+    expect(out.dueAt).toBeNull();
   });
 });

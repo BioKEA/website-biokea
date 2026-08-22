@@ -229,12 +229,29 @@ export function shopifyGateway(
           };
           termsAttached = true;
         }
-        const c = await shopifyGraphql<{
-          draftOrderCreate: {
-            draftOrder: { id: string; name: string } | null;
-            userErrors: { message: string }[];
-          };
-        }>(cfg, M_CREATE, { input }, fetchImpl);
+        const create = () =>
+          shopifyGraphql<{
+            draftOrderCreate: {
+              draftOrder: { id: string; name: string } | null;
+              userErrors: { message: string }[];
+            };
+          }>(cfg, M_CREATE, { input }, fetchImpl);
+        let c = await create();
+        // Attaching terms needs the write_payment_terms scope (and a freshly
+        // minted token after a scope change). A PO buyer's deposit must not
+        // fail on that: drop the terms and retry once — due on receipt, the
+        // same fallback as a missing template (spec §10).
+        if (
+          termsAttached &&
+          c.draftOrderCreate.userErrors.some((e) => /payment terms/i.test(e.message))
+        ) {
+          console.error(
+            '[shopify] draft terms rejected (missing write_payment_terms?); retrying without terms',
+          );
+          delete input.paymentTerms;
+          termsAttached = false;
+          c = await create();
+        }
         userErr(c.draftOrderCreate.userErrors, 'draftOrderCreate');
         draft = { ...c.draftOrderCreate.draftOrder!, status: 'OPEN' };
       }
