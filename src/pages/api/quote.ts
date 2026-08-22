@@ -25,6 +25,10 @@ const QuoteSchema = z.object({
     )
     .min(1)
     .max(4),
+  // Optional so a cached widget bundle on the store keeps working; absent
+  // means the pay endpoint collects them instead.
+  audience: z.enum(['academic', 'commercial']).optional(),
+  attest: z.boolean().optional(),
   website: z.string().optional(),
   'cf-turnstile-response': z.string().optional(),
 });
@@ -121,6 +125,13 @@ async function handleQuoteInner(
     total_academic: quote.total.academic,
     total_commercial: quote.total.commercial,
     needs_conversation: quote.needsConversation,
+    audience: parsed.data.audience ?? null,
+    // Only meaningful for the academic rate, and only the pay endpoint may
+    // rely on it — it re-checks before any money moves.
+    academic_attested_at:
+      parsed.data.audience === 'academic' && parsed.data.attest === true
+        ? new Date().toISOString()
+        : null,
   };
 
   // `quotes` has RLS enabled with zero policies, which denies anon/authenticated
@@ -189,18 +200,40 @@ async function handleQuoteInner(
     })
     .join('\n');
 
+  const { audience } = parsed.data;
+  const totalLine = audience
+    ? `Total: ${usd(quote.total[audience])} (${audience === 'academic' ? 'academic/nonprofit' : 'commercial'} rate)`
+    : `Total: ${usd(quote.total.academic)} academic/nonprofit · ${usd(quote.total.commercial)} commercial`;
+
+  const closing = quote.needsConversation
+    ? `Because of the volume involved, we'll follow up to confirm scheduling and final pricing before anything is committed.`
+    : opts?.paymentsEnabled
+      ? [
+          `Pay in full and start your project:`,
+          `${url}#pay`,
+          ``,
+          `Card, Shop Pay, and PayPal are accepted. Paying by purchase order?`,
+          `The same page will email you a Net-30 invoice to forward to purchasing.`,
+          ``,
+          `Paying in full locks your rate and reserves lab capacity. Your quoted`,
+          `per-sample rate is held for this project — send fewer samples than quoted`,
+          `and the unused amount stays as credit toward another project for 12 months;`,
+          `send more and we invoice the difference at the same rate.`,
+          ``,
+          `Quote valid for 30 days. Full terms: https://biokea.ai/terms`,
+        ].join('\n')
+      : `Quote valid for 30 days. Reply to this email to start a project.`;
+
   const text = [
     `Your BioKEA quote — ${quoteNumber}`,
     ``,
     summary,
     ``,
-    `Total: ${usd(quote.total.academic)} academic/nonprofit · ${usd(quote.total.commercial)} commercial`,
+    totalLine,
     ``,
     `View or print this quote: ${url}`,
     ``,
-    quote.needsConversation
-      ? `Because of the volume involved, we'll follow up to confirm scheduling and final pricing before anything is committed.`
-      : `Quote valid for 30 days. Reply to this email to start a project.`,
+    closing,
     ``,
     `— The BioKEA team`,
     `https://biokea.ai/`,
@@ -248,6 +281,7 @@ async function handleQuoteInner(
           `Name: ${name}`,
           `Email: ${email}`,
           `Organization: ${organization || '—'}`,
+          `Rate: ${audience ?? '—'}`,
           ``,
           summary,
           ``,

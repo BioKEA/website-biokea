@@ -26,6 +26,27 @@ const validBody = {
   lines: [{ serviceSlug: 'barcoding', count: 600 }],
 };
 
+const calls = () => (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls;
+
+function insertedRow(): Record<string, unknown> {
+  const call = calls().find((c) => String(c[0]).includes('/rest/v1/quotes'))!;
+  return JSON.parse((call[1] as RequestInit).body as string);
+}
+
+function emailTextTo(recipient: string): string {
+  const call = calls().find((c) => {
+    if (!String(c[0]).includes('api.resend.com/emails')) return false;
+    const body = JSON.parse((c[1] as RequestInit).body as string);
+    return body.to === recipient;
+  })!;
+  const body = JSON.parse((call[1] as RequestInit).body as string);
+  return body.text as string;
+}
+
+function customerEmailText(): string {
+  return emailTextTo(validBody.email);
+}
+
 beforeEach(() => {
   vi.stubGlobal(
     'fetch',
@@ -191,5 +212,71 @@ describe('quote endpoint', () => {
     const body = await res.json();
     expect(body.ok).toBe(true);
     expect(body.quoteNumber).toBe('BK-2026-0001');
+  });
+
+  it('persists the audience the configurator chose', async () => {
+    await handleQuote(makeRequest({ ...validBody, audience: 'academic', attest: true }), env);
+    const row = insertedRow();
+    expect(row.audience).toBe('academic');
+    expect(row.academic_attested_at).toEqual(expect.any(String));
+  });
+
+  it('records no attestation for a commercial quote', async () => {
+    await handleQuote(makeRequest({ ...validBody, audience: 'commercial', attest: true }), env);
+    expect(insertedRow().academic_attested_at).toBeNull();
+  });
+
+  it('records an academic audience without an attestation as unattested', async () => {
+    await handleQuote(makeRequest({ ...validBody, audience: 'academic' }), env);
+    const row = insertedRow();
+    expect(row.audience).toBe('academic');
+    expect(row.academic_attested_at).toBeNull();
+  });
+
+  it('accepts a body with no audience at all (stale cached widget)', async () => {
+    const res = await handleQuote(makeRequest(validBody), env);
+    expect(res.status).toBe(200);
+    expect(insertedRow().audience).toBeNull();
+  });
+
+  it('rejects a junk audience', async () => {
+    const res = await handleQuote(makeRequest({ ...validBody, audience: 'student' }), env);
+    expect(res.status).toBe(400);
+  });
+
+  it('closes the customer email on the pay CTA and the credit disclosure', async () => {
+    await handleQuote(makeRequest({ ...validBody, audience: 'commercial' }), env, undefined, {
+      paymentsEnabled: true,
+    });
+    const text = customerEmailText();
+    expect(text).toContain('Pay in full and start your project:');
+    expect(text).toContain('#pay');
+    expect(text).toContain('credit toward another project for 12 months');
+    expect(text).toContain('purchase order');
+    expect(text).not.toMatch(/deposit/i);
+  });
+
+  it('shows one total when the audience is known', async () => {
+    await handleQuote(makeRequest({ ...validBody, audience: 'commercial' }), env);
+    const text = customerEmailText();
+    expect(text).toContain('Total: $');
+    expect(text).not.toContain('academic/nonprofit ·');
+  });
+
+  it('shows both totals when the audience is not known', async () => {
+    await handleQuote(makeRequest(validBody), env);
+    expect(customerEmailText()).toContain('academic/nonprofit ·');
+  });
+
+  it('keeps the follow-up close for a conversation-band quote', async () => {
+    await handleQuote(
+      makeRequest({ ...validBody, lines: [{ serviceSlug: 'barcoding', count: 5000 }] }),
+      env,
+      undefined,
+      { paymentsEnabled: true },
+    );
+    const text = customerEmailText();
+    expect(text).toContain("we'll follow up to confirm scheduling");
+    expect(text).not.toContain('Pay in full and start your project:');
   });
 });
