@@ -60,13 +60,18 @@ export async function handleBalance(
 
   let computed: ReturnType<typeof computeBalance>;
   try {
-    computed = computeBalance(form.inputs, quote.audience, {
-      amountCents: deposit.amount_cents,
-      invoiceLabel: deposit.order_ref
-        ? `order ${deposit.order_ref}`
-        : (deposit.external_id ?? 'deposit'),
-      paidAt: deposit.paid_at ?? deposit.created_at,
-    });
+    computed = computeBalance(
+      form.inputs,
+      quote.audience,
+      {
+        amountCents: deposit.amount_cents,
+        invoiceLabel: deposit.order_ref
+          ? `order ${deposit.order_ref}`
+          : (deposit.external_id ?? 'deposit'),
+        paidAt: deposit.paid_at ?? deposit.created_at,
+      },
+      quote.lines,
+    );
   } catch {
     return seeOther(`${admin}?error=input`);
   }

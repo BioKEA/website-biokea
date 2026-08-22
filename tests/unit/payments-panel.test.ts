@@ -56,8 +56,8 @@ describe('panelView', () => {
     const v = panelView(quote(), [], now);
     expect(v.kind).toBe('offer');
     if (v.kind !== 'offer') return;
-    expect(v.depositAcademicCents).toBe(q.total.academic * 100 * 0.5);
-    expect(v.depositCommercialCents).toBe(q.total.commercial * 100 * 0.5);
+    expect(v.depositAcademicCents).toBe(q.total.academic * 100);
+    expect(v.depositCommercialCents).toBe(q.total.commercial * 100);
   });
 
   it('shows nothing for conversation-band or expired quotes with no deposit', () => {

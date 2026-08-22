@@ -1,18 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { buildQuote } from '@/lib/pricing/quote';
 import {
-  DEPOSIT_FRACTION,
+  CREDIT_MONTHS,
   usdCents,
-  depositLines,
-  depositTotalCents,
-  assertDepositSane,
+  assertPaymentSane,
   computeBalance,
+  creditFrom,
+  paymentLines,
+  paymentTotalCents,
 } from '@/lib/payments/terms';
+import type { PaymentRecord } from '@/lib/payments/types';
 
-const quote = buildQuote([
-  { serviceSlug: 'barcoding', count: 800 },
-  { serviceSlug: 'metabarcoding', count: 60, markers: 2 },
-]);
+const bar = (n: number) => buildQuote([{ serviceSlug: 'barcoding', count: n }]);
 
 describe('usdCents', () => {
   it('formats cents as US dollars', () => {
@@ -22,97 +21,159 @@ describe('usdCents', () => {
   });
 });
 
-describe('depositLines', () => {
-  it('halves each line at the chosen audience rate, in cents, one line per service', () => {
-    const lines = depositLines(quote.lines, 'academic');
-    expect(lines).toHaveLength(2);
-    expect(lines[0].amountCents).toBe(
-      Math.round(quote.lines[0].academic.total * 100 * DEPOSIT_FRACTION),
-    );
-    expect(lines[1].amountCents).toBe(
-      Math.round(quote.lines[1].academic.total * 100 * DEPOSIT_FRACTION),
-    );
+describe('paymentLines', () => {
+  it('bills the whole quote, not half of it', () => {
+    const q = bar(800); // academic: 300–999 tier @ $12 => $9,600
+    expect(q.total.academic).toBe(9600);
+    expect(paymentTotalCents(paymentLines(q.lines, 'academic'))).toBe(960000);
   });
 
-  it('describes the line with title, estimated count, rate, and audience', () => {
-    const [barcoding, edna] = depositLines(quote.lines, 'commercial');
-    expect(barcoding.description).toBe(
-      `Voucher-Linked Specimen Barcoding — 50% deposit on 800 specimens (est.) @ $${quote.lines[0].commercial.effectiveRate}/specimen, commercial rate`,
-    );
-    expect(edna.description).toContain('× 2 markers');
-    expect(edna.description).toContain('commercial rate');
-  });
-
-  it('uses the commercial total when asked', () => {
-    const [a] = depositLines(quote.lines, 'academic');
-    const [c] = depositLines(quote.lines, 'commercial');
-    expect(c.amountCents).toBeGreaterThan(a.amountCents);
+  it('describes the line without the word deposit', () => {
+    const [line] = paymentLines(bar(800).lines, 'academic');
+    expect(line.description).toContain('800 specimens');
+    expect(line.description).toContain('$12/specimen');
+    expect(line.description).not.toMatch(/deposit/i);
   });
 });
 
-describe('depositTotalCents + assertDepositSane', () => {
-  it('sums the per-line amounts', () => {
-    const lines = depositLines(quote.lines, 'academic');
-    expect(depositTotalCents(lines)).toBe(lines[0].amountCents + lines[1].amountCents);
+describe('assertPaymentSane', () => {
+  it('accepts the full total', () => {
+    expect(() => assertPaymentSane(9600, 960000, 1)).not.toThrow();
   });
 
-  it('accepts a deposit within one cent per line of half the total', () => {
-    const lines = depositLines(quote.lines, 'academic');
-    expect(() =>
-      assertDepositSane(quote.total.academic, depositTotalCents(lines), lines.length),
-    ).not.toThrow();
-  });
-
-  it('rejects a deposit under $1 or far from half the total', () => {
-    expect(() => assertDepositSane(1, 50, 1)).toThrow(/deposit/i);
-    expect(() => assertDepositSane(10000, 100, 1)).toThrow(/deposit/i);
+  it('rejects a half-total left over from the deposit era', () => {
+    expect(() => assertPaymentSane(9600, 480000, 1)).toThrow(/payment/i);
   });
 });
 
-describe('computeBalance', () => {
-  const deposit = {
-    amountCents: 480000,
-    invoiceLabel: 'invoice A1B2C3D4-0001',
-    paidAt: '2026-09-01T00:00:00Z',
+// Spec §4.2. Each row is the whole reason the rate lock exists; if you are
+// tempted to simplify the rule, one of these will catch you.
+describe('computeBalance rate lock', () => {
+  const paid = (cents: number) => ({
+    amountCents: cents,
+    invoiceLabel: 'order #1001',
+    paidAt: '2026-09-02T10:00:00Z',
+  });
+  const settle = (quotedCount: number, actualCount: number) => {
+    const quoted = bar(quotedCount);
+    const prepaid = paymentTotalCents(paymentLines(quoted.lines, 'academic'));
+    const r = computeBalance(
+      [{ serviceSlug: 'barcoding', count: actualCount }],
+      'academic',
+      paid(prepaid),
+      quoted.lines,
+    );
+    return { prepaid, settled: r.actualTotalCents, balance: r.balanceCents, uncapped: r.uncapped };
   };
 
-  it('prices actual counts with the engine at the recorded audience and credits the deposit', () => {
-    const r = computeBalance([{ serviceSlug: 'barcoding', count: 743 }], 'academic', deposit);
-    const expectedTotal =
-      buildQuote([{ serviceSlug: 'barcoding', count: 743 }]).total.academic * 100;
-    expect(r.actualTotalCents).toBe(expectedTotal);
-    expect(r.balanceCents).toBe(expectedTotal - 480000);
-    expect(r.lines).toHaveLength(1);
-    expect(r.lines[0].amountCents).toBe(expectedTotal);
-    expect(r.lines[0].description).toMatch(
-      /^Voucher-Linked Specimen Barcoding — 743 specimens @ \$\d+\/specimen, academic rate$/,
+  it('shipping exactly what was quoted owes and credits nothing', () => {
+    const r = settle(800, 800);
+    expect(r.settled).toBe(960000);
+    expect(r.balance).toBe(0);
+  });
+
+  it('under-shipping credits at the LOCKED rate, beating the engine', () => {
+    // engine would settle 250 at $3,600 (dead-zone buy-up to the 300 floor);
+    // the locked $12 rate settles it at $3,000 — $600 more credit.
+    const r = settle(800, 250);
+    expect(r.settled).toBe(300000);
+    expect(r.balance).toBe(-660000);
+  });
+
+  it('over-shipping still earns the better tier', () => {
+    // 1,100 reaches the 1,000–4,999 tier at $10 => $11,000. The cap must NOT
+    // clamp this back to the $9,600 they prepaid.
+    const r = settle(800, 1100);
+    expect(r.settled).toBe(1100000);
+    expect(r.balance).toBe(140000);
+  });
+
+  it('a dead-zone quote shipped exactly gets NO spurious credit', () => {
+    // 250 is priced as a 300-slot block ($3,600). Measuring the shortfall
+    // against pricedCount instead of count would credit $600 here.
+    const r = settle(250, 250);
+    expect(r.settled).toBe(360000);
+    expect(r.balance).toBe(0);
+  });
+
+  it('free headroom is honoured — 250 quoted, 300 shipped, nothing owed', () => {
+    const r = settle(250, 300);
+    expect(r.balance).toBe(0);
+  });
+
+  it('past the headroom, the extra is billed at the locked rate', () => {
+    const r = settle(250, 320); // 20 past the 300 block @ $12 => $240
+    expect(r.balance).toBe(24000);
+  });
+
+  it('when the engine beats the cap, the customer keeps the engine price', () => {
+    const r = settle(250, 100);
+    expect(r.settled).toBe(160000);
+    expect(r.balance).toBe(-200000);
+  });
+
+  it('flags a line that matches nothing in the quote as uncapped', () => {
+    const quoted = bar(800);
+    const r = computeBalance(
+      [
+        { serviceSlug: 'barcoding', count: 800 },
+        { serviceSlug: 'metabarcoding', count: 60, markers: 2 },
+      ],
+      'academic',
+      paid(960000),
+      quoted.lines,
     );
-    expect(r.lines.every((l) => l.amountCents >= 0)).toBe(true);
-    expect(r.credit).toEqual({
-      title: 'Deposit received (invoice A1B2C3D4-0001, paid 2026-09-01)',
-      amountCents: 480000,
-    });
-    expect(r.actualLines[0].count).toBe(743);
+    expect(r.uncapped).toEqual(['metabarcoding']);
   });
 
-  it('returns a non-positive balance when the actual total is at or under the deposit', () => {
-    const r = computeBalance([{ serviceSlug: 'barcoding', count: 100 }], 'academic', deposit);
-    expect(r.balanceCents).toBeLessThanOrEqual(0);
-  });
-
-  it('still prices counts above the conversation threshold (the human check already happened)', () => {
-    const r = computeBalance([{ serviceSlug: 'barcoding', count: 5000 }], 'commercial', deposit);
-    expect(r.actualTotalCents).toBe(
-      buildQuote([{ serviceSlug: 'barcoding', count: 5000 }]).total.commercial * 100,
+  it('treats a changed marker count as uncapped', () => {
+    const quoted = buildQuote([{ serviceSlug: 'metabarcoding', count: 60, markers: 2 }]);
+    const r = computeBalance(
+      [{ serviceSlug: 'metabarcoding', count: 60, markers: 3 }],
+      'academic',
+      paid(1),
+      quoted.lines,
     );
+    expect(r.uncapped).toEqual(['metabarcoding']);
+  });
+});
+
+describe('creditFrom', () => {
+  const row = (over: Partial<PaymentRecord>): PaymentRecord =>
+    ({
+      id: 'p1',
+      quote_id: 'q1',
+      kind: 'balance',
+      status: 'settled',
+      amount_cents: -660000,
+      currency: 'usd',
+      provider: 'shopify',
+      external_id: null,
+      hosted_url: null,
+      pdf_url: null,
+      order_ref: null,
+      external_order_id: null,
+      due_at: null,
+      paid_at: null,
+      actual_lines: null,
+      created_by: null,
+      created_at: '2026-09-10T00:00:00Z',
+      ...over,
+    }) as PaymentRecord;
+
+  it('turns a negative settled balance into a positive credit', () => {
+    const c = creditFrom(row({}));
+    expect(c).toEqual({ amountCents: 660000, expiresAt: '2027-09-10T00:00:00.000Z' });
   });
 
-  it('throws on an unknown service or a bad count, like the engine', () => {
-    expect(() =>
-      computeBalance([{ serviceSlug: 'nope', count: 1 }], 'academic', deposit),
-    ).toThrow();
-    expect(() =>
-      computeBalance([{ serviceSlug: 'barcoding', count: 0 }], 'academic', deposit),
-    ).toThrow();
+  it(`expires ${CREDIT_MONTHS} months out`, () => {
+    expect(CREDIT_MONTHS).toBe(12);
+  });
+
+  it('is null for every non-credit shape', () => {
+    expect(creditFrom(row({ amount_cents: 0 }))).toBeNull();
+    expect(creditFrom(row({ amount_cents: 1000 }))).toBeNull();
+    expect(creditFrom(row({ status: 'paid' }))).toBeNull();
+    expect(creditFrom(row({ kind: 'deposit' }))).toBeNull();
   });
 });

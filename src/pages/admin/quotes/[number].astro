@@ -72,13 +72,18 @@ if (url.searchParams.get('preview') === '1' && deposit && quote.audience) {
   if (!parsed) previewError = 'Counts must be positive whole numbers.';
   else {
     try {
-      preview = computeBalance(parsed.inputs, quote.audience, {
-        amountCents: deposit.amount_cents,
-        invoiceLabel: deposit.order_ref
-          ? `order ${deposit.order_ref}`
-          : (deposit.external_id ?? 'deposit'),
-        paidAt: deposit.paid_at ?? deposit.created_at,
-      });
+      preview = computeBalance(
+        parsed.inputs,
+        quote.audience,
+        {
+          amountCents: deposit.amount_cents,
+          invoiceLabel: deposit.order_ref
+            ? `order ${deposit.order_ref}`
+            : (deposit.external_id ?? 'deposit'),
+          paidAt: deposit.paid_at ?? deposit.created_at,
+        },
+        quote.lines,
+      );
     } catch (err) {
       previewError = err instanceof Error ? err.message : 'Invalid configuration.';
     }

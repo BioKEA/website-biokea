@@ -98,11 +98,10 @@ describe('handleDeposit', () => {
     expect(spec.paymentId).toBe('p1');
     expect(spec.poNumber).toBe('PO-77');
     expect(spec.footer).toBe(
-      '50% deposit toward BioKEA quote BK-2026-0142 (valid to 2026-09-19). The balance is invoiced on actual sample counts when results are delivered. Pay here or from the emailed invoice; questions: contact@biokea.ai.',
+      'Payment for BioKEA quote BK-2026-0142 (valid to 2026-09-19). The balance is invoiced on actual sample counts when results are delivered. Pay here or from the emailed invoice; questions: contact@biokea.ai.',
     );
     const expected =
-      Math.round(q.lines[0].commercial.total * 100 * 0.5) +
-      Math.round(q.lines[1].commercial.total * 100 * 0.5);
+      Math.round(q.lines[0].commercial.total * 100) + Math.round(q.lines[1].commercial.total * 100);
     expect(spec.lines.reduce((s, l) => s + l.amountCents, 0)).toBe(expected);
 
     const p = db.payments[0];

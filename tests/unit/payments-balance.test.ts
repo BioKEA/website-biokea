@@ -132,7 +132,7 @@ describe('handleBalance', () => {
       { serviceSlug: 'metabarcoding', count: 58, markers: 2 },
     ]);
     expect(spec.credit).toEqual({
-      title: 'Deposit received (order #1001, paid 2026-09-02)',
+      title: 'Payment received (order #1001, paid 2026-09-02)',
       amountCents: DEPOSIT,
     });
     expect(spec.lines.every((l) => l.amountCents >= 0)).toBe(true);
@@ -158,7 +158,11 @@ describe('handleBalance', () => {
       N,
       deps(),
     );
-    const actual = buildQuote([{ serviceSlug: 'barcoding', count: 100 }]).total.academic * 100;
+    // The rate lock (spec §4.2) holds: 800 quoted @ $12/specimen, 700 short,
+    // so the shortfall is credited at $12, not the standalone 1–299 tier's
+    // $16 the raw engine would charge for 100 alone. Settled: $9,600 minus
+    // 700 × $12 = $1,200 (120000 cents) — below the engine's own $1,600.
+    const actual = 120000;
     expect(res.headers.get('location')).toBe(
       `/admin/quotes/${N}?balance=settled&refund=${DEPOSIT - actual}`,
     );

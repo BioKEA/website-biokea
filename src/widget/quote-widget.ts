@@ -7,7 +7,7 @@
 // moved to template.ts, and a deposit panel added after a quote is created.
 import { pricedServices } from '@/data/pricing';
 import { buildQuote, type Quote, type QuoteLineInput } from '@/lib/pricing/quote';
-import { depositLines, depositTotalCents, usdCents } from '@/lib/payments/terms';
+import { paymentLines, paymentTotalCents, usdCents } from '@/lib/payments/terms';
 import { configSignature } from './state';
 import {
   esc,
@@ -250,10 +250,10 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
     const academic = $<HTMLElement>('[data-deposit-academic]');
     const commercial = $<HTMLElement>('[data-deposit-commercial]');
     if (academic) {
-      academic.textContent = usdCents(depositTotalCents(depositLines(quote.lines, 'academic')));
+      academic.textContent = usdCents(paymentTotalCents(paymentLines(quote.lines, 'academic')));
     }
     if (commercial) {
-      commercial.textContent = usdCents(depositTotalCents(depositLines(quote.lines, 'commercial')));
+      commercial.textContent = usdCents(paymentTotalCents(paymentLines(quote.lines, 'commercial')));
     }
     depositPanel.hidden = false;
   }

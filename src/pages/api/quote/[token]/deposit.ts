@@ -13,11 +13,10 @@ import { type PaymentsDb, SupabaseDb } from '@/lib/payments/db';
 import { type PaymentsGateway, shopifyGateway } from '@/lib/payments/gateway';
 import { shopifyConfigFromEnv, type ShopifyEnv } from '@/lib/payments/shopify-env';
 import {
-  DEPOSIT_FRACTION,
   INVOICE_DAYS_UNTIL_DUE,
-  assertDepositSane,
-  depositLines,
-  depositTotalCents,
+  assertPaymentSane,
+  paymentLines,
+  paymentTotalCents,
 } from '@/lib/payments/terms';
 import type { QuoteRecord } from '@/lib/payments/types';
 
@@ -96,11 +95,11 @@ export async function handleDeposit(
   if (form.audience === 'academic' && form.attest !== 'true')
     return back(token, 'attest', { audience: form.audience, po: form.po_number || undefined });
 
-  const lines = depositLines(quote.lines, form.audience);
-  const amountCents = depositTotalCents(lines);
+  const lines = paymentLines(quote.lines, form.audience);
+  const amountCents = paymentTotalCents(lines);
   const total = form.audience === 'academic' ? quote.total_academic : quote.total_commercial;
   try {
-    assertDepositSane(total, amountCents, lines.length);
+    assertPaymentSane(total, amountCents, lines.length);
   } catch (err) {
     console.error('[deposit] sanity check failed for', quote.quote_number, err);
     return back(token, 'failed', { audience: form.audience, po: form.po_number || undefined });
@@ -118,7 +117,6 @@ export async function handleDeposit(
   }
 
   const poNumber = form.po_number && form.po_number.length > 0 ? form.po_number : null;
-  const pct = `${Math.round(DEPOSIT_FRACTION * 100)}%`;
 
   let created;
   try {
@@ -140,7 +138,7 @@ export async function handleDeposit(
       poNumber,
       lines,
       footer:
-        `${pct} deposit toward BioKEA quote ${quote.quote_number} (valid to ${quote.expires_at.slice(0, 10)}).` +
+        `Payment for BioKEA quote ${quote.quote_number} (valid to ${quote.expires_at.slice(0, 10)}).` +
         ` The balance is invoiced on actual sample counts when results are delivered.` +
         ` Pay here or from the emailed invoice; questions: contact@biokea.ai.`,
       daysUntilDue: INVOICE_DAYS_UNTIL_DUE,

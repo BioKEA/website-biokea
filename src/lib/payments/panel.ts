@@ -2,7 +2,7 @@
 // Pure mapping from (quote row, payment rows) to what the customer's quote
 // page shows. Kept out of the .astro file so it can be unit-tested and so
 // the page stays a template. Spec §4.
-import { depositLines, depositTotalCents } from './terms';
+import { paymentLines, paymentTotalCents } from './terms';
 import type { PaymentKind, PaymentRecord, QuoteRecord } from './types';
 
 export type PanelView =
@@ -33,8 +33,8 @@ export function panelView(quote: QuoteRecord, payments: PaymentRecord[], now: Da
       if (quote.needs_conversation || expired) return { kind: 'none' };
       return {
         kind: 'offer',
-        depositAcademicCents: depositTotalCents(depositLines(quote.lines, 'academic')),
-        depositCommercialCents: depositTotalCents(depositLines(quote.lines, 'commercial')),
+        depositAcademicCents: paymentTotalCents(paymentLines(quote.lines, 'academic')),
+        depositCommercialCents: paymentTotalCents(paymentLines(quote.lines, 'commercial')),
       };
     }
     case 'deposit_invoiced':
