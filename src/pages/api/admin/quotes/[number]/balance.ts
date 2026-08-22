@@ -116,6 +116,9 @@ export async function handleBalance(
       // key suffix').
       paymentId: inserted.id,
       poNumber: quote.po_number,
+      // Preserves the prior PO-gated behavior for this call site; §6.2's
+      // intent-driven netTerms is specific to the up-front pay endpoint.
+      netTerms: Boolean(quote.po_number),
       lines: computed.lines,
       credit: computed.credit,
       footer: `Balance for BioKEA quote ${quote.quote_number}, computed on actual sample counts.`,

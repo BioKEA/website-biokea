@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { buildQuote } from '@/lib/pricing/quote';
 import { MemoryDb } from '@/lib/payments/db';
 import { MemoryGateway } from '@/lib/payments/gateway';
-import { handleDeposit } from '@/pages/api/quote/[token]/deposit';
+import { handlePayment } from '@/lib/payments/pay';
 import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
 
 const TOKEN = '11111111-1111-1111-1111-111111111111';
@@ -65,9 +65,9 @@ beforeEach(() => {
   db.quotes.push(quote());
 });
 
-describe('handleDeposit', () => {
+describe('handlePayment', () => {
   it('404s an unknown token', async () => {
-    const res = await handleDeposit(
+    const res = await handlePayment(
       post('22222222-2222-2222-2222-222222222222', { audience: 'commercial' }),
       '22222222-2222-2222-2222-222222222222',
       { db, gateway, now: NOW },
@@ -76,7 +76,7 @@ describe('handleDeposit', () => {
   });
 
   it('creates the deposit invoice at the commercial rate and redirects to the hosted page', async () => {
-    const res = await handleDeposit(
+    const res = await handlePayment(
       post(TOKEN, { audience: 'commercial', po_number: 'PO-77' }),
       TOKEN,
       { db, gateway, now: NOW },
@@ -98,7 +98,7 @@ describe('handleDeposit', () => {
     expect(spec.paymentId).toBe('p1');
     expect(spec.poNumber).toBe('PO-77');
     expect(spec.footer).toBe(
-      'Payment for BioKEA quote BK-2026-0142 (valid to 2026-09-19). The balance is invoiced on actual sample counts when results are delivered. Pay here or from the emailed invoice; questions: contact@biokea.ai.',
+      'Payment in full for BioKEA quote BK-2026-0142 (valid to 2026-09-19). Your quoted per-sample rate is held for this project: ship fewer samples than quoted and the unused amount stays as credit toward another project for 12 months; ship more and we invoice the difference at the same rate. Questions: contact@biokea.ai.',
     );
     const expected =
       Math.round(q.lines[0].commercial.total * 100) + Math.round(q.lines[1].commercial.total * 100);
@@ -124,7 +124,7 @@ describe('handleDeposit', () => {
   });
 
   it('records the academic attestation timestamp when the academic rate is chosen', async () => {
-    await handleDeposit(post(TOKEN, { audience: 'academic', attest: 'true' }), TOKEN, {
+    await handlePayment(post(TOKEN, { audience: 'academic', attest: 'true' }), TOKEN, {
       db,
       gateway,
       now: NOW,
@@ -136,12 +136,12 @@ describe('handleDeposit', () => {
 
   it('refuses academic without the attestation, and unknown audiences', async () => {
     for (const fields of [{ audience: 'academic' }, { audience: 'academic', attest: 'no' }]) {
-      const res = await handleDeposit(post(TOKEN, fields), TOKEN, { db, gateway, now: NOW });
+      const res = await handlePayment(post(TOKEN, fields), TOKEN, { db, gateway, now: NOW });
       expect(res.status).toBe(303);
       expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=attest&audience=academic#pay`);
     }
     for (const fields of [{ audience: 'wholesale' }, {}]) {
-      const res = await handleDeposit(post(TOKEN, fields), TOKEN, { db, gateway, now: NOW });
+      const res = await handlePayment(post(TOKEN, fields), TOKEN, { db, gateway, now: NOW });
       expect(res.status).toBe(303);
       expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=unavailable#pay`);
     }
@@ -156,7 +156,7 @@ describe('handleDeposit', () => {
       { status: 'deposit_paid' as const },
     ]) {
       db.quotes[0] = quote(over);
-      const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+      const res = await handlePayment(post(TOKEN, { audience: 'commercial' }), TOKEN, {
         db,
         gateway,
         now: NOW,
@@ -167,8 +167,8 @@ describe('handleDeposit', () => {
   });
 
   it('is idempotent: a second submit returns the existing live invoice URL without calling the gateway again', async () => {
-    await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, { db, gateway, now: NOW });
-    const res = await handleDeposit(post(TOKEN, { audience: 'academic', attest: 'true' }), TOKEN, {
+    await handlePayment(post(TOKEN, { audience: 'commercial' }), TOKEN, { db, gateway, now: NOW });
+    const res = await handlePayment(post(TOKEN, { audience: 'academic', attest: 'true' }), TOKEN, {
       db,
       gateway,
       now: NOW,
@@ -180,9 +180,9 @@ describe('handleDeposit', () => {
   });
 
   it('still returns the live URL when the quote expired after the invoice was issued', async () => {
-    await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, { db, gateway, now: NOW });
+    await handlePayment(post(TOKEN, { audience: 'commercial' }), TOKEN, { db, gateway, now: NOW });
     db.quotes[0].expires_at = '2026-08-31T00:00:00Z';
-    const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+    const res = await handlePayment(post(TOKEN, { audience: 'commercial' }), TOKEN, {
       db,
       gateway,
       now: NOW,
@@ -192,7 +192,7 @@ describe('handleDeposit', () => {
 
   it('rolls back the row and redirects with ?pay=failed when the gateway throws', async () => {
     gateway.failNext = new Error('gateway down');
-    const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+    const res = await handlePayment(post(TOKEN, { audience: 'commercial' }), TOKEN, {
       db,
       gateway,
       now: NOW,
@@ -201,7 +201,7 @@ describe('handleDeposit', () => {
     expect(db.payments).toHaveLength(0);
     expect(db.quotes[0].status).toBe('quoted');
     // and the customer can try again
-    const again = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+    const again = await handlePayment(post(TOKEN, { audience: 'commercial' }), TOKEN, {
       db,
       gateway,
       now: NOW,
@@ -210,7 +210,7 @@ describe('handleDeposit', () => {
   });
 
   it('trims and length-limits the PO number', async () => {
-    await handleDeposit(post(TOKEN, { audience: 'commercial', po_number: '  PO-1  ' }), TOKEN, {
+    await handlePayment(post(TOKEN, { audience: 'commercial', po_number: '  PO-1  ' }), TOKEN, {
       db,
       gateway,
       now: NOW,
@@ -219,7 +219,7 @@ describe('handleDeposit', () => {
     db.quotes[0] = quote();
     db.payments = [];
     gateway = new MemoryGateway();
-    const res = await handleDeposit(
+    const res = await handlePayment(
       post(TOKEN, { audience: 'commercial', po_number: 'x'.repeat(65) }),
       TOKEN,
       { db, gateway, now: NOW },
@@ -249,7 +249,7 @@ describe('handleDeposit', () => {
       created_by: null,
       created_at: '2026-09-01T00:00:00Z',
     };
-    const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+    const res = await handlePayment(post(TOKEN, { audience: 'commercial' }), TOKEN, {
       db: racy,
       gateway,
       now: NOW,
@@ -262,7 +262,7 @@ describe('handleDeposit', () => {
     const racy = new RacyDb();
     racy.quotes.push(quote());
     racy.winner = null;
-    const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+    const res = await handlePayment(post(TOKEN, { audience: 'commercial' }), TOKEN, {
       db: racy,
       gateway,
       now: NOW,
@@ -283,7 +283,7 @@ describe('handleDeposit', () => {
       }
     }
     const racingGateway = new RacingGateway(db);
-    const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+    const res = await handlePayment(post(TOKEN, { audience: 'commercial' }), TOKEN, {
       db,
       gateway: racingGateway,
       now: NOW,
@@ -302,7 +302,7 @@ describe('handleDeposit', () => {
       }
     }
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+    const res = await handlePayment(post(TOKEN, { audience: 'commercial' }), TOKEN, {
       db,
       gateway: new MismatchGateway(),
       now: NOW,
@@ -319,7 +319,7 @@ describe('handleDeposit', () => {
   it('logs and redirects with ?pay=failed when the deposit sanity check fails, without calling the gateway', async () => {
     db.quotes[0] = quote({ total_commercial: 1 }); // tampered total vs. the line prices
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const res = await handleDeposit(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+    const res = await handlePayment(post(TOKEN, { audience: 'commercial' }), TOKEN, {
       db,
       gateway,
       now: NOW,
@@ -329,5 +329,69 @@ describe('handleDeposit', () => {
     expect(db.payments).toHaveLength(0);
     expect(errSpy).toHaveBeenCalled();
     errSpy.mockRestore();
+  });
+
+  it('intent=pay redirects to the Shopify checkout and asks for no net terms', async () => {
+    const res = await handlePayment(post(TOKEN, { audience: 'commercial', intent: 'pay' }), TOKEN, {
+      db,
+      gateway,
+      now: NOW,
+    });
+    expect(res.status).toBe(303);
+    expect(res.headers.get('location')).toBe('https://store.biokea.test/invoices/test-1');
+    expect(gateway.created[0].netTerms).toBe(false);
+  });
+
+  it('intent=invoice attaches net terms and lands back on the quote page', async () => {
+    const res = await handlePayment(
+      post(TOKEN, { audience: 'commercial', intent: 'invoice', po_number: 'PO-77' }),
+      TOKEN,
+      { db, gateway, now: NOW },
+    );
+    expect(res.status).toBe(303);
+    expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=invoiced#pay`);
+    expect(gateway.created[0].netTerms).toBe(true);
+    expect(gateway.created[0].poNumber).toBe('PO-77');
+  });
+
+  it('net terms no longer depend on a PO number', async () => {
+    await handlePayment(post(TOKEN, { audience: 'commercial', intent: 'invoice' }), TOKEN, {
+      db,
+      gateway,
+      now: NOW,
+    });
+    expect(gateway.created[0].netTerms).toBe(true);
+    expect(gateway.created[0].poNumber).toBeNull();
+  });
+
+  it('invoices the full total, not half of it', async () => {
+    await handlePayment(
+      post(TOKEN, { audience: 'academic', attest: 'true', intent: 'pay' }),
+      TOKEN,
+      { db, gateway, now: NOW },
+    );
+    const total = gateway.created[0].lines.reduce((s, l) => s + l.amountCents, 0);
+    expect(total).toBe(Math.round(q.total.academic * 100));
+  });
+
+  it('accepts an attestation already recorded on the quote', async () => {
+    db.quotes[0].audience = 'academic';
+    db.quotes[0].academic_attested_at = '2026-08-22T00:00:00Z';
+    const res = await handlePayment(post(TOKEN, { intent: 'pay' }), TOKEN, {
+      db,
+      gateway,
+      now: NOW,
+    });
+    expect(res.status).toBe(303);
+    expect(res.headers.get('location')).toContain('store.biokea.test');
+  });
+
+  it('still bounces an academic rate with no attestation anywhere', async () => {
+    const res = await handlePayment(post(TOKEN, { audience: 'academic', intent: 'pay' }), TOKEN, {
+      db,
+      gateway,
+      now: NOW,
+    });
+    expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=attest&audience=academic#pay`);
   });
 });

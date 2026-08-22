@@ -13,6 +13,7 @@ const spec: CreateInvoiceSpec = {
   quoteNumber: 'BK-2026-0142',
   paymentId: 'p1',
   poNumber: 'PO-77',
+  netTerms: true,
   lines: [
     { description: 'Barcoding — 50% deposit', amountCents: 400000 },
     { description: 'eDNA — 50% deposit', amountCents: 80000 },
@@ -174,15 +175,44 @@ describe('shopifyGateway.createInvoice', () => {
     });
   });
 
-  it('omits paymentTerms for a self-serve buyer with no PO number, even when a template is found', async () => {
+  it('omits paymentTerms for a self-serve (intent=pay) buyer with no PO number, even when a template is found', async () => {
     const s = fakeShopify(okAnswers);
-    await shopifyGateway(cfg, s.fetch).createInvoice({ ...spec2, poNumber: null });
+    await shopifyGateway(cfg, s.fetch).createInvoice({ ...spec2, poNumber: null, netTerms: false });
     expect(s.calls[2].variables.input.paymentTerms).toBeUndefined();
     // the terms lookup itself still runs — only the assignment is gated
     expect(s.calls.map((c) => c.op)).toContain('paymentTermsTemplates');
     // and the send must not select paymentTerms (needs no read_payment_terms scope)
     const send = s.calls.find((c) => c.op === 'draftOrderInvoiceSend')!;
     expect(send.query).not.toContain('paymentTerms');
+  });
+
+  it('attaches payment terms on netTerms even with no PO number', async () => {
+    const s = fakeShopify(okAnswers);
+    await shopifyGateway(cfg, s.fetch).createInvoice({
+      ...spec2,
+      netTerms: true,
+      poNumber: null,
+    });
+    const create = s.calls.find((c) => c.op === 'draftOrderCreate')!;
+    expect(create.variables.input.paymentTerms).toMatchObject({
+      paymentTermsTemplateId: 'gid://shopify/PaymentTermsTemplate/3',
+    });
+  });
+
+  it('attaches no terms without netTerms, even when a PO number is present', async () => {
+    const s = fakeShopify(okAnswers);
+    await shopifyGateway(cfg, s.fetch).createInvoice({
+      ...spec2,
+      netTerms: false,
+      poNumber: 'PO-77',
+    });
+    const create = s.calls.find((c) => c.op === 'draftOrderCreate')!;
+    expect(create.variables.input.paymentTerms).toBeUndefined();
+    // The PO still travels as a custom attribute for the invoice to print.
+    expect(create.variables.input.customAttributes).toContainEqual({
+      key: 'po_number',
+      value: 'PO-77',
+    });
   });
 
   it('turns the credit into a fixed-amount appliedDiscount', async () => {
@@ -346,7 +376,7 @@ describe('payment-terms scope fallback', () => {
     }) as unknown as typeof fetch;
 
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const out = await shopifyGateway(cfg, f).createInvoice(spec2); // spec2 has a PO → terms attached first
+    const out = await shopifyGateway(cfg, f).createInvoice(spec2); // spec2 has netTerms: true → terms attached first
     spy.mockRestore();
     expect(creates).toBe(2);
     expect(out.externalId).toBe('gid://shopify/DraftOrder/12');

@@ -20,6 +20,7 @@ export interface CreateInvoiceSpec {
   quoteNumber: string;
   paymentId: string; // the quote_payments row id — the gateway's idempotency + webhook lookup key
   poNumber: string | null;
+  netTerms: boolean; // attach the configured payment-terms template (NET_30 etc.) instead of due on receipt
   lines: InvoiceLineSpec[]; // amountCents always >= 0
   credit?: { title: string; amountCents: number }; // deposit credit on the balance invoice
   footer: string;
@@ -218,11 +219,11 @@ export function shopifyGateway(
             value: Number(dollars(spec.credit.amountCents)),
             valueType: 'FIXED_AMOUNT',
           };
-        // Net terms only when the buyer supplied a PO number (spec §2);
+        // Net terms only when the buyer chose the invoice intent (spec §6.2);
         // self-serve drafts are due on receipt so the invoice URL forces
         // payment. NET templates require an issuedAt payment schedule or
         // Shopify rejects the draft ("issuedAt is mandatory for net terms").
-        if (terms && spec.poNumber) {
+        if (terms && spec.netTerms) {
           input.paymentTerms = {
             paymentTermsTemplateId: terms,
             paymentSchedules: [{ issuedAt: new Date().toISOString() }],
