@@ -46,7 +46,12 @@ describe('assertPaymentSane', () => {
   });
 
   it('rejects a payment under $1 outright, regardless of the quote total', () => {
-    expect(() => assertPaymentSane(1, 50, 1)).toThrow(/payment/i);
+    // Must isolate the < $1 guard from the generic mismatch check below it,
+    // or this pins nothing: at (1, 50, 1) the mismatch check alone already
+    // throws (expected 100, diff 50 > lineCount 1) even with the guard
+    // deleted. $0.50 makes amountCents=50 exactly match `expected`, so the
+    // mismatch check stays silent and only the under-$1 guard can fire.
+    expect(() => assertPaymentSane(0.5, 50, 1)).toThrow(/Refusing payment under \$1/);
   });
 });
 
