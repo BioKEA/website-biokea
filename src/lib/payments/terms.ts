@@ -22,12 +22,43 @@ const plural = (n: number, unit: string) => `${n.toLocaleString('en-US')} ${unit
 const markerNote = (markers: number) => (markers > 1 ? ` × ${markers} markers` : '');
 
 /** One description for both the payment invoice and the balance invoice —
- * they bill the same thing at the same rate, so they read the same. */
-function lineDescription(l: QuoteLine, audience: Audience, rate: number, held: boolean): string {
+ * they bill the same thing at the same rate, so they read the same. Never
+ * used for a held (rate-locked) line — see heldLineDescription for why
+ * that needs different math, not just a suffix. */
+function lineDescription(l: QuoteLine, audience: Audience, rate: number): string {
   return (
     `${l.serviceTitle} — ${plural(l.count, l.unitLabel)}${markerNote(l.markers)}` +
-    ` @ $${rate}/${l.unitLabel}, ${audience} rate` +
-    (held ? ' (quoted rate held)' : '')
+    ` @ $${rate}/${l.unitLabel}, ${audience} rate`
+  );
+}
+
+/**
+ * The held-line description, used only when the rate lock (spec §4.2)
+ * actually reduced the bill below the engine's own price for the actual
+ * count.
+ *
+ * `count × rate` is NOT this line's amount when the *quoted* line was
+ * itself a dead-zone buy-up (e.g. 250 specimens priced as a 300-slot
+ * block): the cap subtracts the shortfall from the quoted BLOCK total,
+ * not from `actual count × rate`, so a description built the same way as
+ * the non-held one would silently misstate the money. This one names the
+ * quoted block and the shortfall explicitly so the reader can reconcile
+ * quotedTotal − shortfall × lockedRate themselves.
+ */
+function heldLineDescription(
+  l: QuoteLine,
+  quoted: QuoteLine,
+  audience: Audience,
+  lockedRate: number,
+  shortfall: number,
+): string {
+  const quotedTotal = Math.round(quoted[audience].total).toLocaleString('en-US');
+  return (
+    `${l.serviceTitle} — quoted ${plural(quoted.count, l.unitLabel)}` +
+    ` ($${quotedTotal} at the ${quoted[audience].tierRange} rate);` +
+    ` ${plural(l.count, l.unitLabel)} received${markerNote(l.markers)},` +
+    ` ${shortfall.toLocaleString('en-US')} short credited at $${lockedRate}/${l.unitLabel},` +
+    ` ${audience} rate (quoted rate held)`
   );
 }
 
@@ -38,7 +69,7 @@ export function paymentLines(lines: QuoteLine[], audience: Audience): InvoiceLin
   return lines.map((l) => {
     const p = l[audience];
     return {
-      description: lineDescription(l, audience, p.effectiveRate, false),
+      description: lineDescription(l, audience, p.effectiveRate),
       amountCents: Math.round(p.total * 100),
     };
   });
@@ -104,7 +135,7 @@ export function computeBalance(
     if (!quoted) {
       uncapped.push(l.serviceSlug);
       return {
-        description: lineDescription(l, audience, p.effectiveRate, false),
+        description: lineDescription(l, audience, p.effectiveRate),
         amountCents: engineCents,
       };
     }
@@ -125,7 +156,9 @@ export function computeBalance(
     const held = capCents < engineCents;
     const amountCents = held ? capCents : engineCents;
     return {
-      description: lineDescription(l, audience, held ? lockedRate : p.effectiveRate, held),
+      description: held
+        ? heldLineDescription(l, quoted, audience, lockedRate, shortfall)
+        : lineDescription(l, audience, p.effectiveRate),
       amountCents,
     };
   });

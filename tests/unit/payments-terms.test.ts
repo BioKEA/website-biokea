@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildQuote } from '@/lib/pricing/quote';
+import { buildQuote, type Audience } from '@/lib/pricing/quote';
 import {
   CREDIT_MONTHS,
   usdCents,
@@ -44,6 +44,10 @@ describe('assertPaymentSane', () => {
   it('rejects a half-total left over from the deposit era', () => {
     expect(() => assertPaymentSane(9600, 480000, 1)).toThrow(/payment/i);
   });
+
+  it('rejects a payment under $1 outright, regardless of the quote total', () => {
+    expect(() => assertPaymentSane(1, 50, 1)).toThrow(/payment/i);
+  });
 });
 
 // Spec §4.2. Each row is the whole reason the rate lock exists; if you are
@@ -54,16 +58,22 @@ describe('computeBalance rate lock', () => {
     invoiceLabel: 'order #1001',
     paidAt: '2026-09-02T10:00:00Z',
   });
-  const settle = (quotedCount: number, actualCount: number) => {
+  const settle = (quotedCount: number, actualCount: number, audience: Audience = 'academic') => {
     const quoted = bar(quotedCount);
-    const prepaid = paymentTotalCents(paymentLines(quoted.lines, 'academic'));
+    const prepaid = paymentTotalCents(paymentLines(quoted.lines, audience));
     const r = computeBalance(
       [{ serviceSlug: 'barcoding', count: actualCount }],
-      'academic',
+      audience,
       paid(prepaid),
       quoted.lines,
     );
-    return { prepaid, settled: r.actualTotalCents, balance: r.balanceCents, uncapped: r.uncapped };
+    return {
+      prepaid,
+      settled: r.actualTotalCents,
+      balance: r.balanceCents,
+      uncapped: r.uncapped,
+      lines: r.lines,
+    };
   };
 
   it('shipping exactly what was quoted owes and credits nothing', () => {
@@ -78,6 +88,37 @@ describe('computeBalance rate lock', () => {
     const r = settle(800, 250);
     expect(r.settled).toBe(300000);
     expect(r.balance).toBe(-660000);
+    // The description must let a reader reconcile the amount themselves:
+    // quoted 800 @ $9,600, 550 short @ $12 => $9,600 - $6,600 = $3,000.
+    expect(r.lines[0].description).toBe(
+      'Voucher-Linked Specimen Barcoding — quoted 800 specimens ($9,600 at the 300–999 rate);' +
+        ' 250 specimens received, 550 short credited at $12/specimen, academic rate (quoted rate held)',
+    );
+  });
+
+  it('is not an academic-only rule — the same lock holds at the commercial rate', () => {
+    // commercial: 800 => 300–999 tier @ $15 => $12,000 prepaid. 250 ships:
+    // engine's own dead-zone price for 250 is $4,500 (buy-up to 300 @ $15);
+    // the locked $15 rate settles it at $12,000 - 550×$15 = $3,750 instead.
+    const r = settle(800, 250, 'commercial');
+    expect(r.prepaid).toBe(1200000);
+    expect(r.settled).toBe(375000);
+    expect(r.balance).toBe(-825000);
+    expect(r.lines[0].description).toContain('$15/specimen, commercial rate (quoted rate held)');
+  });
+
+  // Finding: when the QUOTED line was itself a dead-zone buy-up (250 priced
+  // as a 300-slot block), `count × rate` no longer equals the amount billed
+  // — the cap subtracts the shortfall from the quoted BLOCK total, not from
+  // actual-count × rate. The description must still reconcile.
+  it('the held description reconciles even when the quote itself was a dead-zone buy-up', () => {
+    const r = settle(250, 200);
+    // $3,600 (300-slot block) - 50 short × $12 = $3,000, NOT 200 × $12 = $2,400.
+    expect(r.settled).toBe(300000);
+    expect(r.lines[0].description).toBe(
+      'Voucher-Linked Specimen Barcoding — quoted 250 specimens ($3,600 at the 300–999 rate);' +
+        ' 200 specimens received, 50 short credited at $12/specimen, academic rate (quoted rate held)',
+    );
   });
 
   it('over-shipping still earns the better tier', () => {
