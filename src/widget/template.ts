@@ -162,7 +162,7 @@ export function renderWidgetHtml(
         <button type="button" data-cta-pay class="bk-btn bk-btn--primary bk-btn--block">
           Pay <span data-cta-amount>$0</span> and start →
         </button>
-        <p class="bk-fine bk-fine--spaced">
+        <p data-pay-disclosure class="bk-fine bk-fine--spaced">
           Pay in full to lock your rate and reserve lab capacity. Your quoted per-sample rate is
           held for this project. Send fewer samples than quoted and the unused amount stays as
           credit toward another project for 12 months; send more and we invoice the difference at

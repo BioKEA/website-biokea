@@ -113,10 +113,7 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
   const conversation = $<HTMLElement>('[data-conversation-notice]')!;
   const ctaPay = $<HTMLButtonElement>('[data-cta-pay]')!;
   const ctaAmount = $<HTMLElement>('[data-cta-amount]')!;
-  // The disclosure paragraph immediately follows the pay button in the
-  // template and only makes sense alongside it — no hook of its own, since
-  // it isn't one Task 10's e2e suite addresses.
-  const payDisclosure = ctaPay.nextElementSibling as HTMLElement | null;
+  const payDisclosure = $<HTMLElement>('[data-pay-disclosure]')!;
   const ctaInvoice = $<HTMLButtonElement>('[data-cta-invoice]')!;
   const ctaEmail = $<HTMLButtonElement>('[data-cta-email]')!;
   const detailsForm = $<HTMLFormElement>('[data-details-form]')!;
@@ -197,8 +194,15 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
       $('[data-total-alt]')!.textContent = '';
       lineList.innerHTML = '<li class="bk-line-empty">Select a service to see pricing.</li>';
       deadzone.hidden = upsell.hidden = conversation.hidden = true;
+      // Nothing selected means nothing to pay, invoice, or quote — none of
+      // the three CTAs (or the pay disclosure under them) has anything
+      // honest to say, so all of them go away rather than offering a
+      // "Pay $0 and start →" that would 400 on click.
+      ctaPay.hidden = ctaInvoice.hidden = ctaEmail.hidden = true;
+      payDisclosure.hidden = true;
       return;
     }
+    ctaPay.hidden = ctaInvoice.hidden = ctaEmail.hidden = false;
 
     const quote = buildQuote(lines);
     const alt: Audience = audience === 'academic' ? 'commercial' : 'academic';
@@ -220,7 +224,7 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
     // needsConversation means there's no firm price to pay against, so the
     // three ranked CTAs collapse to the one that still makes sense.
     ctaPay.hidden = quote.needsConversation;
-    if (payDisclosure) payDisclosure.hidden = quote.needsConversation;
+    payDisclosure.hidden = quote.needsConversation;
     ctaInvoice.hidden = quote.needsConversation;
     ctaEmail.textContent = quote.needsConversation
       ? 'Request a project quote →'
@@ -278,13 +282,30 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
 
   on(detailsForm, 'submit', async (ev) => {
     ev.preventDefault();
-    status.textContent = 'Sending…';
-    status.style.color = '';
     const fd = new FormData(detailsForm);
     const lines = readConfig();
     // Read before detailsForm.reset() clears the form.
     const attested = fd.get('attest') === 'true';
     const po = String(fd.get('po_number') ?? '');
+
+    // The form carries `novalidate` (Turnstile isn't a control the browser
+    // understands to validate around), so the `required` openDetails() puts
+    // on the attestation checkbox enforces nothing by itself. Everywhere
+    // else an unmet `required` just means the server rejects the request
+    // with an inline error — but a missed attestation on the pay/invoice
+    // path would sail through here, get a quote created and emailed, and
+    // only surface as pay.ts bouncing the browser to an error page after
+    // the button already promised "Pay $X and start →". So this one is
+    // checked explicitly and blocks before anything is sent.
+    if (intent !== 'email' && audience === 'academic' && !attested) {
+      attestField.querySelector<HTMLInputElement>('input')!.reportValidity();
+      status.textContent = 'Please confirm the academic-rate eligibility statement above.';
+      status.style.color = 'var(--color-pink, #be185d)';
+      return;
+    }
+
+    status.textContent = 'Sending…';
+    status.style.color = '';
     const payload = {
       name: String(fd.get('name') ?? ''),
       email: String(fd.get('email') ?? ''),
@@ -331,7 +352,8 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
           // origin as well as ours.
           handoff.action = `${apiBase}/api/quote/${body.token}/pay`;
           (handoff.elements.namedItem('audience') as HTMLInputElement).value = audience;
-          (handoff.elements.namedItem('attest') as HTMLInputElement).value = attested ? 'true' : '';
+          (handoff.elements.namedItem('attest') as HTMLInputElement).value =
+            audience === 'academic' && attested ? 'true' : '';
           (handoff.elements.namedItem('intent') as HTMLInputElement).value = intent;
           (handoff.elements.namedItem('po_number') as HTMLInputElement).value = po;
           handoff.submit();

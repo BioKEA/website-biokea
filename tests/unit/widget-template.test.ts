@@ -20,6 +20,7 @@ describe('renderWidgetHtml', () => {
       'data-upsell-callout',
       'data-conversation-notice',
       'data-cta-pay',
+      'data-pay-disclosure',
       'data-cta-invoice',
       'data-cta-email',
       'data-details-form',
