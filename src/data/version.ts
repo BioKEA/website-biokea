@@ -4,4 +4,4 @@
 // declared deviation from a content-hash manifest), so this must track
 // package.json's version — tests/unit/version.test.ts asserts it does.
 // Bump both whenever the widget changes.
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.1.0';

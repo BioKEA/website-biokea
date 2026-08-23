@@ -94,7 +94,8 @@ function serviceCard(svc: PricedService, index: number): string {
 }
 
 /** The whole widget: service cards on the left, the live summary aside on
- * the right, the capture form and the (hidden) deposit panel inside it. */
+ * the right, with the three ranked CTAs, the details capture form, and the
+ * hidden hand-off form that carries the browser to Shopify checkout. */
 export function renderWidgetHtml(
   services: PricedService[],
   opts: WidgetTemplateOptions = {},
@@ -158,11 +159,26 @@ export function renderWidgetHtml(
           count we actually receive.
         </p>
 
-        <button type="button" data-open-form class="bk-btn bk-btn--primary bk-btn--block">
-          Email me this quote
+        <button type="button" data-cta-pay class="bk-btn bk-btn--primary bk-btn--block">
+          Pay <span data-cta-amount>$0</span> and start →
         </button>
+        <p class="bk-fine bk-fine--spaced">
+          Pay in full to lock your rate and reserve lab capacity. Your quoted per-sample rate is
+          held for this project. Send fewer samples than quoted and the unused amount stays as
+          credit toward another project for 12 months; send more and we invoice the difference at
+          the same rate.
+          <a class="bk-link" href="https://biokea.ai/terms">Full terms</a>.
+        </p>
+        <p class="bk-alt-ctas">
+          <button type="button" data-cta-invoice class="bk-linkbtn">
+            Paying by purchase order? Get a Net-30 invoice →
+          </button>
+          <button type="button" data-cta-email class="bk-linkbtn">
+            Just want the numbers? Email me this quote →
+          </button>
+        </p>
 
-        <form data-quote-form hidden class="bk-form" novalidate>
+        <form data-details-form hidden class="bk-form" novalidate>
           <label class="bk-field-label">
             <span class="bk-legend">Name</span>
             <input required id="quote-name" name="name" type="text" autocomplete="name" class="bk-input bk-input--block" />
@@ -175,6 +191,17 @@ export function renderWidgetHtml(
             <span class="bk-legend">Organization (optional)</span>
             <input id="quote-org" name="organization" type="text" autocomplete="organization" class="bk-input bk-input--block" />
           </label>
+          <label class="bk-field-label bk-attest" data-attest-field hidden>
+            <input type="checkbox" name="attest" value="true" />
+            <span>
+              Required for the academic rate: this work is for a degree-granting institution,
+              government agency, or non-profit research organization.
+            </span>
+          </label>
+          <label class="bk-field-label" data-po-field hidden>
+            <span class="bk-legend">PO number (optional — printed on the invoice)</span>
+            <input name="po_number" maxlength="64" class="bk-input bk-input--block" />
+          </label>
           <label class="bk-field-label">
             <span class="bk-legend">Anything we should know? (optional)</span>
             <textarea id="quote-note" name="note" rows="3" class="bk-input bk-input--block"></textarea>
@@ -184,42 +211,12 @@ export function renderWidgetHtml(
           <p data-quote-status role="status" aria-live="polite" class="bk-status"></p>
         </form>
 
-        <p data-deposit-note hidden role="status" aria-live="polite" class="bk-status">
-          Configuration changed — email a new quote to pay a deposit on it.
-        </p>
-
-        <section data-deposit-panel hidden class="bk-deposit">
-          <p class="bk-eyebrow bk-eyebrow--ink">Start this project</p>
-          <h3 class="bk-deposit-title">Pay a 50% deposit</h3>
-          <p class="bk-muted">
-            You'll get a Shopify invoice you can pay by card, Shop Pay, or PayPal — or forward to
-            accounts payable. The balance is invoiced on actual counts when results are delivered.
-          </p>
-          <form method="post" data-deposit-form class="bk-deposit-form">
-            <label class="bk-choice">
-              <input type="radio" name="audience" value="commercial" required />
-              <span>Commercial rate — deposit <span data-deposit-commercial></span></span>
-            </label>
-            <label class="bk-choice">
-              <input type="radio" name="audience" value="academic" required />
-              <span>Academic / nonprofit rate — deposit <span data-deposit-academic></span></span>
-            </label>
-            <label class="bk-choice bk-attest">
-              <input type="checkbox" name="attest" value="true" />
-              <span>
-                Required for the academic rate: this work is for a degree-granting institution,
-                government agency, or non-profit research organization.
-              </span>
-            </label>
-            <label class="bk-field-label">
-              <span class="bk-legend">PO number (optional)</span>
-              <input name="po_number" maxlength="64" class="bk-input bk-input--block" />
-            </label>
-            <button type="submit" class="bk-btn bk-btn--primary bk-btn--block">
-              Continue to invoice →
-            </button>
-          </form>
-        </section>
+        <form method="post" data-handoff-form hidden aria-hidden="true">
+          <input type="hidden" name="audience" />
+          <input type="hidden" name="attest" />
+          <input type="hidden" name="intent" />
+          <input type="hidden" name="po_number" />
+        </form>
       </div>
     </aside>
   </div>

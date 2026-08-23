@@ -421,43 +421,30 @@
   text-decoration: underline;
 }
 
-/* ── deposit panel ──────────────────────────────────────────────────── */
+/* ── ranked CTAs ────────────────────────────────────────────────────── */
 
-.bk-deposit {
-  margin-top: 1.25rem;
-  padding: 1.25rem;
-  background: var(--bk-cream);
-  border: 1px solid var(--bk-hairline);
-  border-radius: 6px;
-}
-
-.bk-deposit-title {
-  margin-top: 0.25rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--bk-ink);
-}
-
-.bk-deposit-form {
-  margin-top: 1rem;
-  display: grid;
-  gap: 0.75rem;
-  font-size: 0.875rem;
-}
-
-.bk-choice {
+.bk-alt-ctas {
   display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
 }
 
-.bk-choice input {
-  margin-top: 0.25rem;
-  accent-color: var(--bk-teal);
+.bk-linkbtn {
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  font-size: 0.8125rem;
+  color: var(--bk-teal);
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .bk-attest {
-  padding-left: 1.5rem;
+  flex-direction: row;
+  gap: 0.5rem;
+  align-items: flex-start;
   font-size: 0.75rem;
   color: var(--bk-slate);
 }

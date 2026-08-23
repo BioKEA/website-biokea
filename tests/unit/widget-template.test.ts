@@ -19,11 +19,14 @@ describe('renderWidgetHtml', () => {
       'data-deadzone-callout',
       'data-upsell-callout',
       'data-conversation-notice',
-      'data-open-form',
-      'data-quote-form',
+      'data-cta-pay',
+      'data-cta-invoice',
+      'data-cta-email',
+      'data-details-form',
+      'data-attest-field',
+      'data-po-field',
+      'data-handoff-form',
       'data-quote-status',
-      'data-deposit-note',
-      'data-deposit-panel',
     ])
       expect(html).toContain(hook);
     expect(html).toContain('class="cf-turnstile"');
@@ -53,6 +56,32 @@ describe('renderWidgetHtml', () => {
     expect(html).toMatch(/data-total-alt/);
     expect(html).not.toContain('data-total-academic');
     expect(html).not.toContain('data-total-commercial');
+  });
+
+  it('offers three ranked calls to action', () => {
+    const html = renderWidgetHtml(pricedServices, {});
+    expect(html).toContain('data-cta-pay');
+    expect(html).toContain('data-cta-invoice');
+    expect(html).toContain('data-cta-email');
+    expect(html).toContain('Net-30 invoice');
+    expect(html).not.toContain('data-deposit-panel');
+  });
+
+  it('states the credit policy at the point of sale', () => {
+    const html = renderWidgetHtml(pricedServices, {});
+    expect(html).toContain('credit toward another project for 12 months');
+    expect(html).toContain('/terms');
+  });
+
+  it('carries an attestation field and a PO field in the details form', () => {
+    const html = renderWidgetHtml(pricedServices, {});
+    expect(html).toContain('data-attest-field');
+    expect(html).toContain('data-po-field');
+    expect(html).toContain('degree-granting institution');
+  });
+
+  it('never advertises a deposit anywhere', () => {
+    expect(renderWidgetHtml(pricedServices, {})).not.toMatch(/deposit/i);
   });
 });
 

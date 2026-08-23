@@ -4,10 +4,10 @@
 // the same bundle runs on biokea.ai/quote and on a Shopify product page.
 // This is the old inline <script> from src/pages/quote/index.astro, with
 // `document.querySelector` swapped for `root.querySelector`, the markup
-// moved to template.ts, and a deposit panel added after a quote is created.
+// moved to template.ts, and three ranked CTAs (pay, invoice, email) that
+// chain a details-form submission straight into Shopify checkout.
 import { pricedServices } from '@/data/pricing';
-import { buildQuote, type Audience, type Quote, type QuoteLineInput } from '@/lib/pricing/quote';
-import { paymentLines, paymentTotalCents, usdCents } from '@/lib/payments/terms';
+import { buildQuote, type Audience, type QuoteLineInput } from '@/lib/pricing/quote';
 import { configSignature } from './state';
 import {
   esc,
@@ -44,7 +44,7 @@ interface TurnstileApi {
 
 /** The API hands back a token and a URL; neither is rendered without a
  * shape check first, so a surprising response can't put a javascript: link
- * in the status line or a junk token in the deposit form's action.
+ * in the status line or a junk token in the hand-off form's action.
  * Protocol-relative ("//evil.example") is rejected too — it would resolve
  * against whatever origin the widget happens to be embedded on. */
 const isQuoteToken = (v: unknown): v is string => typeof v === 'string' && UUID_RE.test(v);
@@ -111,12 +111,19 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
   const deadzone = $<HTMLElement>('[data-deadzone-callout]')!;
   const upsell = $<HTMLElement>('[data-upsell-callout]')!;
   const conversation = $<HTMLElement>('[data-conversation-notice]')!;
-  const openFormBtn = $<HTMLButtonElement>('[data-open-form]')!;
-  const form = $<HTMLFormElement>('[data-quote-form]')!;
+  const ctaPay = $<HTMLButtonElement>('[data-cta-pay]')!;
+  const ctaAmount = $<HTMLElement>('[data-cta-amount]')!;
+  // The disclosure paragraph immediately follows the pay button in the
+  // template and only makes sense alongside it — no hook of its own, since
+  // it isn't one Task 10's e2e suite addresses.
+  const payDisclosure = ctaPay.nextElementSibling as HTMLElement | null;
+  const ctaInvoice = $<HTMLButtonElement>('[data-cta-invoice]')!;
+  const ctaEmail = $<HTMLButtonElement>('[data-cta-email]')!;
+  const detailsForm = $<HTMLFormElement>('[data-details-form]')!;
   const status = $<HTMLElement>('[data-quote-status]')!;
-  const depositPanel = $<HTMLElement>('[data-deposit-panel]')!;
-  const depositForm = $<HTMLFormElement>('[data-deposit-form]')!;
-  const depositNote = $<HTMLElement>('[data-deposit-note]')!;
+  const attestField = $<HTMLElement>('[data-attest-field]')!;
+  const poField = $<HTMLElement>('[data-po-field]')!;
+  const handoff = $<HTMLFormElement>('[data-handoff-form]')!;
 
   // Every listener is registered through this so destroy() can undo them all.
   const bound: { target: EventTarget; type: string; fn: EventListener }[] = [];
@@ -149,27 +156,41 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
   // be eligible for.
   let audience: Audience = 'commercial';
 
-  // The configuration the visible deposit panel was created for; null when
-  // no panel is showing. See invalidateDeposit().
-  let depositSignature: string | null = null;
+  // Which CTA opened the details form — decides what the details form's
+  // submit chains into (or doesn't) and which of the academic/PO fields
+  // show. Defaults to 'pay' so a first render's openDetails('pay') call (if
+  // it ever fires before a click) behaves sanely.
+  type Intent = 'pay' | 'invoice' | 'email';
+  let intent: Intent = 'pay';
 
-  function invalidateDeposit(): void {
-    depositSignature = null;
-    depositPanel.hidden = true;
-    depositForm.removeAttribute('action');
-    // The "Sent — quote …" line in `status` stays put; the reason the
-    // deposit panel just disappeared goes in its own element instead of
-    // overwriting it.
-    depositNote.hidden = false;
+  // The configuration the current quote/hand-off was created for; null
+  // once it's gone stale. See invalidateHandoff().
+  let handoffSignature: string | null = null;
+
+  function invalidateHandoff(): void {
+    handoffSignature = null;
+    handoff.removeAttribute('action');
+  }
+
+  function openDetails(next: Intent): void {
+    intent = next;
+    detailsForm.hidden = false;
+    // Attestation is only needed where money moves; the email-me path never
+    // reaches the pay endpoint, which is the authority for it anyway.
+    attestField.hidden = !(audience === 'academic' && next !== 'email');
+    attestField.querySelector<HTMLInputElement>('input')!.required = !attestField.hidden;
+    poField.hidden = next !== 'invoice';
+    detailsForm.querySelector<HTMLInputElement>('#quote-name')?.focus();
   }
 
   function render() {
     const lines = readConfig();
-    // A deposit is a deposit on one specific quote. The moment the config
-    // stops matching it, the panel would be posting the old token at the old
-    // amount, so it goes away.
-    if (depositSignature !== null && configSignature(lines) !== depositSignature) {
-      invalidateDeposit();
+    // A hand-off is a hand-off for one specific quote. The moment the
+    // config stops matching it, the hidden form would be posting the old
+    // token at the old amount, so it goes away — the retry path is
+    // /quote/<token>, unchanged.
+    if (handoffSignature !== null && configSignature(lines) !== handoffSignature) {
+      invalidateHandoff();
     }
     if (lines.length === 0) {
       $('[data-total]')!.textContent = '$0';
@@ -185,6 +206,7 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
     $('[data-total-alt]')!.textContent =
       `${alt === 'academic' ? 'Academic/nonprofit' : 'Commercial'} rate: ${usd(quote.total[alt])}`;
     lineList.innerHTML = renderLineItems(quote, audience);
+    ctaAmount.textContent = usd(quote.total[audience]);
 
     const deadzoneHtml = renderDeadzone(quote, audience);
     deadzone.hidden = deadzoneHtml === null;
@@ -195,9 +217,17 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
     upsell.innerHTML = upsellHtml ?? '';
 
     conversation.hidden = !quote.needsConversation;
-    openFormBtn.textContent = quote.needsConversation
-      ? 'Request a project quote'
-      : 'Email me this quote';
+    // needsConversation means there's no firm price to pay against, so the
+    // three ranked CTAs collapse to the one that still makes sense.
+    ctaPay.hidden = quote.needsConversation;
+    if (payDisclosure) payDisclosure.hidden = quote.needsConversation;
+    ctaInvoice.hidden = quote.needsConversation;
+    ctaEmail.textContent = quote.needsConversation
+      ? 'Request a project quote →'
+      : 'Just want the numbers? Email me this quote →';
+    // The attestation/PO rows depend on the rate too, so re-evaluate them
+    // whenever the form is already open and something changed under it.
+    if (!detailsForm.hidden) openDetails(intent);
   }
 
   $$<HTMLInputElement>('[data-count-input]').forEach((el) => {
@@ -242,42 +272,19 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
     }),
   );
 
-  on(openFormBtn, 'click', () => {
-    form.hidden = false;
-    openFormBtn.hidden = true;
-    form.querySelector<HTMLInputElement>('#quote-name')?.focus();
-  });
+  on(ctaPay, 'click', () => openDetails('pay'));
+  on(ctaInvoice, 'click', () => openDetails('invoice'));
+  on(ctaEmail, 'click', () => openDetails('email'));
 
-  // The deposit endpoint is the authoritative check for the academic
-  // attestation; toggling `required` client-side just surfaces it earlier.
-  const attest = depositForm.querySelector<HTMLInputElement>('input[name="attest"]');
-  depositForm.querySelectorAll<HTMLInputElement>('input[name="audience"]').forEach((radio) => {
-    on(radio, 'change', () => {
-      if (attest) attest.required = radio.value === 'academic' && radio.checked;
-    });
-  });
-
-  function revealDeposit(quote: Quote, token: string, signature: string): void {
-    depositSignature = signature;
-    depositNote.hidden = true;
-    depositForm.action = `${apiBase}/api/quote/${token}/deposit`;
-    const academic = $<HTMLElement>('[data-deposit-academic]');
-    const commercial = $<HTMLElement>('[data-deposit-commercial]');
-    if (academic) {
-      academic.textContent = usdCents(paymentTotalCents(paymentLines(quote.lines, 'academic')));
-    }
-    if (commercial) {
-      commercial.textContent = usdCents(paymentTotalCents(paymentLines(quote.lines, 'commercial')));
-    }
-    depositPanel.hidden = false;
-  }
-
-  on(form, 'submit', async (ev) => {
+  on(detailsForm, 'submit', async (ev) => {
     ev.preventDefault();
     status.textContent = 'Sending…';
     status.style.color = '';
-    const fd = new FormData(form);
+    const fd = new FormData(detailsForm);
     const lines = readConfig();
+    // Read before detailsForm.reset() clears the form.
+    const attested = fd.get('attest') === 'true';
+    const po = String(fd.get('po_number') ?? '');
     const payload = {
       name: String(fd.get('name') ?? ''),
       email: String(fd.get('email') ?? ''),
@@ -287,6 +294,8 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
       'cf-turnstile-response': String(fd.get('cf-turnstile-response') ?? ''),
       source,
       lines,
+      audience,
+      attest: audience === 'academic' && attested,
     };
     try {
       const res = await fetch(`${apiBase}/api/quote`, {
@@ -301,21 +310,35 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
           `Sent — your quote is <strong>${esc(body.quoteNumber)}</strong>.` +
           (url ? ` <a class="bk-link" href="${esc(url)}">View it</a>.` : '');
         status.style.color = 'var(--color-teal, #0f766e)';
-        form.reset();
+        detailsForm.reset();
         // A quote that needs a capacity conversation has no firm price, so
-        // there is nothing honest to take a deposit on. Nor is there anything
-        // to pay if the configuration moved on while the request was in
-        // flight — the quote that came back is not what's on screen.
+        // there is nothing honest to pay against. Nor is there anything to
+        // pay if the configuration moved on while the request was in
+        // flight — the quote that came back is not what's on screen. The
+        // "email me this quote" intent never chains into checkout at all.
         const quote = buildQuote(lines);
         const signature = configSignature(lines);
         if (
+          intent !== 'email' &&
           body.paymentsEnabled &&
           isQuoteToken(body.token) &&
           !quote.needsConversation &&
           configSignature(readConfig()) === signature
         ) {
-          revealDeposit(quote, body.token, signature);
+          handoffSignature = signature;
+          // Native submit, so the endpoint's 303 to Shopify is a top-level
+          // navigation — which is what makes this work from the store's
+          // origin as well as ours.
+          handoff.action = `${apiBase}/api/quote/${body.token}/pay`;
+          (handoff.elements.namedItem('audience') as HTMLInputElement).value = audience;
+          (handoff.elements.namedItem('attest') as HTMLInputElement).value = attested ? 'true' : '';
+          (handoff.elements.namedItem('intent') as HTMLInputElement).value = intent;
+          (handoff.elements.namedItem('po_number') as HTMLInputElement).value = po;
+          handoff.submit();
         }
+        // If the chain didn't fire, the status line above already carries
+        // the quote link, and /quote/<token> is the retry path — nothing
+        // else about this branch changes.
       } else {
         status.textContent = body.error ?? 'Something went wrong. Email contact@biokea.ai.';
         status.style.color = 'var(--color-pink, #be185d)';
