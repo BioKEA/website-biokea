@@ -30,3 +30,12 @@ test('BugPicker is presented as operational, DiversityScanner as coming soon', a
   await expect(page.locator('#lab-diversityscanner')).toContainText(/coming soon/i);
   await expect(page.getByText(/arriving early summer/i)).toHaveCount(0);
 });
+
+test('BugPicker media: click-to-load video with poster, and the three stills', async ({ page }) => {
+  await page.goto('/lab');
+  const video = page.locator('#lab-bugpicker video');
+  await expect(video).toHaveAttribute('poster', '/assets/images/bugpicker-run-poster.jpg');
+  // The 17 MB clip must not download on page load.
+  await expect(video).toHaveAttribute('preload', 'none');
+  await expect(page.locator('#lab-bugpicker img')).toHaveCount(3);
+});

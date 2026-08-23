@@ -111,3 +111,4 @@ dist/test-results/
 
 # Git worktrees for isolated plan execution
 .worktrees/
+tmp/bugpicker-originals/

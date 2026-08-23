@@ -269,25 +269,82 @@ const labSections = [
     </p>
 
     <figure id="lab-bugpicker" class="mt-14 scroll-mt-24">
-      <!-- Text-first by design: photos and bench footage land here as a
-           two-column media grid once captured; the section must read
-           complete without them. -->
-      <div class="max-w-[68ch]">
-        <Eyebrow>OPERATIONAL · BUGPICKER</Eyebrow>
-        <h3 class="mt-3 text-xl font-semibold">Robotic specimen picking, on the bench now</h3>
-        <p class="mt-3 text-sm text-slate-600 leading-relaxed">
-          Bulk trap samples — Malaise, pitfall, bycatch — go in; barcode-ready plates come out.
-          BugPicker images each specimen, triages it with computer-vision models, and physically
-          picks and plates it for the LDC molecular pipeline. Most effective in the
-          <strong>2–6&nbsp;mm</strong> size range in its current configuration — the band where the bulk
-          of trap-sample diversity lives.
-        </p>
-        <p class="mt-3 text-sm text-slate-600 leading-relaxed">
-          It is why bulk-sorted barcoding through the LDC stays fast at volume:
-          <a href="/services" class="text-[var(--color-teal)] underline"
-            >the sorting step is automated</a
-          >, not a bottleneck of human hours.
-        </p>
+      <div class="grid md:grid-cols-[1.2fr_1fr] gap-8 items-start">
+        <!-- preload="none": the 720p clip is ~17 MB and only fetches when
+             someone presses play; the poster carries the section until then. -->
+        <video
+          controls
+          muted
+          playsinline
+          loop
+          preload="none"
+          poster="/assets/images/bugpicker-run-poster.jpg"
+          width="1280"
+          height="720"
+          class="w-full rounded-md border border-slate-900/10 bg-black"
+        >
+          <source src="/assets/images/bugpicker-run.mp4" type="video/mp4" />
+          Your browser can't play this video —
+          <a href="/assets/images/bugpicker-run.mp4">download it instead</a>.
+        </video>
+        <div>
+          <Eyebrow>OPERATIONAL · BUGPICKER</Eyebrow>
+          <h3 class="mt-3 text-xl font-semibold">Robotic specimen picking, on the bench now</h3>
+          <p class="mt-3 text-sm text-slate-600 leading-relaxed">
+            Bulk trap samples — Malaise, pitfall, bycatch — go in; barcode-ready plates come out.
+            BugPicker images each specimen, triages it with computer-vision models, and physically
+            picks and plates it for the LDC molecular pipeline. Most effective in the
+            <strong>2–6&nbsp;mm</strong> size range in its current configuration — the band where the
+            bulk of trap-sample diversity lives.
+          </p>
+          <p class="mt-3 text-sm text-slate-600 leading-relaxed">
+            It is why bulk-sorted barcoding through the LDC stays fast at volume:
+            <a href="/services" class="text-[var(--color-teal)] underline"
+              >the sorting step is automated</a
+            >, not a bottleneck of human hours.
+          </p>
+        </div>
+      </div>
+      <div class="mt-4 grid grid-cols-3 gap-2">
+        <figure>
+          <img
+            src="/assets/images/bugpicker-arm.jpg"
+            alt="Collaborative robot arm positioned over the BugPicker bed, plates staged below"
+            width="1401"
+            height="1168"
+            class="w-full aspect-[4/3] object-cover rounded-sm border border-slate-900/10"
+            loading="lazy"
+          />
+          <figcaption class="mt-1 font-mono text-[10px] tracking-[0.1em] uppercase text-slate-500">
+            Arm + gantry
+          </figcaption>
+        </figure>
+        <figure>
+          <img
+            src="/assets/images/bugpicker-tray.jpg"
+            alt="Intake tray of bulk trap specimens — flies and ants in the 2–6 mm range"
+            width="1200"
+            height="798"
+            class="w-full aspect-[4/3] object-cover rounded-sm border border-slate-900/10"
+            loading="lazy"
+          />
+          <figcaption class="mt-1 font-mono text-[10px] tracking-[0.1em] uppercase text-slate-500">
+            Bulk intake · 2–6 mm
+          </figcaption>
+        </figure>
+        <figure>
+          <img
+            src="/assets/images/bugpicker-plate.jpg"
+            alt="Backlit 96-well plate, one picked specimen per well, ready for barcoding"
+            width="1200"
+            height="900"
+            class="w-full aspect-[4/3] object-cover rounded-sm border border-slate-900/10"
+            loading="lazy"
+          />
+          <figcaption class="mt-1 font-mono text-[10px] tracking-[0.1em] uppercase text-slate-500">
+            Output · one specimen per well
+          </figcaption>
+        </figure>
       </div>
     </figure>
 
