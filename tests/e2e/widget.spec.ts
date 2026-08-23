@@ -42,11 +42,13 @@ async function embed(page: Page, source?: string): Promise<void> {
 test('the widget bundle mounts and prices itself off-site', async ({ page }) => {
   await embed(page, 'store');
 
-  // Default configuration: 100 specimens of barcoding at the $16 academic rate.
-  await expect(page.locator('[data-total-academic]')).toHaveText('$1,600');
-  await expect(page.locator('[data-total-commercial]')).toHaveText('$2,000');
+  // Default configuration: 100 specimens of barcoding at the default
+  // commercial rate ($20); the academic rate is available on the toggle.
+  await expect(page.locator('[data-total]')).toHaveText('$2,000');
+  await page.check('[data-audience-toggle="academic"]');
+  await expect(page.locator('[data-total]')).toHaveText('$1,600');
   await expect(page.locator('[data-summary-panel]')).toBeVisible();
-  await expect(page.locator('[data-deposit-panel]')).toBeHidden();
+  await expect(page.locator('[data-cta-pay]')).toBeVisible();
   expect(
     await page.evaluate(
       () => typeof (window as { BioKEAQuote?: { mount?: unknown } }).BioKEAQuote?.mount,
@@ -59,7 +61,46 @@ test('the widget recalculates from its own controls off-site', async ({ page }) 
 
   await page.locator('[data-count-input="barcoding"]').fill('600');
   await page.locator('[data-count-input="barcoding"]').blur();
-  await expect(page.locator('[data-total-academic]')).toHaveText('$7,200');
+  await expect(page.locator('[data-total]')).toHaveText('$9,000');
+});
+
+// The pay CTA's hidden hand-off form is a native <form method="post"> with
+// an absolute cross-origin action when the widget is embedded off-site — a
+// `fetch()` regression here would never navigate the browser at all. This
+// stubs the endpoint (Shopify's real 303 target isn't reachable from a
+// test) with a page whose content is unique to the API origin, then
+// asserts the browser actually landed there: a fetch could produce this
+// same JSON exchange without ever moving `page.url()` off the store.
+test('the pay hand-off is a native cross-origin form submit, not a fetch', async ({ page }) => {
+  await embed(page, 'store');
+  const token = '11111111-1111-1111-1111-111111111111';
+
+  await page.route('https://biokea.ai/api/quote', (route) => {
+    if (route.request().method() !== 'POST') return route.fallback();
+    return route.fulfill({
+      json: {
+        ok: true,
+        quoteNumber: 'BK-2026-0001',
+        url: `https://biokea.ai/quote/${token}`,
+        token,
+        paymentsEnabled: true,
+      },
+    });
+  });
+  // Stands in for Shopify's hosted checkout page — what matters here is
+  // only that landing on it required a real navigation off store.biokea.test.
+  await page.route(`https://biokea.ai/api/quote/${token}/pay`, (route) =>
+    route.fulfill({ contentType: 'text/html', body: '<h1>Checkout stand-in</h1>' }),
+  );
+
+  await expect(page.locator('[data-handoff-form]')).toBeHidden();
+  await page.click('[data-cta-pay]');
+  await page.fill('#quote-name', 'Alice');
+  await page.fill('#quote-email', 'alice@state.edu');
+  await page.click('[data-details-form] button[type="submit"]');
+
+  await page.waitForURL(`https://biokea.ai/api/quote/${token}/pay`);
+  await expect(page.locator('h1')).toHaveText('Checkout stand-in');
 });
 
 // Turnstile renders `.cf-turnstile` elements when its script loads. A widget

@@ -45,9 +45,11 @@ test('the webhook refuses an unsigned post', async ({ request }) => {
   expect([401, 500]).toContain(res.status());
 });
 
-test('pricing and services advertise the online deposit', async ({ page }) => {
+test('pricing and services advertise paying online', async ({ page }) => {
   await page.goto('/pricing');
-  await expect(page.getByText(/50% deposit online/i).first()).toBeVisible();
+  await expect(page.getByRole('link', { name: /Configure & pay online/i }).first()).toBeVisible();
   await page.goto('/services');
-  await expect(page.getByText(/50% deposit online/i).first()).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: /Configure barcoding & pay online/i }).first(),
+  ).toBeVisible();
 });

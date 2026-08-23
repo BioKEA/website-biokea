@@ -42,13 +42,14 @@ test('comparison table renders both services', async ({ page }) => {
   await expect(page.getByRole('columnheader', { name: 'eDNA Metabarcoding' })).toBeVisible();
 });
 
-test('pricing hero CTA configures a deposit in the store and offers a quote-only path', async ({
+test('pricing hero CTA configures payment in the store and offers a quote-only path', async ({
   page,
 }) => {
   await page.goto('/pricing');
-  await expect(
-    page.getByRole('link', { name: /Configure & pay a 50% deposit online/i }),
-  ).toHaveAttribute('href', 'https://store.biokea.ai/products/specimen-barcoding');
+  await expect(page.getByRole('link', { name: /Configure & pay online/i })).toHaveAttribute(
+    'href',
+    'https://store.biokea.ai/products/specimen-barcoding',
+  );
   await expect(page.getByRole('link', { name: 'or build a quote here' })).toHaveAttribute(
     'href',
     '/quote',

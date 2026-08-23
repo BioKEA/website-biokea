@@ -113,11 +113,12 @@ test('catalog CTAs configure barcoding and eDNA in the store, with a quote-only 
 }) => {
   await page.goto('/services');
   await expect(
-    page.getByRole('link', { name: /Configure barcoding & pay a deposit online/i }),
+    page.getByRole('link', { name: /Configure barcoding & pay online/i }),
   ).toHaveAttribute('href', 'https://store.biokea.ai/products/specimen-barcoding');
-  await expect(
-    page.getByRole('link', { name: /Configure eDNA & pay a deposit online/i }),
-  ).toHaveAttribute('href', 'https://store.biokea.ai/products/edna-metabarcoding');
+  await expect(page.getByRole('link', { name: /Configure eDNA & pay online/i })).toHaveAttribute(
+    'href',
+    'https://store.biokea.ai/products/edna-metabarcoding',
+  );
   await expect(page.getByRole('link', { name: 'or build a quote here' })).toHaveCount(2);
 });
 
