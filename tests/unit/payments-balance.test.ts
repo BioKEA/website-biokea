@@ -188,6 +188,60 @@ describe('handleBalance', () => {
     expect(sent[0].text).toContain('credit');
   });
 
+  // Regression guard: every other test's `email` fn succeeds, so nothing
+  // else exercises the try/catch around the credit send in balance.ts. If
+  // that try/catch is ever removed or narrowed, this test fails — either
+  // the handler rejects with `boom` instead of returning, or it returns
+  // something other than the settled redirect — even though the settled
+  // payment row and the quote's 'paid' status are already durably written
+  // *before* the email is attempted. A thrown-away try/catch here would
+  // turn an already-successful settlement into a 500 for staff, inviting a
+  // retry on money that has already moved.
+  it('a failing credit email does not fail the settle request — the row and status are already committed', async () => {
+    const boom = new Error('resend is down');
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const res = await handleBalance(post({ 'counts[barcoding]': '100', confirm: 'true' }), N, {
+      ...deps(),
+      email: async () => {
+        throw boom;
+      },
+    });
+    const actual = 120000; // see the rate-lock comment above
+    expect(res.status).toBe(303);
+    expect(res.headers.get('location')).toBe(
+      `/admin/quotes/${N}?balance=settled&credit=${DEPOSIT - actual}`,
+    );
+    expect(db.payments.find((p) => p.kind === 'balance')).toMatchObject({
+      status: 'settled',
+      amount_cents: actual - DEPOSIT,
+    });
+    expect(db.quotes[0].status).toBe('paid');
+    expect(errSpy).toHaveBeenCalledWith('[balance] credit email failed for', N, boom);
+    errSpy.mockRestore();
+  });
+
+  it('exact settlement (balanceCents === 0): no credit, so no email is sent', async () => {
+    // Deposit set to exactly the quoted total, and actual counts submitted
+    // identical to the quoted lines, so the rate lock is a no-op and the
+    // balance lands on exactly 0 — the boundary the `<=` check and the
+    // `if (msg)` guard both need to handle without sending anything.
+    await db.updatePayment('p1', { amount_cents: q.total.academic * 100 });
+    const d = deps();
+    const res = await handleBalance(
+      post({
+        'counts[barcoding]': '800',
+        'counts[metabarcoding]': '60',
+        'markers[metabarcoding]': '2',
+        confirm: 'true',
+      }),
+      N,
+      d,
+    );
+    expect(res.headers.get('location')).toBe(`/admin/quotes/${N}?balance=settled&credit=0`);
+    expect(db.quotes[0].status).toBe('paid');
+    expect(d.email.sent).toHaveLength(0);
+  });
+
   it('refuses when the quote is not deposit_paid or has no paid deposit', async () => {
     db.quotes[0].status = 'deposit_invoiced';
     expect(
