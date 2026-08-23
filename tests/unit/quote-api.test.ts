@@ -279,4 +279,40 @@ describe('quote endpoint', () => {
     expect(text).toContain("we'll follow up to confirm scheduling");
     expect(text).not.toContain('Pay in full and start your project:');
   });
+
+  // The customer's own email should describe their quote the way the
+  // configurator and the quote page do — one rate. Listing both per line
+  // is the two-prices-side-by-side display this whole change removed.
+  it('prices each line at the chosen rate only, and names the other rate once', async () => {
+    await handleQuote(makeRequest({ ...validBody, audience: 'academic' }), env);
+    const text = customerEmailText();
+    // 600 barcoding: $12/specimen academic = $7,200, $15 commercial = $9,000
+    expect(text).toContain('$7,200 (300–999 tier)');
+    expect(text).not.toContain('academic/nonprofit: $7,200');
+    expect(text).not.toContain('commercial: $9,000');
+    expect(text).toContain('Commercial rate for this configuration: $9,000');
+  });
+
+  it('names the academic rate as the alternate for a commercial quote', async () => {
+    await handleQuote(makeRequest({ ...validBody, audience: 'commercial' }), env);
+    const text = customerEmailText();
+    expect(text).toContain('$9,000 (300–999 tier)');
+    expect(text).toContain('Academic/nonprofit rate for this configuration: $7,200');
+  });
+
+  it('falls back to both rates per line when no audience was recorded', async () => {
+    await handleQuote(makeRequest(validBody), env);
+    const text = customerEmailText();
+    expect(text).toContain('academic/nonprofit: $7,200');
+    expect(text).toContain('commercial: $9,000');
+    expect(text).not.toContain('rate for this configuration:');
+  });
+
+  it('keeps BOTH rates in the lab notification — staff want the comparison', async () => {
+    await handleQuote(makeRequest({ ...validBody, audience: 'academic' }), env);
+    const lab = emailTextTo(env.CONTACT_TO_EMAIL);
+    expect(lab).toContain('academic/nonprofit: $7,200');
+    expect(lab).toContain('commercial: $9,000');
+    expect(lab).toContain('Rate: academic');
+  });
 });

@@ -180,30 +180,43 @@ async function handleQuoteInner(
   }
   const url = `https://biokea.ai/quote/${accessToken}`;
 
-  const summary = quote.lines
-    .map((l) => {
-      const markerNote = l.markers > 1 ? ` × ${l.markers} markers` : '';
-      const head = `  · ${l.serviceTitle}: ${l.count.toLocaleString()} ${l.unitLabel}s${markerNote}`;
-      const academic =
-        `      academic/nonprofit: ${usd(l.academic.total)} (${l.academic.tierRange} tier` +
-        (l.academic.freeHeadroom > 0
-          ? `, ships up to ${l.academic.pricedCount.toLocaleString()}`
-          : '') +
-        `)`;
-      const commercial =
-        `      commercial: ${usd(l.commercial.total)} (${l.commercial.tierRange} tier` +
-        (l.commercial.freeHeadroom > 0
-          ? `, ships up to ${l.commercial.pricedCount.toLocaleString()}`
-          : '') +
-        `)`;
-      return [head, academic, commercial].join('\n');
-    })
-    .join('\n');
+  // One price per line when we know which rate is theirs, so the email
+  // reads the way the configurator and the quote page do. `null` keeps
+  // both — that is what the lab notification wants, and what a quote with
+  // no recorded audience has to fall back to.
+  const renderSummary = (forAudience: 'academic' | 'commercial' | null) =>
+    quote.lines
+      .map((l) => {
+        const markerNote = l.markers > 1 ? ` × ${l.markers} markers` : '';
+        const head = `  · ${l.serviceTitle}: ${l.count.toLocaleString()} ${l.unitLabel}s${markerNote}`;
+        const priced = (label: string, p: (typeof l)['academic']) =>
+          `      ${label}${usd(p.total)} (${p.tierRange} tier` +
+          (p.freeHeadroom > 0 ? `, ships up to ${p.pricedCount.toLocaleString()}` : '') +
+          `)`;
+        return forAudience
+          ? [head, priced('', l[forAudience])].join('\n')
+          : [
+              head,
+              priced('academic/nonprofit: ', l.academic),
+              priced('commercial: ', l.commercial),
+            ].join('\n');
+      })
+      .join('\n');
+
+  const summary = renderSummary(null);
 
   const { audience } = parsed.data;
   const totalLine = audience
     ? `Total: ${usd(quote.total[audience])} (${audience === 'academic' ? 'academic/nonprofit' : 'commercial'} rate)`
     : `Total: ${usd(quote.total.academic)} academic/nonprofit · ${usd(quote.total.commercial)} commercial`;
+  // The rate they did not pick, named once. A commercial reader still
+  // learns the academic discount exists, and an academic who toggled the
+  // wrong way can see it — without putting two prices on every line.
+  const altRateLine = audience
+    ? `${audience === 'academic' ? 'Commercial' : 'Academic/nonprofit'} rate for this configuration: ${usd(
+        quote.total[audience === 'academic' ? 'commercial' : 'academic'],
+      )}`
+    : null;
 
   const closing = quote.needsConversation
     ? `Because of the volume involved, we'll follow up to confirm scheduling and final pricing before anything is committed.`
@@ -227,9 +240,10 @@ async function handleQuoteInner(
   const text = [
     `Your BioKEA quote — ${quoteNumber}`,
     ``,
-    summary,
+    renderSummary(audience ?? null),
     ``,
     totalLine,
+    ...(altRateLine ? [altRateLine] : []),
     ``,
     `View or print this quote: ${url}`,
     ``,

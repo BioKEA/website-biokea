@@ -2,14 +2,15 @@ import { describe, it, expect } from 'vitest';
 import { buildQuote, type Audience } from '@/lib/pricing/quote';
 import {
   CREDIT_MONTHS,
-  usdCents,
   assertPaymentSane,
   computeBalance,
   creditFrom,
+  paidInFull,
   paymentLines,
   paymentTotalCents,
+  usdCents,
 } from '@/lib/payments/terms';
-import type { PaymentRecord } from '@/lib/payments/types';
+import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
 
 const bar = (n: number) => buildQuote([{ serviceSlug: 'barcoding', count: n }]);
 
@@ -221,5 +222,40 @@ describe('creditFrom', () => {
     expect(creditFrom(row({ amount_cents: 1000 }))).toBeNull();
     expect(creditFrom(row({ status: 'paid' }))).toBeNull();
     expect(creditFrom(row({ kind: 'deposit' }))).toBeNull();
+  });
+});
+
+// The single definition four surfaces read (panel, admin, emails, balance),
+// because quote_payments.kind is frozen at 'deposit' and a legacy 50%
+// deposit is therefore the same row shape as a new pay-in-full payment.
+describe('paidInFull', () => {
+  const quoted = bar(800); // academic $9,600, commercial $12,000
+  const q = (over: Partial<QuoteRecord> = {}): QuoteRecord =>
+    ({
+      lines: quoted.lines,
+      audience: 'academic',
+      total_academic: quoted.total.academic,
+      total_commercial: quoted.total.commercial,
+      ...over,
+    }) as QuoteRecord;
+  const p = (cents: number): PaymentRecord => ({ amount_cents: cents }) as PaymentRecord;
+
+  it('is true when the payment covers the whole quote', () => {
+    expect(paidInFull(q(), p(960000))).toBe(true);
+  });
+
+  it('is false for a legacy half deposit', () => {
+    expect(paidInFull(q(), p(480000))).toBe(false);
+  });
+
+  it('is null when the quote records no audience — unknowable, not false', () => {
+    // Distinct from false on purpose: callers must be able to say "cannot
+    // confirm" rather than assert a partial payment.
+    expect(paidInFull(q({ audience: null }), p(960000))).toBeNull();
+  });
+
+  it('prices against the recorded audience, not the cheaper one', () => {
+    // $9,600 covers the academic total but not the $12,000 commercial one.
+    expect(paidInFull(q({ audience: 'commercial' }), p(960000))).toBe(false);
   });
 });

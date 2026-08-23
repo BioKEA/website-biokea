@@ -5,7 +5,13 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
 import { env } from 'cloudflare:workers';
 import { SupabaseDb } from '@/lib/payments/db';
-import { computeBalance, paymentLines, paymentTotalCents, usdCents } from '@/lib/payments/terms';
+import {
+  computeBalance,
+  paidInFull,
+  paymentLines,
+  paymentTotalCents,
+  usdCents,
+} from '@/lib/payments/terms';
 import { parseBalanceForm } from '@/lib/payments/balance-form';
 import { numericId } from '@/lib/payments/shopify-ids';
 import { statusLabel } from '@/lib/payments/labels';
@@ -53,7 +59,11 @@ const url = Astro.url;
 const flash = {
   error: url.searchParams.get('error'),
   balance: url.searchParams.get('balance'),
+  // A settlement comes back as exactly one of these. `credit` means the
+  // quote paid in full and bought under the credit terms; `refund` means a
+  // legacy part-payment settled under the old terms and staff owe cash.
   credit: url.searchParams.get('credit'),
+  refund: url.searchParams.get('refund'),
 };
 // Computed here, not inline in the template. Also: in a `[number].astro`
 // route Astro's generated per-file types shadow the global `Number`
@@ -61,7 +71,9 @@ const flash = {
 // instead of calling `Number(...)`, and the global `isFinite` (equivalent
 // to `Number.isFinite` once the argument is already a number) instead of
 // `Number.isFinite`.
-const creditDisplay = isFinite(+(flash.credit ?? '')) ? usdCents(+(flash.credit ?? '0')) : '—';
+const money = (v: string | null) => (isFinite(+(v ?? '')) ? usdCents(+(v ?? '0')) : '—');
+const creditDisplay = money(flash.credit);
+const refundDisplay = money(flash.refund);
 
 // Preview: the balance endpoint bounced the form back to us as query params.
 let preview: ReturnType<typeof computeBalance> | null = null;
@@ -101,14 +113,14 @@ const val = (k: string) => previewInputs.get(k) ?? '';
 // against, so this says so rather than guessing.
 let depositPaidQualifier: string | null = null;
 if (quote.status === 'deposit_paid' && deposit) {
-  if (!quote.audience) {
+  const full = paidInFull(quote, deposit);
+  if (full === null) {
     depositPaidQualifier = 'cannot confirm paid-in-full — no rate recorded on this quote';
   } else {
-    const expectedTotalCents = paymentTotalCents(paymentLines(quote.lines, quote.audience));
-    depositPaidQualifier =
-      deposit.amount_cents >= expectedTotalCents
-        ? 'paid in full'
-        : `only ${usdCents(deposit.amount_cents)} of ${usdCents(expectedTotalCents)} paid — balance still owed`;
+    const expectedTotalCents = paymentTotalCents(paymentLines(quote.lines, quote.audience!));
+    depositPaidQualifier = full
+      ? 'paid in full'
+      : `only ${usdCents(deposit.amount_cents)} of ${usdCents(expectedTotalCents)} paid — balance still owed`;
   }
 }
 ---
@@ -153,9 +165,16 @@ if (quote.status === 'deposit_paid' && deposit) {
     }
     {
       flash.balance === 'settled' &&
-        (flash.credit === '0' ? (
+        (flash.credit === '0' || flash.refund === '0' ? (
           <p class="mt-6 text-sm text-amber-800 border-l-2 border-amber-600 pl-3">
-            Nothing further owed — actual counts matched what was paid. No credit arises.
+            Nothing further owed — actual counts matched what was paid. Nothing to return.
+          </p>
+        ) : flash.refund !== null ? (
+          <p class="mt-6 text-sm text-amber-800 border-l-2 border-amber-600 pl-3">
+            Nothing further owed — actual counts came in under what was paid. This quote paid a
+            part-payment under the older deposit terms, so it settles in cash:{' '}
+            <strong>refund {refundDisplay} in Shopify</strong> — Orders → the payment order →
+            Refund. The customer has been emailed to expect it.
           </p>
         ) : (
           <p class="mt-6 text-sm text-amber-800 border-l-2 border-amber-600 pl-3">

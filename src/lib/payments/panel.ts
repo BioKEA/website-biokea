@@ -2,7 +2,7 @@
 // Pure mapping from (quote row, payment rows) to what the customer's quote
 // page shows. Kept out of the .astro file so it can be unit-tested and so
 // the page stays a template. Spec §4.
-import { creditFrom, paymentLines, paymentTotalCents } from './terms';
+import { creditFrom, paidInFull, paymentLines, paymentTotalCents } from './terms';
 import type { Audience } from '@/lib/pricing/quote';
 import type { PaymentKind, PaymentRecord, QuoteRecord } from './types';
 
@@ -77,15 +77,12 @@ export function panelView(quote: QuoteRecord, payments: PaymentRecord[], now: Da
       };
     case 'deposit_paid': {
       if (!deposit || !deposit.paid_at) return { kind: 'none' };
-      const paidInFull = quote.audience
-        ? deposit.amount_cents >= paymentTotalCents(paymentLines(quote.lines, quote.audience))
-        : null;
       return {
         kind: 'deposit_paid',
         amountCents: deposit.amount_cents,
         paidAt: deposit.paid_at,
         pdfUrl: deposit.pdf_url,
-        paidInFull,
+        paidInFull: paidInFull(quote, deposit),
       };
     }
     case 'balance_invoiced':
@@ -102,7 +99,13 @@ export function panelView(quote: QuoteRecord, payments: PaymentRecord[], now: Da
       // `live()` deliberately excludes 'settled', so the settled balance row
       // (the credit, if any — spec §4.3) has to be found directly.
       const settled = payments.find((p) => p.kind === 'balance' && p.status === 'settled');
-      const credit = settled ? creditFrom(settled) : null;
+      // Only a quote that paid 100% up front settles as credit. A legacy
+      // 50% deposit is refunded in cash under the terms it agreed to, so
+      // showing it a credit here would contradict the refund email it
+      // received. Unknown audience -> not credit, matching the balance
+      // endpoint's own fallback.
+      const settlesAsCredit = !!deposit && paidInFull(quote, deposit) === true;
+      const credit = settled && settlesAsCredit ? creditFrom(settled) : null;
       return {
         kind: 'paid',
         depositPdf: deposit?.pdf_url ?? null,

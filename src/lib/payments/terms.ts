@@ -8,7 +8,7 @@ import {
   type QuoteLine,
   type QuoteLineInput,
 } from '@/lib/pricing/quote';
-import type { InvoiceLineSpec, PaymentRecord } from './types';
+import type { InvoiceLineSpec, PaymentRecord, QuoteRecord } from './types';
 
 export const INVOICE_DAYS_UNTIL_DUE = 30;
 /** How long an under-shipping credit stays redeemable. Spec §4.3. */
@@ -186,4 +186,25 @@ export function creditFrom(p: PaymentRecord): { amountCents: number; expiresAt: 
   const expires = new Date(p.created_at);
   expires.setUTCMonth(expires.getUTCMonth() + CREDIT_MONTHS);
   return { amountCents: -p.amount_cents, expiresAt: expires.toISOString() };
+}
+
+/**
+ * Did this payment cover the whole quote?
+ *
+ * `quote_payments.kind` is frozen at 'deposit' (spec §6.3), so a new
+ * pay-in-full payment and a legacy 50% deposit are the same row shape and
+ * the amount alone cannot tell them apart. Comparing against the quote's
+ * own total can.
+ *
+ * Returns null when the quote records no audience — a pre-configurator row
+ * has no rate to price against, so the honest answer is "cannot confirm",
+ * and every caller must fall back to wording that is true either way.
+ *
+ * This is the single definition; panelView, the admin page, the payment
+ * emails and the balance endpoint all read it from here, because four
+ * copies of one comparison is four chances to drift.
+ */
+export function paidInFull(quote: QuoteRecord, payment: PaymentRecord): boolean | null {
+  if (!quote.audience) return null;
+  return payment.amount_cents >= paymentTotalCents(paymentLines(quote.lines, quote.audience));
 }

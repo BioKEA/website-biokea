@@ -97,8 +97,14 @@ describe('panelView', () => {
     expect(v.amountAcademicCents).toBe(Math.round(q.total.academic * 100));
   });
 
-  it('surfaces a credit on a settled project', () => {
-    const paidPayment = payment({ status: 'paid', paid_at: '2026-09-02T10:00:00Z' });
+  it('surfaces a credit on a settled project that paid in full', () => {
+    // 800 barcoding academic = $9,600, so a $9,600 payment is the whole
+    // quote — this quote bought under the credit terms.
+    const paidPayment = payment({
+      status: 'paid',
+      paid_at: '2026-09-02T10:00:00Z',
+      amount_cents: 960000,
+    });
     const settledNegative = payment({
       id: 'p2',
       kind: 'balance',
@@ -109,12 +115,67 @@ describe('panelView', () => {
       hosted_url: null,
       created_at: '2026-09-10T00:00:00Z',
     });
-    const v = panelView(quote({ status: 'paid' }), [paidPayment, settledNegative], now);
+    const v = panelView(
+      quote({ status: 'paid', audience: 'academic' }),
+      [paidPayment, settledNegative],
+      now,
+    );
     expect(v).toMatchObject({
       kind: 'paid',
       creditCents: 660000,
       creditExpiresAt: '2027-09-10T00:00:00.000Z',
     });
+  });
+
+  // A legacy 50% deposit settles as a cash refund under the terms it
+  // agreed to, so the page must not offer it a credit — that would
+  // contradict the refund email the same settlement sends.
+  it('shows NO credit for a legacy part-paid quote, even when it overpaid', () => {
+    const halfPaid = payment({
+      status: 'paid',
+      paid_at: '2026-09-02T10:00:00Z',
+      amount_cents: 480000, // half of the $9,600 academic total
+    });
+    const settledNegative = payment({
+      id: 'p2',
+      kind: 'balance',
+      status: 'settled',
+      amount_cents: -120000,
+      external_id: null,
+      pdf_url: null,
+      hosted_url: null,
+      created_at: '2026-09-10T00:00:00Z',
+    });
+    const v = panelView(
+      quote({ status: 'paid', audience: 'academic' }),
+      [halfPaid, settledNegative],
+      now,
+    );
+    expect(v).toMatchObject({ kind: 'paid', creditCents: null, creditExpiresAt: null });
+  });
+
+  it('shows NO credit when the quote records no audience (unknowable)', () => {
+    const paidPayment = payment({
+      status: 'paid',
+      paid_at: '2026-09-02T10:00:00Z',
+      amount_cents: 960000,
+    });
+    const settledNegative = payment({
+      id: 'p2',
+      kind: 'balance',
+      status: 'settled',
+      amount_cents: -120000,
+      external_id: null,
+      pdf_url: null,
+      hosted_url: null,
+      created_at: '2026-09-10T00:00:00Z',
+    });
+    const v = panelView(
+      quote({ status: 'paid', audience: null }),
+      [paidPayment, settledNegative],
+      now,
+    );
+    expect(v).toMatchObject({ kind: 'paid', creditCents: null });
   });
 
   it('reports no credit when the project settled square', () => {
@@ -238,9 +299,9 @@ describe('panelView', () => {
       creditExpiresAt: null,
     });
     const settled = panelView(
-      quote({ status: 'paid' }),
+      quote({ status: 'paid', audience: 'academic' }),
       [
-        payment({ status: 'paid', paid_at: '2026-09-02T10:00:00Z' }),
+        payment({ status: 'paid', paid_at: '2026-09-02T10:00:00Z', amount_cents: 960000 }),
         payment({
           id: 'p2',
           kind: 'balance',

@@ -3,7 +3,7 @@
 // §5.6, §7.3.
 import type { EmailMessage } from './resend';
 import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
-import { creditFrom, paymentLines, paymentTotalCents, usdCents } from '@/lib/payments/terms';
+import { creditFrom, paidInFull, usdCents } from '@/lib/payments/terms';
 
 export const SITE_URL = 'https://biokea.ai';
 
@@ -74,9 +74,6 @@ function labBody(q: QuoteRecord, p: PaymentRecord, headline: string): string {
  * callers must fall back to neutral, true-under-both wording rather than
  * assert "paid in full".
  */
-function paidInFull(q: QuoteRecord, p: PaymentRecord): boolean | null {
-  return q.audience ? p.amount_cents >= paymentTotalCents(paymentLines(q.lines, q.audience)) : null;
-}
 
 export function paymentReceivedCustomerEmail(q: QuoteRecord, p: PaymentRecord): EmailMessage {
   const full = paidInFull(q, p) === true;
@@ -146,6 +143,47 @@ export function paymentReceivedLabEmail(
 /** The under-shipping close-out. Sent instead of a balance invoice when the
  * actual counts came in at or under what was paid for. Spec §4.3 — we issue
  * credit, not a refund, so this email is the customer's only record of it. */
+/**
+ * The under-shipping close-out for a LEGACY quote — one that paid a 50%
+ * deposit under the old terms, before pay-in-full and the credit policy
+ * existed. Those customers are settled under the terms they actually
+ * agreed to, so the overpayment goes back as cash, not as credit.
+ *
+ * Returns null unless the row really is an overpayment, so the caller
+ * cannot send an empty one. Staff issue the refund by hand in Shopify;
+ * this email is what tells the customer it is coming.
+ */
+export function projectSettledWithRefundEmail(
+  q: QuoteRecord,
+  p: PaymentRecord,
+): EmailMessage | null {
+  if (p.kind !== 'balance' || p.status !== 'settled' || p.amount_cents >= 0) return null;
+  const amount = usdCents(-p.amount_cents);
+  return {
+    to: q.email,
+    replyTo: 'contact@biokea.ai',
+    subject: `Project settled — ${amount} refund on BioKEA ${q.quote_number}`,
+    text: [
+      `Your project on quote ${q.quote_number} is complete and settled.`,
+      ``,
+      `Fewer samples arrived than your payment covered, so we're returning the`,
+      `difference:`,
+      ``,
+      `  Refund: ${amount}`,
+      ``,
+      `It goes back to the payment method you originally used. Refunds usually`,
+      `appear within 5-10 business days, depending on your bank.`,
+      ``,
+      `Your quote: ${quoteUrl(q)}`,
+      ``,
+      `Questions? Just reply to this email.`,
+      ``,
+      `— The BioKEA team`,
+      `${SITE_URL}/`,
+    ].join('\n'),
+  };
+}
+
 export function projectSettledWithCreditEmail(
   q: QuoteRecord,
   p: PaymentRecord,

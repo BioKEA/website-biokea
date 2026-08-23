@@ -153,7 +153,7 @@ describe('handleBalance', () => {
     expect(db.quotes[0].status).toBe('balance_invoiced');
   });
 
-  it('confirm with actual <= deposit: no invoice, settled row, quote paid, credit amount in the redirect', async () => {
+  it('confirm with actual <= deposit on a LEGACY part-payment: settles as a refund', async () => {
     const d = deps();
     const res = await handleBalance(post({ 'counts[barcoding]': '100', confirm: 'true' }), N, d);
     // The rate lock (spec §4.2) holds: 800 quoted @ $12/specimen, 700 short,
@@ -161,8 +161,11 @@ describe('handleBalance', () => {
     // $16 the raw engine would charge for 100 alone. Settled: $9,600 minus
     // 700 × $12 = $1,200 (120000 cents) — below the engine's own $1,600.
     const actual = 120000;
+    // DEPOSIT (480000) is far below this quote's full academic total, so
+    // paidInFull() is false: this customer bought under the old 50%-deposit
+    // terms and is settled with cash back, not credit.
     expect(res.headers.get('location')).toBe(
-      `/admin/quotes/${N}?balance=settled&credit=${DEPOSIT - actual}`,
+      `/admin/quotes/${N}?balance=settled&refund=${DEPOSIT - actual}`,
     );
     expect(gateway.created).toHaveLength(0);
     expect(db.payments.find((p) => p.kind === 'balance')).toMatchObject({
@@ -173,11 +176,26 @@ describe('handleBalance', () => {
     });
     expect(db.quotes[0].status).toBe('paid');
     expect(d.email.sent).toHaveLength(1);
-    expect(d.email.sent[0].text).toContain('credit');
-    expect(d.email.sent[0].text).not.toMatch(/refund/i);
+    expect(d.email.sent[0].text).toMatch(/refund/i);
+    expect(d.email.sent[0].text).not.toMatch(/credit/i);
   });
 
-  it('emails the customer their credit when the actuals come in under', async () => {
+  it('emails a LEGACY part-payer their refund when the actuals come in under', async () => {
+    const sent: EmailMessage[] = [];
+    const res = await handleBalance(post({ confirm: 'true', 'counts[barcoding]': '250' }), N, {
+      ...deps(),
+      email: async (m: EmailMessage) => void sent.push(m),
+    });
+    expect(res.headers.get('location')).toContain('refund=');
+    expect(sent).toHaveLength(1);
+    expect(sent[0].subject).toMatch(/refund/i);
+    expect(sent[0].text).not.toMatch(/credit/i);
+  });
+
+  it('emails a PAID-IN-FULL quote their credit when the actuals come in under', async () => {
+    // Same scenario, but the payment covered the whole quote — so this one
+    // bought under the credit terms and must not be offered cash back.
+    await db.updatePayment('p1', { amount_cents: q.total.academic * 100 });
     const sent: EmailMessage[] = [];
     const res = await handleBalance(post({ confirm: 'true', 'counts[barcoding]': '250' }), N, {
       ...deps(),
@@ -185,7 +203,8 @@ describe('handleBalance', () => {
     });
     expect(res.headers.get('location')).toContain('credit=');
     expect(sent).toHaveLength(1);
-    expect(sent[0].text).toContain('credit');
+    expect(sent[0].subject).toMatch(/credit/i);
+    expect(sent[0].text).not.toMatch(/refund/i);
   });
 
   // Regression guard: every other test's `email` fn succeeds, so nothing
@@ -209,14 +228,14 @@ describe('handleBalance', () => {
     const actual = 120000; // see the rate-lock comment above
     expect(res.status).toBe(303);
     expect(res.headers.get('location')).toBe(
-      `/admin/quotes/${N}?balance=settled&credit=${DEPOSIT - actual}`,
+      `/admin/quotes/${N}?balance=settled&refund=${DEPOSIT - actual}`,
     );
     expect(db.payments.find((p) => p.kind === 'balance')).toMatchObject({
       status: 'settled',
       amount_cents: actual - DEPOSIT,
     });
     expect(db.quotes[0].status).toBe('paid');
-    expect(errSpy).toHaveBeenCalledWith('[balance] credit email failed for', N, boom);
+    expect(errSpy).toHaveBeenCalledWith('[balance] settlement email failed for', N, boom);
     errSpy.mockRestore();
   });
 

@@ -10,10 +10,13 @@ import { env } from 'cloudflare:workers';
 import { type PaymentsDb, SupabaseDb } from '@/lib/payments/db';
 import { type PaymentsGateway, shopifyGateway } from '@/lib/payments/gateway';
 import { shopifyConfigFromEnv, type ShopifyEnv } from '@/lib/payments/shopify-env';
-import { INVOICE_DAYS_UNTIL_DUE, computeBalance } from '@/lib/payments/terms';
+import { INVOICE_DAYS_UNTIL_DUE, computeBalance, paidInFull } from '@/lib/payments/terms';
 import { parseBalanceForm } from '@/lib/payments/balance-form';
 import { type EmailSender, resendSender } from '@/lib/email/resend';
-import { projectSettledWithCreditEmail } from '@/lib/email/quote-payments';
+import {
+  projectSettledWithCreditEmail,
+  projectSettledWithRefundEmail,
+} from '@/lib/email/quote-payments';
 
 export const prerender = false;
 
@@ -89,20 +92,30 @@ export async function handleBalance(
       created_by: deps.actorEmail,
     });
     await deps.db.updateQuote(quote.id, { status: 'paid' });
+    // Which policy settles this overpayment depends on which one the
+    // customer actually agreed to. A quote that paid 100% up front bought
+    // under the credit terms; a legacy 50% deposit did not, and gets cash
+    // back the way the old flow promised. paidInFull() returns null when
+    // the quote records no audience — unknowable, so treat it as legacy
+    // and refund, which is the option that cannot short-change anyone.
+    const settlesAsCredit = paidInFull(quote, deposit) === true;
     // The row is already committed at this point; an email failure must not
-    // fail the request. projectSettledWithCreditEmail returns null when
-    // there is nothing to credit, so we never send an empty email.
+    // fail the request. Both builders return null when there is nothing to
+    // settle, so we never send an empty email.
     if (settledRow !== 'conflict') {
-      const msg = projectSettledWithCreditEmail(quote, settledRow);
+      const msg = settlesAsCredit
+        ? projectSettledWithCreditEmail(quote, settledRow)
+        : projectSettledWithRefundEmail(quote, settledRow);
       if (msg) {
         try {
           await deps.email(msg);
         } catch (err) {
-          console.error('[balance] credit email failed for', quote.quote_number, err);
+          console.error('[balance] settlement email failed for', quote.quote_number, err);
         }
       }
     }
-    return seeOther(`${admin}?balance=settled&credit=${-computed.balanceCents}`);
+    const param = settlesAsCredit ? 'credit' : 'refund';
+    return seeOther(`${admin}?balance=settled&${param}=${-computed.balanceCents}`);
   }
 
   const inserted = await deps.db.insertPayment({
