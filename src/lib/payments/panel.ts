@@ -23,7 +23,20 @@ export type PanelView =
       hostedUrl: string | null;
       pdfUrl: string | null;
     }
-  | { kind: 'deposit_paid'; amountCents: number; paidAt: string; pdfUrl: string | null }
+  | {
+      kind: 'deposit_paid';
+      amountCents: number;
+      paidAt: string;
+      pdfUrl: string | null;
+      // Distinguishes a pay-in-full quote from a legacy 50% deposit still
+      // awaiting a balance invoice — both write kind:'deposit' (frozen
+      // ledger names), so `amountCents` alone can't tell them apart. null
+      // when `quote.audience` is unset (legacy, pre-configurator quote):
+      // there is then no way to know which rate's total to compare
+      // against, so the page must fall back to neutral, true-under-both
+      // wording rather than assert "paid in full".
+      paidInFull: boolean | null;
+    }
   | {
       kind: 'paid';
       depositPdf: string | null;
@@ -62,14 +75,19 @@ export function panelView(quote: QuoteRecord, payments: PaymentRecord[], now: Da
         hostedUrl: deposit.hosted_url,
         pdfUrl: deposit.pdf_url,
       };
-    case 'deposit_paid':
+    case 'deposit_paid': {
       if (!deposit || !deposit.paid_at) return { kind: 'none' };
+      const paidInFull = quote.audience
+        ? deposit.amount_cents >= paymentTotalCents(paymentLines(quote.lines, quote.audience))
+        : null;
       return {
         kind: 'deposit_paid',
         amountCents: deposit.amount_cents,
         paidAt: deposit.paid_at,
         pdfUrl: deposit.pdf_url,
+        paidInFull,
       };
+    }
     case 'balance_invoiced':
       if (!balance) return { kind: 'none' };
       return {

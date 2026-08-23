@@ -211,16 +211,6 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
             You'll get a Shopify invoice you can pay by card, Shop Pay, or PayPal — or forward it to
             accounts payable.
           </p>
-          <p class="mt-2 text-sm text-slate-600 leading-relaxed">
-            Pay in full to lock your rate and reserve lab capacity. Your quoted per-sample rate is
-            held for this project. Send fewer samples than quoted and the unused amount stays as
-            credit toward another project for 12 months; send more and we invoice the difference at
-            the same rate. See our{' '}
-            <a href="/terms" class="underline">
-              terms
-            </a>
-            .
-          </p>
           <form
             method="post"
             action={`/api/quote/${quote.access_token}/pay`}
@@ -312,6 +302,16 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
                 Email me a Net-30 invoice instead
               </button>
             </div>
+            <p class="mt-2 text-xs text-slate-600 leading-relaxed">
+              Pay in full to lock your rate and reserve lab capacity. Your quoted per-sample rate is
+              held for this project. Send fewer samples than quoted and the unused amount stays as
+              credit toward another project for 12 months; send more and we invoice the difference
+              at the same rate. See our{' '}
+              <a href="/terms" class="underline">
+                terms
+              </a>
+              .
+            </p>
           </form>
         </section>
       )
@@ -382,9 +382,19 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
             Payment received
           </p>
           <p class="mt-1 text-sm text-[var(--color-ink)]">
-            Payment of <strong>{usdCents(panel.amountCents)}</strong> received in full on{' '}
-            {fmtDate(panel.paidAt)}. The lab will send shipping instructions and your sample
-            manifest within 2 business days.
+            {panel.paidInFull ? (
+              <>
+                Payment of <strong>{usdCents(panel.amountCents)}</strong> received in full on{' '}
+                {fmtDate(panel.paidAt)}.
+              </>
+            ) : (
+              <>
+                Payment of <strong>{usdCents(panel.amountCents)}</strong> received on{' '}
+                {fmtDate(panel.paidAt)}. Any remaining balance is invoiced based on actual counts
+                when results are delivered.
+              </>
+            )}{' '}
+            The lab will send shipping instructions and your sample manifest within 2 business days.
           </p>
           {panel.pdfUrl && (
             <a

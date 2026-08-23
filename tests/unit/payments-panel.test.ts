@@ -154,7 +154,7 @@ describe('panelView', () => {
     });
   });
 
-  it('shows deposit received', () => {
+  it('shows deposit received, unable to confirm "in full" for a legacy quote with no audience', () => {
     const v = panelView(
       quote({ status: 'deposit_paid' }),
       [payment({ status: 'paid', paid_at: '2026-09-02T10:00:00Z' })],
@@ -165,7 +165,31 @@ describe('panelView', () => {
       amountCents: 480000,
       paidAt: '2026-09-02T10:00:00Z',
       pdfUrl: 'https://pay.example.com/x.pdf',
+      paidInFull: null,
     });
+  });
+
+  it('distinguishes a pay-in-full quote from a legacy 50% deposit still owed a balance — same kind:"deposit" row, different amount vs the quote total', () => {
+    const fullAmountCents = Math.round(q.total.academic * 100);
+    const full = panelView(
+      quote({ status: 'deposit_paid', audience: 'academic' }),
+      [payment({ status: 'paid', paid_at: '2026-09-02T10:00:00Z', amount_cents: fullAmountCents })],
+      now,
+    );
+    expect(full).toMatchObject({ kind: 'deposit_paid', paidInFull: true });
+
+    const half = panelView(
+      quote({ status: 'deposit_paid', audience: 'academic' }),
+      [
+        payment({
+          status: 'paid',
+          paid_at: '2026-09-02T10:00:00Z',
+          amount_cents: Math.round(fullAmountCents / 2),
+        }),
+      ],
+      now,
+    );
+    expect(half).toMatchObject({ kind: 'deposit_paid', paidInFull: false });
   });
 
   it('shows the open balance invoice', () => {
