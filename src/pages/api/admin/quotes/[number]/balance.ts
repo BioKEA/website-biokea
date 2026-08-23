@@ -12,6 +12,8 @@ import { type PaymentsGateway, shopifyGateway } from '@/lib/payments/gateway';
 import { shopifyConfigFromEnv, type ShopifyEnv } from '@/lib/payments/shopify-env';
 import { INVOICE_DAYS_UNTIL_DUE, computeBalance } from '@/lib/payments/terms';
 import { parseBalanceForm } from '@/lib/payments/balance-form';
+import { type EmailSender, resendSender } from '@/lib/email/resend';
+import { projectSettledWithCreditEmail } from '@/lib/email/quote-payments';
 
 export const prerender = false;
 
@@ -19,6 +21,7 @@ export interface BalanceDeps {
   db: PaymentsDb;
   gateway: PaymentsGateway;
   actorEmail: string;
+  email: EmailSender;
 }
 
 // Re-exported so existing importers (this route's own tests, Task 10) keep
@@ -77,7 +80,7 @@ export async function handleBalance(
   }
 
   if (computed.balanceCents <= 0) {
-    await deps.db.insertPayment({
+    const settledRow = await deps.db.insertPayment({
       quote_id: quote.id,
       kind: 'balance',
       status: 'settled',
@@ -86,7 +89,20 @@ export async function handleBalance(
       created_by: deps.actorEmail,
     });
     await deps.db.updateQuote(quote.id, { status: 'paid' });
-    return seeOther(`${admin}?balance=settled&refund=${-computed.balanceCents}`);
+    // The row is already committed at this point; an email failure must not
+    // fail the request. projectSettledWithCreditEmail returns null when
+    // there is nothing to credit, so we never send an empty email.
+    if (settledRow !== 'conflict') {
+      const msg = projectSettledWithCreditEmail(quote, settledRow);
+      if (msg) {
+        try {
+          await deps.email(msg);
+        } catch (err) {
+          console.error('[balance] credit email failed for', quote.quote_number, err);
+        }
+      }
+    }
+    return seeOther(`${admin}?balance=settled&credit=${-computed.balanceCents}`);
   }
 
   const inserted = await deps.db.insertPayment({
@@ -162,9 +178,20 @@ export async function handleBalance(
 }
 
 export async function POST({ request, params, locals }: APIContext): Promise<Response> {
-  const e = env as { SUPABASE_URL?: string; SUPABASE_SERVICE_ROLE_KEY?: string } & ShopifyEnv;
+  const e = env as {
+    SUPABASE_URL?: string;
+    SUPABASE_SERVICE_ROLE_KEY?: string;
+    RESEND_API_KEY?: string;
+    CONTACT_FROM_EMAIL?: string;
+  } & ShopifyEnv;
   const shopify = shopifyConfigFromEnv(e);
-  if (!e?.SUPABASE_URL || !e?.SUPABASE_SERVICE_ROLE_KEY || !shopify) {
+  if (
+    !e?.SUPABASE_URL ||
+    !e?.SUPABASE_SERVICE_ROLE_KEY ||
+    !shopify ||
+    !e?.RESEND_API_KEY ||
+    !e?.CONTACT_FROM_EMAIL
+  ) {
     return new Response('Payments are not configured.', { status: 500 });
   }
   if (!locals.adminEmail) return new Response('Forbidden', { status: 403 }); // middleware sets it; belt and braces
@@ -174,5 +201,9 @@ export async function POST({ request, params, locals }: APIContext): Promise<Res
     db: new SupabaseDb(e.SUPABASE_URL, e.SUPABASE_SERVICE_ROLE_KEY),
     gateway: shopifyGateway(shopify),
     actorEmail: locals.adminEmail,
+    email: resendSender({
+      RESEND_API_KEY: e.RESEND_API_KEY,
+      CONTACT_FROM_EMAIL: e.CONTACT_FROM_EMAIL,
+    }),
   });
 }

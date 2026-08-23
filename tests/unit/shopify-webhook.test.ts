@@ -151,8 +151,8 @@ describe('handleShopifyWebhook', () => {
     });
     expect(db.quotes[0].status).toBe('deposit_paid');
     expect(email.sent.map((m) => m.subject)).toEqual([
-      'Deposit received — BioKEA quote BK-2026-0142',
-      '[deposit paid] BK-2026-0142 · State University · $4,800.00',
+      'Payment received — BioKEA quote BK-2026-0142',
+      '[paid] BK-2026-0142 · State University · $4,800.00',
     ]);
   });
 

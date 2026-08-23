@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { buildQuote } from '@/lib/pricing/quote';
 import { MemoryDb } from '@/lib/payments/db';
 import { MemoryGateway } from '@/lib/payments/gateway';
+import { memorySender, type EmailMessage } from '@/lib/email/resend';
 import { handleBalance, parseBalanceForm } from '@/pages/api/admin/quotes/[number]/balance';
 import type { QuoteRecord } from '@/lib/payments/types';
 
@@ -10,7 +11,7 @@ const q = buildQuote([
   { serviceSlug: 'barcoding', count: 800 },
   { serviceSlug: 'metabarcoding', count: 60, markers: 2 },
 ]);
-const deps = () => ({ db, gateway, actorEmail: 'michelle@biokea.ai' });
+const deps = () => ({ db, gateway, actorEmail: 'michelle@biokea.ai', email: memorySender() });
 
 function quote(over: Partial<QuoteRecord> = {}): QuoteRecord {
   return {
@@ -152,19 +153,16 @@ describe('handleBalance', () => {
     expect(db.quotes[0].status).toBe('balance_invoiced');
   });
 
-  it('confirm with actual <= deposit: no invoice, settled row, quote paid, refund amount in the redirect', async () => {
-    const res = await handleBalance(
-      post({ 'counts[barcoding]': '100', confirm: 'true' }),
-      N,
-      deps(),
-    );
+  it('confirm with actual <= deposit: no invoice, settled row, quote paid, credit amount in the redirect', async () => {
+    const d = deps();
+    const res = await handleBalance(post({ 'counts[barcoding]': '100', confirm: 'true' }), N, d);
     // The rate lock (spec §4.2) holds: 800 quoted @ $12/specimen, 700 short,
     // so the shortfall is credited at $12, not the standalone 1–299 tier's
     // $16 the raw engine would charge for 100 alone. Settled: $9,600 minus
     // 700 × $12 = $1,200 (120000 cents) — below the engine's own $1,600.
     const actual = 120000;
     expect(res.headers.get('location')).toBe(
-      `/admin/quotes/${N}?balance=settled&refund=${DEPOSIT - actual}`,
+      `/admin/quotes/${N}?balance=settled&credit=${DEPOSIT - actual}`,
     );
     expect(gateway.created).toHaveLength(0);
     expect(db.payments.find((p) => p.kind === 'balance')).toMatchObject({
@@ -174,6 +172,20 @@ describe('handleBalance', () => {
       created_by: 'michelle@biokea.ai',
     });
     expect(db.quotes[0].status).toBe('paid');
+    expect(d.email.sent).toHaveLength(1);
+    expect(d.email.sent[0].text).toContain('credit');
+    expect(d.email.sent[0].text).not.toMatch(/refund/i);
+  });
+
+  it('emails the customer their credit when the actuals come in under', async () => {
+    const sent: EmailMessage[] = [];
+    const res = await handleBalance(post({ confirm: 'true', 'counts[barcoding]': '250' }), N, {
+      ...deps(),
+      email: async (m: EmailMessage) => void sent.push(m),
+    });
+    expect(res.headers.get('location')).toContain('credit=');
+    expect(sent).toHaveLength(1);
+    expect(sent[0].text).toContain('credit');
   });
 
   it('refuses when the quote is not deposit_paid or has no paid deposit', async () => {
@@ -227,6 +239,7 @@ describe('handleBalance', () => {
       db,
       gateway: new MismatchGateway(),
       actorEmail: 'michelle@biokea.ai',
+      email: memorySender(),
     });
     expect(res.headers.get('location')).toBe(`/admin/quotes/${N}?balance=invoiced`);
     expect(errSpy).toHaveBeenCalledWith(
@@ -263,6 +276,7 @@ describe('handleBalance', () => {
       db,
       gateway: racingGateway,
       actorEmail: 'michelle@biokea.ai',
+      email: memorySender(),
     });
     expect(res.headers.get('location')).toBe(`/admin/quotes/${N}?balance=invoiced`);
     expect(db.quotes[0].status).toBe('paid');

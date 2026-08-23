@@ -1,8 +1,9 @@
-// The four notifications the Shopify webhook sends. Pure builders — the
-// webhook handler decides when; these decide what. Spec §5.6.
+// The notifications the Shopify webhook (and the admin balance endpoint)
+// send. Pure builders — the caller decides when; these decide what. Spec
+// §5.6, §7.3.
 import type { EmailMessage } from './resend';
 import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
-import { usdCents } from '@/lib/payments/terms';
+import { creditFrom, usdCents } from '@/lib/payments/terms';
 
 export const SITE_URL = 'https://biokea.ai';
 
@@ -63,20 +64,25 @@ function labBody(q: QuoteRecord, p: PaymentRecord, headline: string): string {
   return lines.filter((l) => l !== '').join('\n');
 }
 
-export function depositPaidCustomerEmail(q: QuoteRecord, p: PaymentRecord): EmailMessage {
+export function paymentReceivedCustomerEmail(q: QuoteRecord, p: PaymentRecord): EmailMessage {
   return {
     to: q.email,
     replyTo: 'contact@biokea.ai',
-    subject: `Deposit received — BioKEA quote ${q.quote_number}`,
+    subject: `Payment received — BioKEA quote ${q.quote_number}`,
     text: [
-      `Thanks — we've received your deposit of ${usdCents(p.amount_cents)} toward quote ${q.quote_number}.`,
+      `Thanks — quote ${q.quote_number} is paid in full (${usdCents(p.amount_cents)}).`,
       ``,
-      `What happens next: the lab will email you shipping instructions and your sample`,
-      `manifest within 2 business days. Once your samples arrive and pass QC, we start`,
-      `sequencing; the balance is invoiced on the actual counts when results are delivered.`,
+      `What happens next: the lab will email you shipping instructions and your`,
+      `sample manifest within 2 business days. Once your samples arrive and pass`,
+      `QC, we start sequencing.`,
+      ``,
+      `Your quoted per-sample rate is held for this project. If fewer samples`,
+      `arrive than you quoted, the unused amount stays as credit toward another project for 12 months;`,
+      `if more arrive, we invoice the difference at the same rate.`,
       ``,
       `Your quote: ${quoteUrl(q)}`,
       p.pdf_url ? `Receipt / invoice PDF: ${p.pdf_url}` : '',
+      `Full terms: ${SITE_URL}/terms`,
       ``,
       `Questions? Just reply to this email.`,
       ``,
@@ -88,16 +94,54 @@ export function depositPaidCustomerEmail(q: QuoteRecord, p: PaymentRecord): Emai
   };
 }
 
-export function depositPaidLabEmail(q: QuoteRecord, p: PaymentRecord, labTo: string): EmailMessage {
+export function paymentReceivedLabEmail(
+  q: QuoteRecord,
+  p: PaymentRecord,
+  labTo: string,
+): EmailMessage {
   return {
     to: labTo,
     replyTo: q.email,
-    subject: `[deposit paid] ${q.quote_number} · ${who(q)} · ${usdCents(p.amount_cents)}`,
+    subject: `[paid] ${q.quote_number} · ${who(q)} · ${usdCents(p.amount_cents)}`,
     text: labBody(
       q,
       p,
-      `Deposit paid on ${q.quote_number} — send shipping instructions + manifest.`,
+      `Paid in full on ${q.quote_number} — send shipping instructions + manifest.`,
     ),
+  };
+}
+
+/** The under-shipping close-out. Sent instead of a balance invoice when the
+ * actual counts came in at or under what was paid for. Spec §4.3 — we issue
+ * credit, not a refund, so this email is the customer's only record of it. */
+export function projectSettledWithCreditEmail(
+  q: QuoteRecord,
+  p: PaymentRecord,
+): EmailMessage | null {
+  const credit = creditFrom(p);
+  if (!credit) return null;
+  return {
+    to: q.email,
+    replyTo: 'contact@biokea.ai',
+    subject: `Project settled — ${usdCents(credit.amountCents)} credit on BioKEA ${q.quote_number}`,
+    text: [
+      `Your project on quote ${q.quote_number} is complete and settled.`,
+      ``,
+      `Fewer samples arrived than the quote covered, so the unused amount is`,
+      `held as credit:`,
+      ``,
+      `  Credit: ${usdCents(credit.amountCents)}`,
+      `  Valid until: ${credit.expiresAt.slice(0, 10)}`,
+      ``,
+      `To use it, reply to this email or mention quote ${q.quote_number} when you`,
+      `next configure a project, and we'll apply it to that invoice.`,
+      ``,
+      `Your quote: ${quoteUrl(q)}`,
+      `Full terms: ${SITE_URL}/terms`,
+      ``,
+      `— The BioKEA team`,
+      `${SITE_URL}/`,
+    ].join('\n'),
   };
 }
 

@@ -1,9 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { buildQuote } from '@/lib/pricing/quote';
 import { resendSender, memorySender } from '@/lib/email/resend';
+import { creditFrom } from '@/lib/payments/terms';
 import {
-  depositPaidCustomerEmail,
-  depositPaidLabEmail,
+  paymentReceivedCustomerEmail,
+  paymentReceivedLabEmail,
+  projectSettledWithCreditEmail,
   balancePaidCustomerEmail,
   balancePaidLabEmail,
   refundLabEmail,
@@ -63,27 +65,57 @@ const balance: PaymentRecord = {
 };
 
 describe('payment emails', () => {
-  it('deposit paid → customer: amount, next steps, quote link, receipt', () => {
-    const m = depositPaidCustomerEmail(quote, deposit);
+  it('the payment email says paid in full and never says deposit', () => {
+    const m = paymentReceivedCustomerEmail(quote, deposit);
     expect(m.to).toBe('alice@state.edu');
-    expect(m.subject).toBe('Deposit received — BioKEA quote BK-2026-0142');
+    expect(m.subject).toBe('Payment received — BioKEA quote BK-2026-0142');
     expect(m.replyTo).toBe('contact@biokea.ai');
+    expect(m.subject).toContain('Payment received');
+    expect(m.text).toContain('paid in full');
     expect(m.text).toContain('$4,800.00');
+    expect(m.text).toContain('shipping instructions');
     expect(m.text).toContain('within 2 business days');
     expect(m.text).toContain('https://biokea.ai/quote/tok');
     expect(m.text).toContain('https://pay.example.com/x.pdf');
+    expect(m.text).toContain('credit toward another project for 12 months');
+    expect(m.text).not.toMatch(/deposit/i);
   });
 
-  it('deposit paid → lab: lines, audience, PO, customer, admin link', () => {
-    const m = depositPaidLabEmail(quote, deposit, 'contact@biokea.ai');
+  it('paid → lab: lines, audience, PO, customer, admin link', () => {
+    const m = paymentReceivedLabEmail(quote, deposit, 'contact@biokea.ai');
     expect(m.to).toBe('contact@biokea.ai');
-    expect(m.subject).toBe('[deposit paid] BK-2026-0142 · State University · $4,800.00');
+    expect(m.subject).toBe('[paid] BK-2026-0142 · State University · $4,800.00');
     expect(m.replyTo).toBe('alice@state.edu');
     expect(m.text).toContain('Voucher-Linked Specimen Barcoding: 800 specimens');
     expect(m.text).toContain('× 2 markers');
     expect(m.text).toContain('Rate: academic');
     expect(m.text).toContain('PO number: PO-77');
     expect(m.text).toContain('https://biokea.ai/admin/quotes/BK-2026-0142');
+  });
+
+  it('the credit email states the amount and the expiry date', () => {
+    const settled = {
+      ...balance,
+      status: 'settled' as const,
+      amount_cents: -660000,
+      created_at: '2026-09-10T00:00:00Z',
+    };
+    const m = projectSettledWithCreditEmail(quote, settled);
+    expect(m).not.toBeNull();
+    expect(m!.text).toContain('$6,600.00');
+    expect(m!.text).toContain('2027-09-10');
+    expect(m!.text).toContain(quote.quote_number);
+    expect(m!.text).not.toMatch(/refund/i);
+  });
+
+  it('there is no credit email when nothing is left over', () => {
+    const settled = {
+      ...balance,
+      status: 'settled' as const,
+      amount_cents: 0,
+    };
+    expect(creditFrom(settled)).toBeNull();
+    expect(projectSettledWithCreditEmail(quote, settled)).toBeNull();
   });
 
   it('balance paid → customer and lab', () => {
@@ -96,8 +128,12 @@ describe('payment emails', () => {
   });
 
   it('uses the customer name when there is no organization', () => {
-    const m = depositPaidLabEmail({ ...quote, organization: null }, deposit, 'contact@biokea.ai');
-    expect(m.subject).toBe('[deposit paid] BK-2026-0142 · Alice · $4,800.00');
+    const m = paymentReceivedLabEmail(
+      { ...quote, organization: null },
+      deposit,
+      'contact@biokea.ai',
+    );
+    expect(m.subject).toBe('[paid] BK-2026-0142 · Alice · $4,800.00');
   });
 
   it('refund lab email: subject, no-state-change message, admin link', () => {
@@ -206,8 +242,8 @@ describe('resendSender', () => {
     expect(m.text).toContain('metabarcoding: 58 × 2 markers');
   });
 
-  it('does not show actual counts in deposit lab email', () => {
-    const m = depositPaidLabEmail(quote, deposit, 'contact@biokea.ai');
+  it('does not show actual counts in the payment-received lab email', () => {
+    const m = paymentReceivedLabEmail(quote, deposit, 'contact@biokea.ai');
     expect(m.text).not.toContain('Actual counts');
   });
 });

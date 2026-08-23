@@ -21,8 +21,8 @@ import { type EmailSender, resendSender } from '@/lib/email/resend';
 import {
   balancePaidCustomerEmail,
   balancePaidLabEmail,
-  depositPaidCustomerEmail,
-  depositPaidLabEmail,
+  paymentReceivedCustomerEmail,
+  paymentReceivedLabEmail,
   refundLabEmail,
 } from '@/lib/email/quote-payments';
 import { verifyShopifyHmac } from '@/lib/payments/shopify-hmac';
@@ -232,8 +232,8 @@ export async function handleShopifyWebhook(
         hosted_url: hostedUrl,
       };
       if (payment.kind === 'deposit') {
-        await deps.email(depositPaidCustomerEmail(quote, paid));
-        await deps.email(depositPaidLabEmail(quote, paid, deps.labTo));
+        await deps.email(paymentReceivedCustomerEmail(quote, paid));
+        await deps.email(paymentReceivedLabEmail(quote, paid, deps.labTo));
       } else {
         await deps.email(balancePaidCustomerEmail(quote, paid));
         await deps.email(balancePaidLabEmail(quote, paid, deps.labTo));
