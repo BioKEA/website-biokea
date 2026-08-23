@@ -7,6 +7,7 @@ import Eyebrow from '@/components/ui/Eyebrow.astro';
 import { env } from 'cloudflare:workers';
 import { SupabaseDb } from '@/lib/payments/db';
 import { usdCents } from '@/lib/payments/terms';
+import { statusLabel } from '@/lib/payments/labels';
 import type { QuoteRecord } from '@/lib/payments/types';
 
 export const prerender = false;
@@ -76,7 +77,7 @@ const total = (q: QuoteRecord) =>
                 {q.organization ?? q.name} <span class="text-slate-500">· {q.email}</span>
               </td>
               <td class="px-3 py-2 font-mono text-xs">
-                {q.status}
+                {statusLabel(q.status)}
                 {q.needs_conversation ? ' · conversation' : ''}
               </td>
               <td class="px-3 py-2 text-right font-mono">

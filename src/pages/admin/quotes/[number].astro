@@ -8,6 +8,7 @@ import { SupabaseDb } from '@/lib/payments/db';
 import { computeBalance, usdCents } from '@/lib/payments/terms';
 import { parseBalanceForm } from '@/lib/payments/balance-form';
 import { numericId } from '@/lib/payments/shopify-ids';
+import { statusLabel } from '@/lib/payments/labels';
 import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
 
 export const prerender = false;
@@ -52,7 +53,7 @@ const url = Astro.url;
 const flash = {
   error: url.searchParams.get('error'),
   balance: url.searchParams.get('balance'),
-  refund: url.searchParams.get('refund'),
+  credit: url.searchParams.get('credit'),
 };
 // Computed here, not inline in the template. Also: in a `[number].astro`
 // route Astro's generated per-file types shadow the global `Number`
@@ -60,7 +61,7 @@ const flash = {
 // instead of calling `Number(...)`, and the global `isFinite` (equivalent
 // to `Number.isFinite` once the argument is already a number) instead of
 // `Number.isFinite`.
-const refundDisplay = isFinite(+(flash.refund ?? '')) ? usdCents(+(flash.refund ?? '0')) : '—';
+const creditDisplay = isFinite(+(flash.credit ?? '')) ? usdCents(+(flash.credit ?? '0')) : '—';
 
 // Preview: the balance endpoint bounced the form back to us as query params.
 let preview: ReturnType<typeof computeBalance> | null = null;
@@ -106,9 +107,9 @@ const val = (k: string) => previewInputs.get(k) ?? '';
       {quote.name} · <a class="underline" href={`mailto:${quote.email}`}>{quote.email}</a>
     </p>
     <p class="mt-1 font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">
-      status {quote.status} · rate {quote.audience ?? '—'} · PO {quote.po_number ?? '—'} · valid to {
-        quote.expires_at.slice(0, 10)
-      }
+      status {statusLabel(quote.status)} · rate {quote.audience ?? '—'} · PO {
+        quote.po_number ?? '—'
+      } · valid to {quote.expires_at.slice(0, 10)}
       · <a class="underline" href={`/quote/${quote.access_token}`}>customer view</a>
     </p>
 
@@ -133,9 +134,9 @@ const val = (k: string) => previewInputs.get(k) ?? '';
     {
       flash.balance === 'settled' && (
         <p class="mt-6 text-sm text-amber-800 border-l-2 border-amber-600 pl-3">
-          Nothing owed — actual total came in at or under the deposit.{' '}
-          <strong>Refund {refundDisplay}</strong> in Shopify: Orders → the deposit order → Refund.
-          The quote is marked paid.
+          Nothing further owed — actual counts came in at or under what was paid.{' '}
+          <strong>{creditDisplay} credit recorded</strong>, valid 12 months. No refund is issued;
+          apply it as a fixed-amount discount on their next draft order.
         </p>
       )
     }
@@ -234,7 +235,7 @@ const val = (k: string) => previewInputs.get(k) ?? '';
           <h2 class="text-lg font-semibold">Issue balance invoice</h2>
           <p class="mt-1 text-sm text-slate-600">
             Enter the counts actually received and QC-passed. Priced at the{' '}
-            <strong>{quote.audience}</strong> rate; the paid deposit of{' '}
+            <strong>{quote.audience}</strong> rate; the payment of{' '}
             <strong>{usdCents(deposit!.amount_cents)}</strong> is credited.
           </p>
           <form
@@ -312,10 +313,17 @@ const val = (k: string) => previewInputs.get(k) ?? '';
                     </tr>
                   </tbody>
                 </table>
+                {preview.uncapped.length > 0 && (
+                  <p class="mt-2 text-amber-800">
+                    ⚠ {preview.uncapped.join(', ')} — no matching quote line (service or marker
+                    count changed), so these are priced at current rates rather than the rate the
+                    customer locked.
+                  </p>
+                )}
                 {preview.balanceCents <= 0 ? (
                   <p class="mt-2 text-amber-800">
                     Nothing owed. Confirming records a settlement and marks the quote paid; you then
-                    refund {usdCents(-preview.balanceCents)} in Shopify.
+                    record {usdCents(-preview.balanceCents)} as credit.
                   </p>
                 ) : (
                   <p class="mt-2 text-slate-600">
