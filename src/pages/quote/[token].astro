@@ -45,7 +45,7 @@ const fmtDate = (iso: string) => iso.slice(0, 10);
 const expired = Date.parse(quote.expires_at) < Date.now();
 const panel = panelView(quote, payments, new Date());
 const paymentsLive = shopifyConfigured(e ?? {}); // hide the offer if Shopify isn't configured on this deployment
-const payFlash = Astro.url.searchParams.get('pay'); // 'unavailable' | 'failed' | 'attest' | null
+const payFlash = Astro.url.searchParams.get('pay'); // 'unavailable' | 'failed' | 'attest' | 'invoiced' | null
 // After a bounce the buyer's selections come back as query params so the
 // panel is prefilled — nobody should have to pick the rate twice.
 const keptAudience = Astro.url.searchParams.get('audience');
@@ -84,8 +84,18 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
       <thead>
         <tr class="bg-[var(--color-ink)] text-white text-left">
           <th class="px-4 py-3 text-[13px] font-semibold">Service</th>
-          <th class="px-4 py-3 text-[13px] font-semibold text-right">Academic</th>
-          <th class="px-4 py-3 text-[13px] font-semibold text-right">Commercial</th>
+          {
+            quote.audience ? (
+              <th class="px-4 py-3 text-[13px] font-semibold text-right">
+                {quote.audience === 'academic' ? 'Academic' : 'Commercial'}
+              </th>
+            ) : (
+              <>
+                <th class="px-4 py-3 text-[13px] font-semibold text-right">Academic</th>
+                <th class="px-4 py-3 text-[13px] font-semibold text-right">Commercial</th>
+              </>
+            )
+          }
         </tr>
       </thead>
       <tbody>
@@ -99,30 +109,45 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
                   {l.markers > 1 && ` · ${l.markers} markers`}
                 </div>
               </td>
-              <td class="px-4 py-4 text-sm font-mono text-right whitespace-nowrap align-top">
-                {usd(l.academic.total)}
-                <div class="mt-1 font-sans text-[11px] font-normal text-slate-500 whitespace-normal">
-                  {l.academic.tierRange} tier
-                  {l.academic.freeHeadroom > 0 &&
-                    ` · ships up to ${l.academic.pricedCount.toLocaleString()}`}
-                </div>
-              </td>
-              <td class="px-4 py-4 text-sm font-mono text-right whitespace-nowrap align-top">
-                {usd(l.commercial.total)}
-                <div class="mt-1 font-sans text-[11px] font-normal text-slate-500 whitespace-normal">
-                  {l.commercial.tierRange} tier
-                  {l.commercial.freeHeadroom > 0 &&
-                    ` · ships up to ${l.commercial.pricedCount.toLocaleString()}`}
-                </div>
-              </td>
+              {quote.audience !== 'commercial' && (
+                <td class="px-4 py-4 text-sm font-mono text-right whitespace-nowrap align-top">
+                  {usd(l.academic.total)}
+                  <div class="mt-1 font-sans text-[11px] font-normal text-slate-500 whitespace-normal">
+                    {l.academic.tierRange} tier
+                    {l.academic.freeHeadroom > 0 &&
+                      ` · ships up to ${l.academic.pricedCount.toLocaleString()}`}
+                  </div>
+                </td>
+              )}
+              {quote.audience !== 'academic' && (
+                <td class="px-4 py-4 text-sm font-mono text-right whitespace-nowrap align-top">
+                  {usd(l.commercial.total)}
+                  <div class="mt-1 font-sans text-[11px] font-normal text-slate-500 whitespace-normal">
+                    {l.commercial.tierRange} tier
+                    {l.commercial.freeHeadroom > 0 &&
+                      ` · ships up to ${l.commercial.pricedCount.toLocaleString()}`}
+                  </div>
+                </td>
+              )}
             </tr>
           ))
         }
         <tr class="border-t-2 border-slate-900/20 bg-[var(--color-cream)]">
           <td class="px-4 py-4 text-sm font-semibold text-[var(--color-ink)]">Total</td>
-          <td class="px-4 py-4 font-mono font-semibold text-right">{usd(quote.total_academic)}</td>
-          <td class="px-4 py-4 font-mono font-semibold text-right">{usd(quote.total_commercial)}</td
-          >
+          {
+            quote.audience !== 'commercial' && (
+              <td class="px-4 py-4 font-mono font-semibold text-right">
+                {usd(quote.total_academic)}
+              </td>
+            )
+          }
+          {
+            quote.audience !== 'academic' && (
+              <td class="px-4 py-4 font-mono font-semibold text-right">
+                {usd(quote.total_commercial)}
+              </td>
+            )
+          }
         </tr>
       </tbody>
     </table>
@@ -163,6 +188,14 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
         </p>
       )
     }
+    {
+      payFlash === 'invoiced' && (
+        <p class="mt-5 text-sm text-[var(--color-ink)] bg-[rgba(15,118,110,0.08)] border-l-2 border-[var(--color-teal)] rounded-r-sm px-4 py-3 leading-relaxed print:hidden">
+          Invoice sent to {quote.email} — forward it to purchasing, or pay it online with the button
+          below.
+        </p>
+      )
+    }
 
     {
       panel.kind === 'offer' && paymentsLive && (
@@ -173,89 +206,137 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
           <p class="font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">
             Start this project
           </p>
-          <h2 class="mt-1 text-lg font-semibold text-[var(--color-ink)]">
-            Pay a 50% deposit online
-          </h2>
+          <h2 class="mt-1 text-lg font-semibold text-[var(--color-ink)]">Pay in full</h2>
           <p class="mt-1 text-sm text-slate-600 leading-relaxed">
-            You'll get a Shopify invoice you can pay by card, Shop Pay, or PayPal — or forward to
-            accounts payable. The balance is invoiced on actual counts when results are delivered.
+            You'll get a Shopify invoice you can pay by card, Shop Pay, or PayPal — or forward it to
+            accounts payable.
+          </p>
+          <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+            Pay in full to lock your rate and reserve lab capacity. Your quoted per-sample rate is
+            held for this project. Send fewer samples than quoted and the unused amount stays as
+            credit toward another project for 12 months; send more and we invoice the difference at
+            the same rate. See our{' '}
+            <a href="/terms" class="underline">
+              terms
+            </a>
+            .
           </p>
           <form
             method="post"
-            action={`/api/quote/${quote.access_token}/deposit`}
+            action={`/api/quote/${quote.access_token}/pay`}
             class="mt-4 space-y-3 text-sm"
           >
-            <label class="flex items-start gap-2">
-              <input
-                type="radio"
-                name="audience"
-                value="commercial"
-                required
-                class="mt-1"
-                checked={keptAudience === 'commercial'}
-              />
-              <span>
-                <strong>Commercial rate</strong> — deposit {usdCents(panel.depositCommercialCents)}
-              </span>
-            </label>
-            <label class="flex items-start gap-2">
-              <input
-                type="radio"
-                name="audience"
-                value="academic"
-                required
-                class="mt-1"
-                checked={keptAudience === 'academic'}
-              />
-              <span>
-                <strong>Academic / nonprofit rate</strong> — deposit{' '}
-                {usdCents(panel.depositAcademicCents)}
-              </span>
-            </label>
-            <label class="flex items-start gap-2 pl-6 text-xs text-slate-600">
-              <input type="checkbox" name="attest" value="true" class="mt-0.5" />
-              <span>
-                Required for the academic rate: this work is for a degree-granting institution,
-                government agency, or non-profit research organization.
-              </span>
-            </label>
-            <label class="block pt-1">
-              <span class="text-xs text-slate-600">
-                PO number (optional — printed on the invoice)
-              </span>
-              <input
-                name="po_number"
-                value={keptPo}
-                maxlength="64"
-                class="mt-1 w-full max-w-xs border border-slate-300 rounded px-2 py-1.5 font-mono"
-              />
-            </label>
-            <button
-              type="submit"
-              class="mt-2 bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium"
-            >
-              Continue to invoice →
-            </button>
+            {panel.audience ? (
+              <>
+                <input type="hidden" name="audience" value={panel.audience} />
+                <p class="text-sm text-[var(--color-ink)]">
+                  <strong>
+                    {panel.audience === 'academic'
+                      ? 'Academic / nonprofit rate'
+                      : 'Commercial rate'}
+                  </strong>{' '}
+                  —{' '}
+                  {usdCents(
+                    panel.audience === 'academic'
+                      ? panel.amountAcademicCents
+                      : panel.amountCommercialCents,
+                  )}
+                </p>
+              </>
+            ) : (
+              <>
+                <label class="flex items-start gap-2">
+                  <input
+                    type="radio"
+                    name="audience"
+                    value="commercial"
+                    required
+                    class="mt-1"
+                    checked={keptAudience === 'commercial'}
+                  />
+                  <span>
+                    <strong>Commercial rate</strong> — {usdCents(panel.amountCommercialCents)}
+                  </span>
+                </label>
+                <label class="flex items-start gap-2">
+                  <input
+                    type="radio"
+                    name="audience"
+                    value="academic"
+                    required
+                    class="mt-1"
+                    checked={keptAudience === 'academic'}
+                  />
+                  <span>
+                    <strong>Academic / nonprofit rate</strong> —{' '}
+                    {usdCents(panel.amountAcademicCents)}
+                  </span>
+                </label>
+              </>
+            )}
+            {(panel.audience ? panel.needsAttestation : true) && (
+              <label class="flex items-start gap-2 pl-6 text-xs text-slate-600">
+                <input type="checkbox" name="attest" value="true" class="mt-0.5" />
+                <span>
+                  Required for the academic rate: this work is for a degree-granting institution,
+                  government agency, or non-profit research organization.
+                </span>
+              </label>
+            )}
+            <div class="flex flex-wrap items-end gap-3 pt-1">
+              <label class="block">
+                <span class="text-xs text-slate-600">
+                  PO number (optional — printed on the invoice)
+                </span>
+                <input
+                  name="po_number"
+                  value={keptPo}
+                  maxlength="64"
+                  class="mt-1 w-full max-w-xs border border-slate-300 rounded px-2 py-1.5 font-mono"
+                />
+              </label>
+              <button
+                type="submit"
+                name="intent"
+                value="pay"
+                class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium"
+              >
+                Continue to checkout →
+              </button>
+              <button
+                type="submit"
+                name="intent"
+                value="invoice"
+                class="px-4 py-2.5 rounded-sm text-sm font-medium border border-slate-900/20 bg-white text-[var(--color-ink)]"
+              >
+                Email me a Net-30 invoice instead
+              </button>
+            </div>
           </form>
         </section>
       )
     }
     <!--
       Progressive enhancement for the offer form above: the server
-      (POST /api/quote/[token]/deposit) is the authoritative check for the
+      (POST /api/quote/[token]/pay) is the authoritative check for the
       academic attestation, but toggling `required` client-side lets the
       browser's native validation catch a missed checkbox before the round
       trip. A no-op when the offer panel isn't rendered (`#pay` won't
-      exist). Left unconditional rather than nested inside the
-      `panel.kind === 'offer'` block above because Prettier's Astro parser
-      mis-tokenizes multi-brace script bodies nested inside a JSX
-      curly-expression.
+      exist) or when the radios are absent — the single-audience path
+      renders a hidden `audience` input instead of radios, so there is
+      nothing to key the toggle off. Left unconditional rather than nested
+      inside the `panel.kind === 'offer'` block above because Prettier's
+      Astro parser mis-tokenizes multi-brace script bodies nested inside a
+      JSX curly-expression.
     -->
     <script>
       const form = document.querySelector<HTMLFormElement>('#pay form');
       const attest = form && form.querySelector<HTMLInputElement>('input[name="attest"]');
-      if (form && attest) {
-        form.querySelectorAll<HTMLInputElement>('input[name="audience"]').forEach((radio) => {
+      const radios = form
+        ? form.querySelectorAll<HTMLInputElement>('input[type="radio"][name="audience"]')
+        : null;
+      if (form && attest && radios && radios.length > 0) {
+        radios.forEach((radio) => {
           radio.addEventListener('change', () => {
             attest.required = radio.value === 'academic' && radio.checked;
           });
@@ -266,10 +347,10 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
       panel.kind === 'invoiced' && (
         <section class="mt-8 p-5 bg-[var(--color-cream)] border border-slate-900/10 rounded-md">
           <p class="font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">
-            {panel.phase === 'deposit' ? 'Deposit invoice' : 'Balance invoice'}
+            {panel.phase === 'deposit' ? 'Invoice' : 'Balance invoice'}
           </p>
           <p class="mt-1 text-sm text-[var(--color-ink)]">
-            {panel.phase === 'deposit' ? 'Deposit' : 'Balance'} invoice for{' '}
+            {panel.phase === 'deposit' ? 'Invoice' : 'Balance invoice'} for{' '}
             <strong>{usdCents(panel.amountCents)}</strong> sent to {quote.email}
             {panel.dueAt && ` — due ${fmtDate(panel.dueAt)}`}.
           </p>
@@ -298,10 +379,10 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
       panel.kind === 'deposit_paid' && (
         <section class="mt-8 p-5 bg-[var(--color-cream)] border border-slate-900/10 rounded-md">
           <p class="font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">
-            Deposit received
+            Payment received
           </p>
           <p class="mt-1 text-sm text-[var(--color-ink)]">
-            Deposit of <strong>{usdCents(panel.amountCents)}</strong> received on{' '}
+            Payment of <strong>{usdCents(panel.amountCents)}</strong> received in full on{' '}
             {fmtDate(panel.paidAt)}. The lab will send shipping instructions and your sample
             manifest within 2 business days.
           </p>
@@ -323,10 +404,17 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
             Paid in full
           </p>
           <p class="mt-1 text-sm text-[var(--color-ink)]">Thank you — this project is settled.</p>
+          {panel.creditCents && panel.creditExpiresAt && (
+            <p class="mt-2 text-sm text-[var(--color-ink)]">
+              {usdCents(panel.creditCents)} credit toward a future project, valid until{' '}
+              {fmtDate(panel.creditExpiresAt)}. Mention quote {quote.quote_number} and we'll apply
+              it.
+            </p>
+          )}
           <div class="mt-3 flex gap-4 text-sm print:hidden">
             {panel.depositPdf && (
               <a href={panel.depositPdf} class="underline text-[var(--color-teal)]">
-                Deposit invoice PDF
+                Invoice PDF
               </a>
             )}
             {panel.balancePdf && (
@@ -341,9 +429,10 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
 
     <div class="mt-6 text-xs text-slate-500 leading-relaxed">
       <p>
-        Academic/nonprofit rates require eligible institutional status, attested when you pay the
-        deposit. Final pricing is based on the counts actually received. Turnaround is typically 4–8
-        weeks from sample receipt.
+        Academic/nonprofit rates require eligible institutional status, attested when you pay. Your
+        quoted per-sample rate is held for this project — see{' '}
+        <a href="/terms" class="underline">terms</a>. Turnaround is typically 4–8 weeks from sample
+        receipt.
       </p>
       <p class="mt-2">
         Questions? <a href="mailto:contact@biokea.ai" class="text-[var(--color-teal)] underline"

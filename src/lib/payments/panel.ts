@@ -2,12 +2,19 @@
 // Pure mapping from (quote row, payment rows) to what the customer's quote
 // page shows. Kept out of the .astro file so it can be unit-tested and so
 // the page stays a template. Spec §4.
-import { paymentLines, paymentTotalCents } from './terms';
+import { creditFrom, paymentLines, paymentTotalCents } from './terms';
+import type { Audience } from '@/lib/pricing/quote';
 import type { PaymentKind, PaymentRecord, QuoteRecord } from './types';
 
 export type PanelView =
   | { kind: 'none' }
-  | { kind: 'offer'; depositAcademicCents: number; depositCommercialCents: number }
+  | {
+      kind: 'offer';
+      audience: Audience | null;
+      needsAttestation: boolean;
+      amountAcademicCents: number;
+      amountCommercialCents: number;
+    }
   | {
       kind: 'invoiced';
       phase: PaymentKind;
@@ -17,7 +24,13 @@ export type PanelView =
       pdfUrl: string | null;
     }
   | { kind: 'deposit_paid'; amountCents: number; paidAt: string; pdfUrl: string | null }
-  | { kind: 'paid'; depositPdf: string | null; balancePdf: string | null };
+  | {
+      kind: 'paid';
+      depositPdf: string | null;
+      balancePdf: string | null;
+      creditCents: number | null;
+      creditExpiresAt: string | null;
+    };
 
 const LIVE = new Set(['open', 'paid', 'settled']);
 const live = (payments: PaymentRecord[], kind: PaymentKind) =>
@@ -33,8 +46,10 @@ export function panelView(quote: QuoteRecord, payments: PaymentRecord[], now: Da
       if (quote.needs_conversation || expired) return { kind: 'none' };
       return {
         kind: 'offer',
-        depositAcademicCents: paymentTotalCents(paymentLines(quote.lines, 'academic')),
-        depositCommercialCents: paymentTotalCents(paymentLines(quote.lines, 'commercial')),
+        audience: quote.audience,
+        needsAttestation: quote.audience === 'academic' && quote.academic_attested_at === null,
+        amountAcademicCents: paymentTotalCents(paymentLines(quote.lines, 'academic')),
+        amountCommercialCents: paymentTotalCents(paymentLines(quote.lines, 'commercial')),
       };
     }
     case 'deposit_invoiced':
@@ -65,12 +80,19 @@ export function panelView(quote: QuoteRecord, payments: PaymentRecord[], now: Da
         hostedUrl: balance.hosted_url,
         pdfUrl: balance.pdf_url,
       };
-    case 'paid':
+    case 'paid': {
+      // `live()` deliberately excludes 'settled', so the settled balance row
+      // (the credit, if any — spec §4.3) has to be found directly.
+      const settled = payments.find((p) => p.kind === 'balance' && p.status === 'settled');
+      const credit = settled ? creditFrom(settled) : null;
       return {
         kind: 'paid',
         depositPdf: deposit?.pdf_url ?? null,
         balancePdf: balance?.pdf_url ?? null,
+        creditCents: credit?.amountCents ?? null,
+        creditExpiresAt: credit?.expiresAt ?? null,
       };
+    }
     default:
       // Covers a pre-migration row whose `status` column hasn't been
       // backfilled yet (undefined at runtime despite the type).
