@@ -9,6 +9,16 @@ test('home renders hero, thesis, evidence, ecosystem, origin, CTA band', async (
   await expect(page.getByRole('heading', { name: 'The Large Data Collider' })).toBeVisible();
   await expect(page.getByRole('heading', { name: /What we're building/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: /Founded in March 2025/i })).toBeVisible();
+  // The hero leads with the commercial CTA now that checkout is live;
+  // the partnership "Schedule a call" survives in the closing CtaBand.
+  await expect(page.getByRole('link', { name: /instant.*quote/i }).first()).toHaveAttribute(
+    'href',
+    '/quote',
+  );
+  await expect(page.getByRole('link', { name: /See what we're building/ }).first()).toHaveAttribute(
+    'href',
+    '/lab',
+  );
   await expect(page.getByRole('link', { name: /Schedule a call/ }).first()).toHaveAttribute(
     'href',
     '/contact',
