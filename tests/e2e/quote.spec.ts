@@ -411,3 +411,110 @@ test('changing the configuration while the quote request is in flight does not c
   });
   expect(payCalls).toBe(0);
 });
+
+// ── GA4 funnel events ──────────────────────────────────────────────────
+// The widget fires events only through window.gtag?.() — the host page
+// owns the tag. These stub gtag before the widget mounts and assert the
+// three funnel events; absent gtag must be a silent no-op (covered by
+// every other test in this file running without a stub and not crashing).
+
+// Installed AFTER page load: BaseLayout's real GA bootstrap overwrites
+// window.gtag at parse time, so an addInitScript stub gets clobbered. The
+// widget resolves window.gtag at call time, so a post-load stub catches
+// everything fired by subsequent interactions.
+const installGaStub = (page: import('@playwright/test').Page) =>
+  page.evaluate(() => {
+    (window as unknown as { __ga: unknown[][] }).__ga = [];
+    (window as unknown as { gtag: (...a: unknown[]) => void }).gtag = (...a: unknown[]) =>
+      (window as unknown as { __ga: unknown[][] }).__ga.push(a);
+  });
+const gaEvents = (page: import('@playwright/test').Page) =>
+  page.evaluate(() => (window as unknown as { __ga: unknown[][] }).__ga);
+
+test('quote_widget_engaged fires once, on first input', async ({ page }) => {
+  await page.goto('/quote');
+  await installGaStub(page);
+  await page.fill('[data-count-input="barcoding"]', '300');
+  await page.fill('[data-count-input="barcoding"]', '800');
+  const events = await gaEvents(page);
+  const engaged = events.filter((e) => e[1] === 'quote_widget_engaged');
+  expect(engaged).toHaveLength(1);
+  expect(engaged[0][2]).toEqual({ source: 'site' });
+});
+
+test('quote_created fires with the chosen rate as value', async ({ page }) => {
+  await page.route('**/api/quote', (r) =>
+    r.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        quoteNumber: 'BK-2026-0001',
+        url: '/quote/' + QUOTE_TOKEN,
+        token: QUOTE_TOKEN,
+        paymentsEnabled: true,
+      }),
+    }),
+  );
+  await page.goto('/quote');
+  await installGaStub(page);
+  await page.fill('[data-count-input="barcoding"]', '800');
+  await page.check('[data-audience-toggle="academic"]');
+  await page.click('[data-cta-email]');
+  await page.fill('#quote-name', 'Alice');
+  await page.fill('#quote-email', 'alice@state.edu');
+  await page.click('[data-details-form] button[type="submit"]');
+  await expect(page.locator('[data-quote-status]')).toContainText('BK-2026-0001');
+  const events = await gaEvents(page);
+  const created = events.filter((e) => e[1] === 'quote_created');
+  expect(created).toHaveLength(1);
+  expect(created[0][2]).toEqual({ source: 'site', currency: 'USD', value: 9600 });
+});
+
+test('begin_checkout fires with the full amount before the hand-off navigates', async ({
+  page,
+}) => {
+  await page.route('**/api/quote', (r) =>
+    r.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        quoteNumber: 'BK-2026-0001',
+        url: '/quote/' + QUOTE_TOKEN,
+        token: QUOTE_TOKEN,
+        paymentsEnabled: true,
+      }),
+    }),
+  );
+  // The hand-off is a real form navigation, which replaces the document and
+  // takes window.__ga with it — so this stub records into sessionStorage,
+  // which survives same-origin navigation. Landing on the fulfilled stub
+  // page at all proves the event fired before the browser left.
+  await page.route(`**/api/quote/${QUOTE_TOKEN}/pay`, (r) =>
+    r.fulfill({ status: 200, contentType: 'text/html', body: '<title>stub checkout</title>' }),
+  );
+  await page.goto('/quote');
+  await page.evaluate(() => {
+    sessionStorage.setItem('__ga', '[]');
+    (window as unknown as { gtag: (...a: unknown[]) => void }).gtag = (...a: unknown[]) => {
+      const all = JSON.parse(sessionStorage.getItem('__ga') ?? '[]') as unknown[][];
+      all.push(a);
+      sessionStorage.setItem('__ga', JSON.stringify(all));
+    };
+  });
+  await page.fill('[data-count-input="barcoding"]', '800');
+  await page.click('[data-cta-pay]');
+  await page.fill('#quote-name', 'Alice');
+  await page.fill('#quote-email', 'alice@state.edu');
+  await page.click('[data-details-form] button[type="submit"]');
+  await page.waitForURL(`**/api/quote/${QUOTE_TOKEN}/pay`);
+  const events = (await page.evaluate(() =>
+    JSON.parse(sessionStorage.getItem('__ga') ?? '[]'),
+  )) as unknown[][];
+  const checkout = events.filter((e) => e[1] === 'begin_checkout');
+  expect(checkout).toHaveLength(1);
+  // Commercial default: 800 barcoding @ $15 = $12,000 — the FULL amount,
+  // not a deposit (deposit_continue is dead; customers pay 100% now).
+  expect(checkout[0][2]).toEqual({ source: 'site', currency: 'USD', value: 12000 });
+});

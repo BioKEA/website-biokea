@@ -198,3 +198,12 @@ payment row; it is safe to delete.
   terms) when no PO number was given.
 - Confirm a service draft's `totalPriceSet` equals our cents exactly (no
   tax) — the Worker logs `[payments] Shopify total mismatch` otherwise.
+
+## Optional: GA4 on the store
+
+The quote widget fires GA4 funnel events (`quote_widget_engaged`,
+`quote_created`, `begin_checkout`) through whatever `gtag` the host page
+provides — it never injects one. biokea.ai already loads `G-WYL7J2D7SG`;
+to get the same funnel from store.biokea.ai, add that tag to the theme
+(Online Store → Preferences → Google Analytics, or a `theme.liquid`
+snippet). Without it the widget's events are a silent no-op there.

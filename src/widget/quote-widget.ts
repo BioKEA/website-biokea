@@ -101,6 +101,23 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
   const apiBase = opts.apiBase ?? defaultApiBase();
   const source = opts.source ?? 'site';
 
+  // GA4 funnel events. The HOST page owns the tag (biokea.ai loads it via
+  // BaseLayout; the store only if GA is added to the theme) — the widget
+  // never injects gtag, and an absent gtag is a silent no-op.
+  function track(event: string, params: Record<string, unknown>): void {
+    try {
+      (window as { gtag?: (...a: unknown[]) => void }).gtag?.('event', event, params);
+    } catch {
+      // analytics must never break the widget
+    }
+  }
+  let engaged = false;
+  function markEngaged(): void {
+    if (engaged) return;
+    engaged = true;
+    track('quote_widget_engaged', { source });
+  }
+
   root.innerHTML = renderWidgetHtml(pricedServices, { turnstileSiteKey: opts.turnstileSiteKey });
   if (opts.turnstileSiteKey) setupTurnstile(root, opts.turnstileSiteKey);
 
@@ -239,6 +256,7 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
     const slider = $<HTMLInputElement>(`[data-count-slider="${slug}"]`);
     if (slider) slider.value = String(countToSlider(Number(el.value) || 1));
     on(el, 'input', () => {
+      markEngaged();
       if (slider) slider.value = String(countToSlider(Number(el.value) || 1));
       render();
     });
@@ -252,6 +270,7 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
     });
     if (slider) {
       on(slider, 'input', () => {
+        markEngaged();
         el.value = String(sliderToCount(Number(slider.value)));
         render();
       });
@@ -261,13 +280,17 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
   $$<HTMLInputElement>('[data-audience-toggle]').forEach((el) =>
     on(el, 'change', () => {
       if (!el.checked) return;
+      markEngaged();
       audience = el.dataset.audienceToggle as Audience;
       render();
     }),
   );
 
   $$<HTMLInputElement>('[data-markers-input], [data-service-toggle]').forEach((el) =>
-    on(el, 'input', render),
+    on(el, 'input', () => {
+      markEngaged();
+      render();
+    }),
   );
   $$<HTMLInputElement>('[data-markers-input]').forEach((el) =>
     on(el, 'change', () => {
@@ -339,6 +362,7 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
         // "email me this quote" intent never chains into checkout at all.
         const quote = buildQuote(lines);
         const signature = configSignature(lines);
+        track('quote_created', { source, currency: 'USD', value: quote.total[audience] });
         if (
           intent !== 'email' &&
           body.paymentsEnabled &&
@@ -356,6 +380,7 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
             audience === 'academic' && attested ? 'true' : '';
           (handoff.elements.namedItem('intent') as HTMLInputElement).value = intent;
           (handoff.elements.namedItem('po_number') as HTMLInputElement).value = po;
+          track('begin_checkout', { source, currency: 'USD', value: quote.total[audience] });
           handoff.submit();
         }
         // If the chain didn't fire, the status line above already carries
