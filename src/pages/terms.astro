@@ -1,0 +1,130 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+
+const lastUpdated = '2026-08-22';
+---
+
+<BaseLayout
+  title="Terms"
+  description="How BioKEA billing works: pay in full, rate lock, and the 12-month credit for under-shipping."
+>
+  <section class="max-w-3xl mx-auto px-6 pt-16 pb-8">
+    <Eyebrow>TERMS</Eyebrow>
+    <h1
+      class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[24ch]"
+    >
+      Terms — how billing works.
+    </h1>
+    <p class="mt-5 text-slate-600 leading-relaxed">
+      Plain terms for BioKEA sequencing projects. If anything here is unclear, email us before you
+      pay — not after.
+    </p>
+    <p class="mt-2 font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">
+      Last updated · {lastUpdated}
+    </p>
+  </section>
+
+  <section class="max-w-3xl mx-auto px-6 pb-16 prose prose-slate prose-sm">
+    <h2>What payment buys</h2>
+    <p>
+      When you pay, you're paying for the full quoted sample count at your quoted per-unit rate —
+      <strong>paid in full, up front</strong>. Payment reserves lab capacity for your project: your
+      samples get a slot in the extraction, prep, sequencing, and analysis queue as soon as they
+      arrive.
+    </p>
+
+    <h2>Rate lock</h2>
+    <p>
+      The per-unit rate on your quote is held for this project — it doesn't change if pricing
+      changes after you pay. If the samples you actually ship push your project into a larger volume
+      tier, you get that better rate automatically; you never pay more per unit than what you
+      quoted, only ever the same or less.
+    </p>
+    <p>
+      Volume tiers are priced in blocks, and a block sometimes costs less than a smaller order
+      would. When your quoted count falls inside one of these blocks, we price you at the block and
+      the extra units beyond your requested count ship at no additional cost. That headroom is real
+      — if your quote shows more units included than you asked for, that's why.
+    </p>
+
+    <h2>If fewer samples arrive than quoted</h2>
+    <p>
+      This is the part we want to be direct about: <strong
+        >if you ship fewer samples than your quote covered, the unused amount is not refunded in
+        cash.</strong
+      > It becomes credit instead.
+    </p>
+    <ul>
+      <li>
+        The credit equals what you paid for, minus what you actually shipped, at your locked rate.
+      </li>
+      <li>
+        It's valid for <strong>12 months</strong> from the date your project settles (when we invoice
+        the final count against your payment).
+      </li>
+      <li>
+        It's redeemable against <strong>any</strong> BioKEA project, not just a repeat of the same service
+        — quote the original quote number when you start the new project and we'll apply it.
+      </li>
+      <li>Unused credit that isn't redeemed within that window expires.</li>
+    </ul>
+    <p>
+      We settle this way because pay-in-full pricing is what lets us hold your rate and reserve lab
+      time the moment you pay — refunding cash after the fact would undo that. Credit keeps the
+      arrangement fair in both directions without unwinding a payment that already bought you a
+      locked rate and a reserved slot.
+    </p>
+
+    <h2>If more samples arrive than quoted</h2>
+    <p>
+      We invoice the difference when results are delivered, billed at your locked rate — or at a
+      better tier's rate if the larger count now qualifies for one. You never pay more per unit than
+      what you quoted.
+    </p>
+
+    <h2>Academic &amp; nonprofit rates</h2>
+    <p>
+      The academic/nonprofit rate is available to degree-granting institutions, government agencies,
+      and non-profit research organizations. You attest to eligibility when you pay; we don't ask
+      for separate documentation up front, but we may follow up if something doesn't line up.
+    </p>
+
+    <h2>Turnaround</h2>
+    <p>
+      Typical projects complete in <strong>4–8 weeks from sample receipt</strong>. That's an
+      estimate based on our normal queue, not a guarantee — custom assay design, unusually large
+      batches, or sample quality issues can extend it. We'll flag anything project-specific at quote
+      time.
+    </p>
+
+    <h2>Purchase orders</h2>
+    <p>
+      If you're paying by purchase order, we can issue a Net-30 invoice instead of taking payment
+      online. Your PO number is printed on the invoice. Net-30 invoicing doesn't change the rate
+      lock or the credit policy above — the same terms apply once the invoice is paid.
+    </p>
+
+    <h2>Data deposits</h2>
+    <p>
+      GBIF, NCBI SRA, and Zenodo submissions are part of the standard deliverable for every project
+      — they're not an add-on. If institutional or publication considerations require it, we can put
+      a hold or embargo on public deposits; just tell us when you request your quote or any time
+      before results are delivered.
+    </p>
+
+    <h2>Quote validity</h2>
+    <p>
+      A quote is valid for <strong>30 days</strong> from when it's issued. Pricing, tier boundaries, and
+      rates can change after that, so if your quote has expired, ask us to re-issue it before you pay.
+    </p>
+
+    <h2>Questions</h2>
+    <p>
+      Email <a href="mailto:contact@biokea.ai">contact@biokea.ai</a>, or use the
+      <a href="/contact">contact form</a>, before you pay if anything here doesn't match what you
+      expect for your project.
+    </p>
+    <p class="mt-8 text-slate-500">BioKEA · Berkeley, CA</p>
+  </section>
+</BaseLayout>

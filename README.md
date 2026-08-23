@@ -63,12 +63,14 @@ free, since nothing had reached production on the old names).
 
 ## Payments (Shopify)
 
-Customers configure a quote and pay a 50% deposit either from `/quote` (or
+Customers configure a quote and pay in full either from `/quote` (or
 `/quote/<token>` for a saved quote) or from a service product page on
-`store.biokea.ai` — both host the same quote widget bundle. Staff issue the
-balance from `/admin/quotes/<number>`. The payment rail is Shopify Draft
-Orders: no card data touches our infrastructure, and pricing stays
-authoritative on our Worker — Shopify never computes a service price.
+`store.biokea.ai` — both host the same quote widget bundle. Under-shipping
+settles as a 12-month credit, not a refund — see the spec. Staff issue the
+balance invoice from `/admin/quotes/<number>` when more samples arrive than
+quoted. The payment rail is Shopify Draft Orders: no card data touches our
+infrastructure, and pricing stays authoritative on our Worker — Shopify
+never computes a service price.
 Design: `docs/superpowers/specs/2026-08-17-shopify-store-design.md`. Store
 setup (domain, custom app, webhooks, products, theme, Turnstile hostname):
 `docs/shopify/STORE-SETUP.md`.
