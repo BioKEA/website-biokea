@@ -15,8 +15,6 @@ describe('renderWidgetHtml', () => {
     expect(html).toContain('data-markers-input="metabarcoding"');
     expect(html).not.toContain('data-markers-input="barcoding"');
     for (const hook of [
-      'data-total-academic',
-      'data-total-commercial',
       'data-line-list',
       'data-deadzone-callout',
       'data-upsell-callout',
@@ -37,28 +35,65 @@ describe('renderWidgetHtml', () => {
     const svc = { ...pricedServices[0], title: 'X <b>bold</b>' };
     expect(renderWidgetHtml([svc], {})).toContain('X &lt;b&gt;bold&lt;/b&gt;');
   });
+
+  it('renders a rate selector defaulting to commercial', () => {
+    // Commercial is the default: we never headline a rate the visitor may
+    // not be eligible for.
+    expect(html).toContain('data-audience-toggle="commercial"');
+    expect(html).toContain('data-audience-toggle="academic"');
+    expect(html).toMatch(/data-audience-toggle="commercial"[^>]*checked/);
+    expect(html).not.toMatch(/data-audience-toggle="academic"[^>]*checked/);
+  });
+
+  it('renders one headline total and one alternate, and no per-audience hooks', () => {
+    // `data-total` is a bare boolean attribute (`data-total class="..."`), so
+    // match it specifically rather than with a substring check that a
+    // `data-total-alt` (or, before Task 6, nothing else) would also satisfy.
+    expect(html).toMatch(/data-total(?!-)/);
+    expect(html).toMatch(/data-total-alt/);
+    expect(html).not.toContain('data-total-academic');
+    expect(html).not.toContain('data-total-commercial');
+  });
 });
 
 describe('render helpers', () => {
-  it('line items list each service with both totals', () => {
+  it('line items list each service with the selected audience total only', () => {
     const q = buildQuote([{ serviceSlug: 'barcoding', count: 800 }]);
-    const li = renderLineItems(q);
+    const li = renderLineItems(q, 'commercial');
     expect(li).toContain('Voucher-Linked Specimen Barcoding');
     expect(li).toContain('800 specimens');
-    expect(li).toContain('$9,600');
-    // The brief's draft said $12,800; the rate card prices 800 specimens in
-    // the 300–999 tier at $15 commercial, so the engine's number is $12,000.
+    // The rate card prices 800 specimens in the 300–999 tier at $15
+    // commercial, so the engine's number is $12,000.
     expect(li).toContain('$12,000');
+    expect(li).not.toContain('$9,600');
+  });
+
+  it('line items show only the selected audience', () => {
+    const q = buildQuote([{ serviceSlug: 'barcoding', count: 800 }]);
+    const html = renderLineItems(q, 'academic');
+    expect(html).toContain('$9,600');
+    expect(html).not.toContain('$12,000'); // the commercial total
   });
 
   it('deadzone copy appears only when a line is better than literal, upsell only otherwise', () => {
-    expect(renderDeadzone(buildQuote([{ serviceSlug: 'barcoding', count: 290 }]))).toMatch(
-      /less than 290 specimens/,
-    );
-    expect(renderDeadzone(buildQuote([{ serviceSlug: 'barcoding', count: 100 }]))).toBeNull();
-    expect(renderUpsell(buildQuote([{ serviceSlug: 'barcoding', count: 100 }]))).toMatch(
-      /more specimens costs/,
-    );
-    expect(renderUpsell(buildQuote([{ serviceSlug: 'barcoding', count: 290 }]))).toBeNull();
+    expect(
+      renderDeadzone(buildQuote([{ serviceSlug: 'barcoding', count: 290 }]), 'commercial'),
+    ).toMatch(/less than 290 specimens/);
+    expect(
+      renderDeadzone(buildQuote([{ serviceSlug: 'barcoding', count: 100 }]), 'commercial'),
+    ).toBeNull();
+    expect(
+      renderUpsell(buildQuote([{ serviceSlug: 'barcoding', count: 100 }]), 'academic'),
+    ).toMatch(/more specimens costs/);
+    expect(
+      renderUpsell(buildQuote([{ serviceSlug: 'barcoding', count: 290 }]), 'academic'),
+    ).toBeNull();
+  });
+
+  it('the dead-zone callout speaks for one audience only', () => {
+    const q = buildQuote([{ serviceSlug: 'barcoding', count: 250 }]);
+    const html = renderDeadzone(q, 'academic');
+    expect(html).toContain('300–999');
+    expect(html).not.toMatch(/commercial/i);
   });
 });

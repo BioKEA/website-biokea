@@ -6,7 +6,7 @@
 // `document.querySelector` swapped for `root.querySelector`, the markup
 // moved to template.ts, and a deposit panel added after a quote is created.
 import { pricedServices } from '@/data/pricing';
-import { buildQuote, type Quote, type QuoteLineInput } from '@/lib/pricing/quote';
+import { buildQuote, type Audience, type Quote, type QuoteLineInput } from '@/lib/pricing/quote';
 import { paymentLines, paymentTotalCents, usdCents } from '@/lib/payments/terms';
 import { configSignature } from './state';
 import {
@@ -145,6 +145,10 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
     return lines;
   }
 
+  // Commercial is the default: we never headline a rate the visitor may not
+  // be eligible for.
+  let audience: Audience = 'commercial';
+
   // The configuration the visible deposit panel was created for; null when
   // no panel is showing. See invalidateDeposit().
   let depositSignature: string | null = null;
@@ -168,23 +172,25 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
       invalidateDeposit();
     }
     if (lines.length === 0) {
-      $('[data-total-academic]')!.textContent = '$0';
-      $('[data-total-commercial]')!.textContent = '$0';
+      $('[data-total]')!.textContent = '$0';
+      $('[data-total-alt]')!.textContent = '';
       lineList.innerHTML = '<li class="bk-line-empty">Select a service to see pricing.</li>';
       deadzone.hidden = upsell.hidden = conversation.hidden = true;
       return;
     }
 
     const quote = buildQuote(lines);
-    $('[data-total-academic]')!.textContent = usd(quote.total.academic);
-    $('[data-total-commercial]')!.textContent = usd(quote.total.commercial);
-    lineList.innerHTML = renderLineItems(quote);
+    const alt: Audience = audience === 'academic' ? 'commercial' : 'academic';
+    $('[data-total]')!.textContent = usd(quote.total[audience]);
+    $('[data-total-alt]')!.textContent =
+      `${alt === 'academic' ? 'Academic/nonprofit' : 'Commercial'} rate: ${usd(quote.total[alt])}`;
+    lineList.innerHTML = renderLineItems(quote, audience);
 
-    const deadzoneHtml = renderDeadzone(quote);
+    const deadzoneHtml = renderDeadzone(quote, audience);
     deadzone.hidden = deadzoneHtml === null;
     deadzone.innerHTML = deadzoneHtml ?? '';
 
-    const upsellHtml = renderUpsell(quote);
+    const upsellHtml = renderUpsell(quote, audience);
     upsell.hidden = upsellHtml === null;
     upsell.innerHTML = upsellHtml ?? '';
 
@@ -217,6 +223,14 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
       });
     }
   });
+
+  $$<HTMLInputElement>('[data-audience-toggle]').forEach((el) =>
+    on(el, 'change', () => {
+      if (!el.checked) return;
+      audience = el.dataset.audienceToggle as Audience;
+      render();
+    }),
+  );
 
   $$<HTMLInputElement>('[data-markers-input], [data-service-toggle]').forEach((el) =>
     on(el, 'input', render),

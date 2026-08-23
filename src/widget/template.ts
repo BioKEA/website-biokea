@@ -8,7 +8,7 @@
 // drift. Styling is the `.bk-*` class set in quote.css (no Tailwind: the
 // bundle has to look right on a Shopify theme too).
 import type { PricedService } from '@/data/pricing';
-import { nextTierUpsell, type Quote } from '@/lib/pricing/quote';
+import { nextTierUpsell, type Audience, type Quote } from '@/lib/pricing/quote';
 
 export interface WidgetTemplateOptions {
   turnstileSiteKey?: string;
@@ -112,15 +112,26 @@ export function renderWidgetHtml(
     <aside data-summary-panel class="bk-summary">
       <div class="bk-summary-head">
         <div class="bk-eyebrow">Your quote</div>
+        <fieldset class="bk-rates">
+          <legend class="bk-legend">Rates for</legend>
+          <label class="bk-rate">
+            <input
+              type="radio"
+              name="bk-audience"
+              value="commercial"
+              data-audience-toggle="commercial"
+              checked
+            />
+            <span>Commercial</span>
+          </label>
+          <label class="bk-rate">
+            <input type="radio" name="bk-audience" value="academic" data-audience-toggle="academic" />
+            <span>Academic / nonprofit</span>
+          </label>
+        </fieldset>
         <div class="bk-totals" role="status" aria-live="polite" aria-atomic="true">
-          <div>
-            <div data-total-academic class="bk-total">$0</div>
-            <div class="bk-total-label">academic/nonprofit</div>
-          </div>
-          <div>
-            <div data-total-commercial class="bk-total">$0</div>
-            <div class="bk-total-label">commercial</div>
-          </div>
+          <div data-total class="bk-total">$0</div>
+          <div data-total-alt class="bk-total-alt"></div>
         </div>
       </div>
 
@@ -215,24 +226,17 @@ export function renderWidgetHtml(
 </div>`;
 }
 
-/** The `<li>` list inside `[data-line-list]`. */
-export function renderLineItems(quote: Quote): string {
+/** The `<li>` list inside `[data-line-list]`, priced for one audience. */
+export function renderLineItems(quote: Quote, audience: Audience): string {
   return quote.lines
     .map((l) => {
       const markerNote = l.markers > 1 ? ` · ${l.markers} markers` : '';
+      const price = l[audience];
       return `<li class="bk-line">
             <div class="bk-line-title">${esc(l.serviceTitle)}</div>
             <div class="bk-line-meta">${esc(l.count.toLocaleString())} ${esc(l.unitLabel)}s${esc(markerNote)}</div>
-            <div class="bk-line-prices">
-              <div>
-                <div class="bk-line-price">${usd(l.academic.total)}</div>
-                <div class="bk-line-tier">academic · ${esc(l.academic.tierRange)}</div>
-              </div>
-              <div class="bk-line-right">
-                <div class="bk-line-price">${usd(l.commercial.total)}</div>
-                <div class="bk-line-tier">commercial · ${esc(l.commercial.tierRange)}</div>
-              </div>
-            </div>
+            <div class="bk-line-price">${usd(price.total)}</div>
+            <div class="bk-line-tier">${esc(price.tierRange)}</div>
           </li>`;
     })
     .join('');
@@ -244,53 +248,34 @@ export function renderLineItems(quote: Quote): string {
  *
  * A dead zone can apply to one audience and not the other, because the
  * engine picks the cheapest tier per audience and the academic/commercial
- * rate ratios differ across tiers. Report only the audiences that really
- * benefit — claiming a saving for a rate that doesn't get one is exactly
- * the dishonesty the isBetterThanLiteral gate exists to prevent.
+ * rate ratios differ across tiers. Report only for `audience`, and only
+ * when it benefits — claiming a saving for a rate that doesn't get one is
+ * exactly the dishonesty the isBetterThanLiteral gate exists to prevent.
  */
-export function renderDeadzone(quote: Quote): string | null {
-  const saver = quote.lines.find(
-    (l) => l.academic.isBetterThanLiteral || l.commercial.isBetterThanLiteral,
-  );
+export function renderDeadzone(quote: Quote, audience: Audience): string | null {
+  const saver = quote.lines.find((l) => l[audience].isBetterThanLiteral);
   if (!saver) return null;
-  const parts: string[] = [];
-  if (saver.academic.isBetterThanLiteral) {
-    parts.push(
-      `<strong>Academic/nonprofit:</strong> priced at our ${esc(saver.academic.tierRange)} rate — ` +
-        `${usd(saver.academic.savings)} less than ${saver.count.toLocaleString()} ${esc(saver.unitLabel)}s ` +
-        `would cost, and you can send ${saver.academic.freeHeadroom.toLocaleString()} more at no extra cost.`,
-    );
-  }
-  if (saver.commercial.isBetterThanLiteral) {
-    parts.push(
-      `<strong>Commercial:</strong> priced at our ${esc(saver.commercial.tierRange)} rate — ` +
-        `${usd(saver.commercial.savings)} less than ${saver.count.toLocaleString()} ${esc(saver.unitLabel)}s ` +
-        `would cost, and you can send ${saver.commercial.freeHeadroom.toLocaleString()} more at no extra cost.`,
-    );
-  }
-  return parts.join('<br><br>');
+  const price = saver[audience];
+  return (
+    `Priced at our ${esc(price.tierRange)} rate — ` +
+    `${usd(price.savings)} less than ${saver.count.toLocaleString()} ${esc(saver.unitLabel)}s ` +
+    `would cost, and you can send ${price.freeHeadroom.toLocaleString()} more at no extra cost.`
+  );
 }
 
 /**
  * Upsell: reaching the next tier costs MORE but lowers the unit rate.
  * Never described as a saving, and never shown when a dead zone applies.
  */
-export function renderUpsell(quote: Quote): string | null {
-  const saver = quote.lines.some(
-    (l) => l.academic.isBetterThanLiteral || l.commercial.isBetterThanLiteral,
-  );
+export function renderUpsell(quote: Quote, audience: Audience): string | null {
+  const saver = quote.lines.some((l) => l[audience].isBetterThanLiteral);
   if (saver || quote.lines.length !== 1 || quote.needsConversation) return null;
   const l = quote.lines[0];
-  const nextA = nextTierUpsell(l.serviceSlug, l.count, l.markers, 'academic');
-  const nextC = nextTierUpsell(l.serviceSlug, l.count, l.markers, 'commercial');
-  if (!nextA || nextA.additionalCost <= 0) return null;
-  const commercialNote =
-    nextC && nextC.additionalCost > 0
-      ? ` At the commercial rate that's ${usd(nextC.additionalCost)} more, dropping to $${nextC.newRate}/${esc(l.unitLabel)}.`
-      : '';
+  const next = nextTierUpsell(l.serviceSlug, l.count, l.markers, audience);
+  if (!next || next.additionalCost <= 0) return null;
   return (
-    `${nextA.additionalUnits.toLocaleString()} more ${esc(l.unitLabel)}s costs ` +
-    `${usd(nextA.additionalCost)} more at the academic rate — and drops it to $${nextA.newRate}/${esc(l.unitLabel)}.` +
-    commercialNote
+    `${next.additionalUnits.toLocaleString()} more ${esc(l.unitLabel)}s costs ` +
+    `${usd(next.additionalCost)} more at the ${audience === 'academic' ? 'academic' : 'commercial'} rate — ` +
+    `and drops it to $${next.newRate}/${esc(l.unitLabel)}.`
   );
 }
