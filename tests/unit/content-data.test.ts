@@ -102,8 +102,12 @@ describe('milestones data — Anthropic events', () => {
 });
 
 describe('stats data', () => {
-  it('homepageStats exposes 3 pills', () => {
+  it('homepageStats exposes 3 pills — the Evidence grid is a fixed 3 columns', () => {
     expect(homepageStats).toHaveLength(3);
+  });
+  it('homepage advertises the BugPicker picking range', () => {
+    const pill = homepageStats.find((s) => s.label.includes('BugPicker'));
+    expect(pill?.value).toBe('2–6 mm');
   });
   it('homepage first stat is 5,000+ sq ft (confirmed)', () => {
     expect(homepageStats[0].value).toBe('5,000+');

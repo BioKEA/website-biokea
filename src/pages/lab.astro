@@ -268,6 +268,29 @@ const labSections = [
       Full inventory (~80 items) available on request.
     </p>
 
+    <figure id="lab-bugpicker" class="mt-14 scroll-mt-24">
+      <!-- Text-first by design: photos and bench footage land here as a
+           two-column media grid once captured; the section must read
+           complete without them. -->
+      <div class="max-w-[68ch]">
+        <Eyebrow>OPERATIONAL · BUGPICKER</Eyebrow>
+        <h3 class="mt-3 text-xl font-semibold">Robotic specimen picking, on the bench now</h3>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed">
+          Bulk trap samples — Malaise, pitfall, bycatch — go in; barcode-ready plates come out.
+          BugPicker images each specimen, triages it with computer-vision models, and physically
+          picks and plates it for the LDC molecular pipeline. Most effective in the
+          <strong>2–6&nbsp;mm</strong> size range in its current configuration — the band where the bulk
+          of trap-sample diversity lives.
+        </p>
+        <p class="mt-3 text-sm text-slate-600 leading-relaxed">
+          It is why bulk-sorted barcoding through the LDC stays fast at volume:
+          <a href="/services" class="text-[var(--color-teal)] underline"
+            >the sorting step is automated</a
+          >, not a bottleneck of human hours.
+        </p>
+      </div>
+    </figure>
+
     <figure
       id="lab-diversityscanner"
       class="mt-14 grid md:grid-cols-[1.2fr_1fr] gap-8 items-start scroll-mt-24"
@@ -281,16 +304,15 @@ const labSections = [
         loading="lazy"
       />
       <div>
-        <Eyebrow>DIVERSITYSCANNER · ARRIVING EARLY SUMMER <time datetime="2026">2026</time></Eyebrow
-        >
+        <Eyebrow>DIVERSITYSCANNER · COMING SOON</Eyebrow>
         <h3 class="mt-3 text-xl font-semibold">Roboticized species discovery</h3>
         <p class="mt-3 text-sm text-slate-600 leading-relaxed">
           A collaborative imaging platform for high-throughput specimen screening. BioKEA is
           adopting a unit as part of the California Institute for Biodiversity (CIB) collaborative
-          expansion — arriving on site in <time datetime="2026-06">early summer 2026</time>.
-          Computer-vision models generate interpretable attention heatmaps that reveal which
-          morphological features drive each species assignment, feeding validated specimens into the
-          LDC molecular pipeline.
+          expansion. Computer-vision models generate interpretable attention heatmaps that reveal
+          which morphological features drive each species assignment, feeding validated specimens
+          into the LDC molecular pipeline. Alongside BugPicker, it extends automated picking below
+          the 2&nbsp;mm class.
         </p>
         <img
           src="/assets/images/diversityscanner-heatmaps-cream.webp"

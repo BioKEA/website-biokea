@@ -19,3 +19,14 @@ test('lab page CTA routes to contact', async ({ page }) => {
   const cta = page.getByRole('link', { name: /Get in touch/ }).first();
   await expect(cta).toHaveAttribute('href', '/contact?topic=sequencing');
 });
+
+test('BugPicker is presented as operational, DiversityScanner as coming soon', async ({ page }) => {
+  await page.goto('/lab');
+  const bugpicker = page.locator('#lab-bugpicker');
+  await expect(bugpicker).toBeVisible();
+  await expect(bugpicker).toContainText(/operational/i);
+  await expect(bugpicker).toContainText('2–6 mm');
+  // DiversityScanner extends BELOW BugPicker's range and is not here yet.
+  await expect(page.locator('#lab-diversityscanner')).toContainText(/coming soon/i);
+  await expect(page.getByText(/arriving early summer/i)).toHaveCount(0);
+});

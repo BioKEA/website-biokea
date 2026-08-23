@@ -9,7 +9,10 @@ export interface Stat {
 // Homepage: 3 pills. Inventory-first, with one dated live signal.
 export const homepageStats: Stat[] = [
   { value: '5,000+', label: 'sq ft · Berkeley' },
-  { value: '~80', label: 'instruments on site' },
+  // BugPicker earns the middle pill over the generic instrument count —
+  // /lab's stats still carry '~80 instruments'; the Evidence grid is a
+  // fixed 3 columns (see Evidence.astro), so this is a swap, not an add.
+  { value: '2–6 mm', label: 'BugPicker picking range' },
   { value: 'Nov 2025', label: 'sequencer live', live: true, datetime: '2025-11' },
 ];
 

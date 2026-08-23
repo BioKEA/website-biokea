@@ -139,3 +139,10 @@ test('barcoding and eDNA catalog rows link out to their pricing anchors', async 
     '/pricing#metabarcoding',
   );
 });
+
+test('barcoding section names BugPicker and links to its lab section', async ({ page }) => {
+  await page.goto('/services');
+  const link = page.getByRole('link', { name: /see it running/i });
+  await expect(link).toHaveAttribute('href', '/lab#lab-bugpicker');
+  await expect(page.getByText(/BugPicker/).first()).toBeVisible();
+});
