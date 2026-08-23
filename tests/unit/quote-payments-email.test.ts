@@ -17,6 +17,7 @@ const q = buildQuote([
   { serviceSlug: 'metabarcoding', count: 60, markers: 2 },
 ]);
 const quote: QuoteRecord = {
+  source: 'store',
   id: 'q1',
   quote_number: 'BK-2026-0142',
   access_token: 'tok',
@@ -291,4 +292,11 @@ describe('resendSender', () => {
     const m = paymentReceivedLabEmail(quote, deposit, 'contact@biokea.ai');
     expect(m.text).not.toContain('Actual counts');
   });
+});
+
+it('lab emails carry the attribution source', () => {
+  expect(paymentReceivedLabEmail(quote, deposit, 'lab@biokea.ai').text).toContain('Source: store');
+  expect(
+    paymentReceivedLabEmail({ ...quote, source: null }, deposit, 'lab@biokea.ai').text,
+  ).toContain('Source: —');
 });

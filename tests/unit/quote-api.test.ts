@@ -308,6 +308,26 @@ describe('quote endpoint', () => {
     expect(text).not.toContain('rate for this configuration:');
   });
 
+  it('persists the widget source for attribution', async () => {
+    await handleQuote(makeRequest({ ...validBody, source: 'store' }), env);
+    expect(insertedRow().source).toBe('store');
+  });
+
+  it('stores a null source when the client sends none (non-widget callers)', async () => {
+    await handleQuote(makeRequest(validBody), env);
+    expect(insertedRow().source).toBeNull();
+  });
+
+  it('rejects a junk source', async () => {
+    const res = await handleQuote(makeRequest({ ...validBody, source: 'BAD*' }), env);
+    expect(res.status).toBe(400);
+  });
+
+  it('names the source in the lab notification', async () => {
+    await handleQuote(makeRequest({ ...validBody, source: 'store' }), env);
+    expect(emailTextTo(env.CONTACT_TO_EMAIL)).toContain('Source: store');
+  });
+
   it('keeps BOTH rates in the lab notification — staff want the comparison', async () => {
     await handleQuote(makeRequest({ ...validBody, audience: 'academic' }), env);
     const lab = emailTextTo(env.CONTACT_TO_EMAIL);

@@ -28,6 +28,7 @@ function quote(over: Partial<QuoteRecord> = {}): QuoteRecord {
     expires_at: '2026-09-19T00:00:00Z',
     status: 'quoted',
     audience: null,
+    source: null,
     academic_attested_at: null,
     po_number: null,
     external_customer_id: null,
@@ -124,11 +125,15 @@ describe('handlePayment', () => {
   });
 
   it('records the academic attestation timestamp when the academic rate is chosen', async () => {
-    await handlePayment(post(TOKEN, { audience: 'academic', attest: 'true' }), TOKEN, {
-      db,
-      gateway,
-      now: NOW,
-    });
+    await handlePayment(
+      post(TOKEN, { audience: 'academic', source: null, attest: 'true' }),
+      TOKEN,
+      {
+        db,
+        gateway,
+        now: NOW,
+      },
+    );
     expect(db.quotes[0].audience).toBe('academic');
     expect(db.quotes[0].academic_attested_at).toBe('2026-09-01T00:00:00.000Z');
     expect(gateway.created[0].poNumber).toBeNull();

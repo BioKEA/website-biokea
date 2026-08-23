@@ -139,9 +139,8 @@ if (quote.status === 'deposit_paid' && deposit) {
     </p>
     <p class="mt-1 font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">
       status {statusLabel(quote.status)}{depositPaidQualifier ? ` (${depositPaidQualifier})` : ''} · rate
-      {quote.audience ?? '—'} · PO {quote.po_number ?? '—'} · valid to {
-        quote.expires_at.slice(0, 10)
-      }
+      {quote.audience ?? '—'} · PO {quote.po_number ?? '—'} · source {quote.source ?? '—'} · valid to
+      {quote.expires_at.slice(0, 10)}
       · <a class="underline" href={`/quote/${quote.access_token}`}>customer view</a>
     </p>
 

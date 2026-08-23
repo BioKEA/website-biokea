@@ -28,6 +28,11 @@ const QuoteSchema = z.object({
   // Optional so a cached widget bundle on the store keeps working; absent
   // means the pay endpoint collects them instead.
   audience: z.enum(['academic', 'commercial']).optional(),
+  // 'site' | 'store' today; pattern kept loose for future placements.
+  source: z
+    .string()
+    .regex(/^[a-z0-9-]{1,32}$/)
+    .optional(),
   attest: z.boolean().optional(),
   website: z.string().optional(),
   'cf-turnstile-response': z.string().optional(),
@@ -126,6 +131,7 @@ async function handleQuoteInner(
     total_commercial: quote.total.commercial,
     needs_conversation: quote.needsConversation,
     audience: parsed.data.audience ?? null,
+    source: parsed.data.source ?? null,
     // Only meaningful for the academic rate, and only the pay endpoint may
     // rely on it — it re-checks before any money moves.
     academic_attested_at:
@@ -296,6 +302,7 @@ async function handleQuoteInner(
           `Email: ${email}`,
           `Organization: ${organization || '—'}`,
           `Rate: ${audience ?? '—'}`,
+          `Source: ${parsed.data.source ?? '—'}`,
           ``,
           summary,
           ``,

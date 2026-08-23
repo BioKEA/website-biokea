@@ -29,6 +29,7 @@ function quote(over: Partial<QuoteRecord> = {}): QuoteRecord {
     expires_at: '2026-09-19T00:00:00Z',
     status: 'deposit_paid',
     audience: 'academic',
+    source: null,
     academic_attested_at: '2026-09-01T00:00:00Z',
     po_number: 'PO-77',
     external_customer_id: 'cus_1',

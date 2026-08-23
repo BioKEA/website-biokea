@@ -27,6 +27,8 @@ export interface QuoteRecord {
   expires_at: string;
   status: QuoteStatus;
   audience: Audience | null;
+  /** Where the quote was configured: 'site' | 'store' (widget-sent); null for older rows. */
+  source: string | null;
   academic_attested_at: string | null;
   po_number: string | null;
   external_customer_id: string | null;

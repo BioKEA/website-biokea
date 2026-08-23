@@ -22,6 +22,7 @@ function quote(over: Partial<QuoteRecord> = {}): QuoteRecord {
     expires_at: '2026-09-19T00:00:00Z',
     status: 'quoted',
     audience: null,
+    source: null,
     academic_attested_at: null,
     po_number: null,
     external_customer_id: null,
@@ -77,7 +78,7 @@ describe('panelView', () => {
 
   it('asks for an attestation only when academic and not yet attested', () => {
     expect(
-      panelView(quote({ audience: 'academic', academic_attested_at: null }), [], now),
+      panelView(quote({ audience: 'academic', source: null, academic_attested_at: null }), [], now),
     ).toMatchObject({ needsAttestation: true });
     expect(
       panelView(

@@ -43,6 +43,7 @@ function labBody(q: QuoteRecord, p: PaymentRecord, headline: string): string {
     `Customer: ${q.name} <${q.email}>`,
     `Organization: ${q.organization ?? '—'}`,
     `Rate: ${q.audience ?? '—'}`,
+    `Source: ${q.source ?? '—'}`,
     `PO number: ${q.po_number ?? '—'}`,
     ``,
     quotedLabel,
