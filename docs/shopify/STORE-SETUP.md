@@ -187,9 +187,9 @@ payment row; it is safe to delete.
 - Submitting a quote from either product page reaches
   `POST https://biokea.ai/api/quote` (browser devtools → Network) and gets
   a 200 with a token.
-- Paying a deposit lands on Shopify checkout (Bogus Gateway in test mode);
+- Paying in full lands on Shopify checkout (Bogus Gateway in test mode);
   a completed test payment fires `orders/paid` and the quote page shows
-  "Deposit received".
+  "Payment received".
 - Complete a **net-30** draft (the PO buyer path) and confirm no
   `draft_orders/delete` webhook arrives for it (`webhook_events` shows only
   `orders/*` topics for that draft) and the quote does NOT drop back to

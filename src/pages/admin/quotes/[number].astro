@@ -152,13 +152,18 @@ if (quote.status === 'deposit_paid' && deposit) {
       )
     }
     {
-      flash.balance === 'settled' && (
-        <p class="mt-6 text-sm text-amber-800 border-l-2 border-amber-600 pl-3">
-          Nothing further owed — actual counts came in at or under what was paid.{' '}
-          <strong>{creditDisplay} credit recorded</strong>, valid 12 months. No refund is issued;
-          apply it as a fixed-amount discount on their next draft order.
-        </p>
-      )
+      flash.balance === 'settled' &&
+        (flash.credit === '0' ? (
+          <p class="mt-6 text-sm text-amber-800 border-l-2 border-amber-600 pl-3">
+            Nothing further owed — actual counts matched what was paid. No credit arises.
+          </p>
+        ) : (
+          <p class="mt-6 text-sm text-amber-800 border-l-2 border-amber-600 pl-3">
+            Nothing further owed — actual counts came in under what was paid.{' '}
+            <strong>{creditDisplay} credit recorded</strong>, valid 12 months. No refund is issued;
+            apply it as a fixed-amount discount on their next draft order.
+          </p>
+        ))
     }
 
     <h2 class="mt-8 text-lg font-semibold">Quoted lines</h2>

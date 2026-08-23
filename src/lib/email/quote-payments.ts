@@ -3,7 +3,7 @@
 // §5.6, §7.3.
 import type { EmailMessage } from './resend';
 import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
-import { creditFrom, usdCents } from '@/lib/payments/terms';
+import { creditFrom, paymentLines, paymentTotalCents, usdCents } from '@/lib/payments/terms';
 
 export const SITE_URL = 'https://biokea.ai';
 
@@ -64,21 +64,50 @@ function labBody(q: QuoteRecord, p: PaymentRecord, headline: string): string {
   return lines.filter((l) => l !== '').join('\n');
 }
 
+/**
+ * Whether `p` (kind:'deposit') actually covers the whole quote. That kind
+ * is frozen for both a new pay-in-full quote and a legacy 50% deposit still
+ * awaiting a balance invoice, so the amount alone can't tell them apart.
+ * Same rule as panelView() (src/lib/payments/panel.ts:80-82) and the admin
+ * detail page's qualifier. null when quote.audience is unset (legacy,
+ * pre-configurator quote) — there is then no rate to compare against, so
+ * callers must fall back to neutral, true-under-both wording rather than
+ * assert "paid in full".
+ */
+function paidInFull(q: QuoteRecord, p: PaymentRecord): boolean | null {
+  return q.audience ? p.amount_cents >= paymentTotalCents(paymentLines(q.lines, q.audience)) : null;
+}
+
 export function paymentReceivedCustomerEmail(q: QuoteRecord, p: PaymentRecord): EmailMessage {
+  const full = paidInFull(q, p) === true;
+  const body = full
+    ? [
+        `Thanks — quote ${q.quote_number} is paid in full (${usdCents(p.amount_cents)}).`,
+        ``,
+        `What happens next: the lab will email you shipping instructions and your`,
+        `sample manifest within 2 business days. Once your samples arrive and pass`,
+        `QC, we start sequencing.`,
+        ``,
+        `Your quoted per-sample rate is held for this project. If fewer samples`,
+        `arrive than you quoted, the unused amount stays as credit toward another project for 12 months;`,
+        `if more arrive, we invoice the difference at the same rate.`,
+      ]
+    : [
+        `Thanks — we've received your payment of ${usdCents(p.amount_cents)} toward quote ${q.quote_number}.`,
+        ``,
+        `What happens next: the lab will email you shipping instructions and your`,
+        `sample manifest within 2 business days. Once your samples arrive and pass`,
+        `QC, we start sequencing.`,
+        ``,
+        `Any remaining balance on this quote is invoiced once your results are`,
+        `delivered and the final counts are confirmed.`,
+      ];
   return {
     to: q.email,
     replyTo: 'contact@biokea.ai',
     subject: `Payment received — BioKEA quote ${q.quote_number}`,
     text: [
-      `Thanks — quote ${q.quote_number} is paid in full (${usdCents(p.amount_cents)}).`,
-      ``,
-      `What happens next: the lab will email you shipping instructions and your`,
-      `sample manifest within 2 business days. Once your samples arrive and pass`,
-      `QC, we start sequencing.`,
-      ``,
-      `Your quoted per-sample rate is held for this project. If fewer samples`,
-      `arrive than you quoted, the unused amount stays as credit toward another project for 12 months;`,
-      `if more arrive, we invoice the difference at the same rate.`,
+      ...body,
       ``,
       `Your quote: ${quoteUrl(q)}`,
       p.pdf_url ? `Receipt / invoice PDF: ${p.pdf_url}` : '',
@@ -99,6 +128,7 @@ export function paymentReceivedLabEmail(
   p: PaymentRecord,
   labTo: string,
 ): EmailMessage {
+  const full = paidInFull(q, p) === true;
   return {
     to: labTo,
     replyTo: q.email,
@@ -106,7 +136,9 @@ export function paymentReceivedLabEmail(
     text: labBody(
       q,
       p,
-      `Paid in full on ${q.quote_number} — send shipping instructions + manifest.`,
+      full
+        ? `Paid in full on ${q.quote_number} — send shipping instructions + manifest.`
+        : `Payment received on ${q.quote_number} (${usdCents(p.amount_cents)}) — balance may still be owed; send shipping instructions + manifest.`,
     ),
   };
 }

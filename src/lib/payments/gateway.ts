@@ -176,8 +176,17 @@ export function shopifyGateway(
         d.paymentTermsTemplates.find((t) => t.paymentTermsType === 'NET' && t.dueInDays === days) ??
         null;
       templateId = hit?.id ?? null;
-    } catch {
+      if (templateId === null) {
+        console.error(
+          `[shopify] no payment terms template matches ${cfg.paymentTermsTemplate}; falling back to due-on-receipt`,
+        );
+      }
+    } catch (err) {
       templateId = null; // due on receipt; never block an invoice on terms lookup
+      console.error(
+        '[shopify] payment terms template lookup failed; falling back to due-on-receipt',
+        err,
+      );
     }
     return templateId;
   }

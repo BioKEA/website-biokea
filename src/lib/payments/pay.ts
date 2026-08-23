@@ -105,7 +105,7 @@ export async function handlePayment(
   try {
     assertPaymentSane(total, amountCents, lines.length);
   } catch (err) {
-    console.error('[deposit] sanity check failed for', quote.quote_number, err);
+    console.error('[pay] sanity check failed for', quote.quote_number, err);
     return back(token, 'failed', { audience, po: form.po_number || undefined });
   }
 
@@ -151,7 +151,7 @@ export async function handlePayment(
     });
   } catch (err) {
     console.error(
-      '[deposit] gateway failed for',
+      '[pay] gateway failed for',
       quote.quote_number,
       err instanceof Error ? err.message : err,
     );

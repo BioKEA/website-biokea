@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { buildQuote } from '@/lib/pricing/quote';
 import { resendSender, memorySender } from '@/lib/email/resend';
-import { creditFrom } from '@/lib/payments/terms';
+import { creditFrom, paymentLines, paymentTotalCents, usdCents } from '@/lib/payments/terms';
 import {
   paymentReceivedCustomerEmail,
   paymentReceivedLabEmail,
@@ -54,6 +54,10 @@ const deposit: PaymentRecord = {
   created_by: null,
   created_at: '2026-09-01T00:00:00Z',
 };
+// The whole quoted total at the quote's own audience rate — what a
+// pay-in-full (post-branch) deposit payment actually equals.
+const fullAmountCents = paymentTotalCents(paymentLines(quote.lines, 'academic'));
+const fullDeposit: PaymentRecord = { ...deposit, amount_cents: fullAmountCents };
 const balance: PaymentRecord = {
   ...deposit,
   id: 'p2',
@@ -65,26 +69,67 @@ const balance: PaymentRecord = {
 };
 
 describe('payment emails', () => {
-  it('the payment email says paid in full and never says deposit', () => {
-    const m = paymentReceivedCustomerEmail(quote, deposit);
+  // Spec: kind:'deposit' is frozen for both a new pay-in-full quote and a
+  // legacy 50% deposit still awaiting a balance invoice, so the wording
+  // must depend on whether the amount actually covers the quote — not on
+  // the payment's kind.
+  it('confirmed paid-in-full (amount covers the whole quote): says paid in full', () => {
+    const m = paymentReceivedCustomerEmail(quote, fullDeposit);
     expect(m.to).toBe('alice@state.edu');
     expect(m.subject).toBe('Payment received — BioKEA quote BK-2026-0142');
     expect(m.replyTo).toBe('contact@biokea.ai');
-    expect(m.subject).toContain('Payment received');
     expect(m.text).toContain('paid in full');
-    expect(m.text).toContain('$4,800.00');
     expect(m.text).toContain('shipping instructions');
     expect(m.text).toContain('within 2 business days');
     expect(m.text).toContain('https://biokea.ai/quote/tok');
     expect(m.text).toContain('https://pay.example.com/x.pdf');
     expect(m.text).toContain('credit toward another project for 12 months');
     expect(m.text).not.toMatch(/deposit/i);
+
+    const l = paymentReceivedLabEmail(quote, fullDeposit, 'contact@biokea.ai');
+    expect(l.text).toContain('Paid in full on BK-2026-0142 — send shipping instructions');
+  });
+
+  // The bug this fixture used to hide: $4,800 is half of a ~$20k quote —
+  // a legacy 50% deposit, not a pay-in-full payment — yet the email used
+  // to claim "paid in full".
+  it('legacy 50% deposit (amount is short of the quote total): neutral wording, no rate-lock/credit paragraph', () => {
+    expect(deposit.amount_cents).toBeLessThan(fullAmountCents);
+    const m = paymentReceivedCustomerEmail(quote, deposit);
+    expect(m.to).toBe('alice@state.edu');
+    expect(m.subject).toBe('Payment received — BioKEA quote BK-2026-0142');
+    expect(m.text).not.toContain('paid in full');
+    expect(m.text).toContain("we've received your payment of $4,800.00");
+    expect(m.text).toContain('shipping instructions');
+    expect(m.text).toContain('within 2 business days');
+    expect(m.text).toContain('https://biokea.ai/quote/tok');
+    expect(m.text).toContain('https://pay.example.com/x.pdf');
+    expect(m.text).not.toContain('credit toward another project for 12 months');
+    expect(m.text).toContain('remaining balance');
+    expect(m.text).not.toMatch(/deposit/i);
+
+    const l = paymentReceivedLabEmail(quote, deposit, 'contact@biokea.ai');
+    expect(l.text).not.toContain('Paid in full');
+    expect(l.text).toContain('balance may still be owed');
+  });
+
+  it('audience-null (legacy, pre-configurator quote): cannot confirm, so neutral wording', () => {
+    const noAudienceQuote: QuoteRecord = { ...quote, audience: null };
+    const m = paymentReceivedCustomerEmail(noAudienceQuote, fullDeposit);
+    expect(m.text).not.toContain('paid in full');
+    expect(m.text).toContain("we've received your payment of");
+    expect(m.text).not.toContain('credit toward another project for 12 months');
+    expect(m.text).toContain('remaining balance');
+
+    const l = paymentReceivedLabEmail(noAudienceQuote, fullDeposit, 'contact@biokea.ai');
+    expect(l.text).not.toContain('Paid in full');
+    expect(l.text).toContain('balance may still be owed');
   });
 
   it('paid → lab: lines, audience, PO, customer, admin link', () => {
-    const m = paymentReceivedLabEmail(quote, deposit, 'contact@biokea.ai');
+    const m = paymentReceivedLabEmail(quote, fullDeposit, 'contact@biokea.ai');
     expect(m.to).toBe('contact@biokea.ai');
-    expect(m.subject).toBe('[paid] BK-2026-0142 · State University · $4,800.00');
+    expect(m.subject).toBe(`[paid] BK-2026-0142 · State University · ${usdCents(fullAmountCents)}`);
     expect(m.replyTo).toBe('alice@state.edu');
     expect(m.text).toContain('Voucher-Linked Specimen Barcoding: 800 specimens');
     expect(m.text).toContain('× 2 markers');
