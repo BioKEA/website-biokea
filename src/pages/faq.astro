@@ -1,0 +1,185 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import PageNav from '@/components/ui/PageNav.astro';
+import CtaBand from '@/components/sections/CtaBand.astro';
+import { stringifyJsonLd } from '@/lib/json-ld';
+
+// Inline "talk to us" mentions link to the human contact path, matching
+// the "Talk to us →" links on the services and pricing heroes.
+const talk = (label: string) =>
+  `<a href="/contact?topic=sequencing" class="underline decoration-slate-400 hover:text-[var(--color-teal)]">${label}</a>`;
+
+interface Faq {
+  q: string;
+  a: string; // answer as inline HTML — stripped to plain text for JSON-LD
+}
+
+interface FaqGroup {
+  id: string;
+  tag: string;
+  heading: string;
+  faqs: Faq[];
+}
+
+const faqGroups: FaqGroup[] = [
+  {
+    id: 'samples',
+    tag: 'SAMPLES & SUBMISSION',
+    heading: 'Samples & submission',
+    faqs: [
+      {
+        q: 'What kinds of samples can I send?',
+        a: `For eDNA work we accept already-collected water, soil, sediment, and air samples or filters. For specimen barcoding we accept physical specimens — sorted or bulk-collected — each of which is preserved and imaged as a voucher. Not sure whether your material qualifies? ${talk('Talk to us')} and we'll figure it out together.`,
+      },
+      {
+        q: 'How do I ship my samples, and how should they be preserved?',
+        a: `Once a project is initiated we send full shipping instructions, a chain-of-custody manifest, and packaging guidance, so you're never guessing. Preservation requirements depend on sample type and assay — we'll cover them during scoping. ${talk('Talk to us')} before you collect if you want preservation advice up front.`,
+      },
+      {
+        q: 'Is there a minimum sample volume or batch size?',
+        a: 'Per-assay minimums vary. For eDNA water samples we typically accept 1–2 L filtered samples; for bulk specimens, 96-well-plate-compatible batches are most efficient; single-specimen barcoding has no batch minimum.',
+      },
+      {
+        q: 'Do you accept international samples?',
+        a: 'Yes, with appropriate import permits and CITES documentation where required. We help first-time importers walk through the paperwork.',
+      },
+    ],
+  },
+  {
+    id: 'sequencing',
+    tag: 'SEQUENCING & TECHNOLOGY',
+    heading: 'Sequencing & technology',
+    faqs: [
+      {
+        q: 'Do I have other options for what technology is used for sequencing my samples?',
+        a: `Yes — in addition to our Oxford Nanopore PromethION 2 Solo, we have an Illumina MiSeq i100 available for our use. For any other technologies, we would be happy to process your samples and facilitate sequencing at the appropriate outside vendor. Click "${talk('talk to us')}" to discuss what you have in mind.`,
+      },
+      {
+        q: 'What markers and primers are available for amplicon work?',
+        a: 'Standard primers stocked: COI, 16S, 18S, ITS, rbcL, matK. Custom primer design is part of our eDNA / qPCR assay design service, including primer/probe optimization and specificity validation.',
+      },
+      {
+        q: 'Can you handle custom or unusual projects?',
+        a: `Yes. Beyond barcoding and eDNA metabarcoding, we take on shotgun metagenomics, hybrid assemblies, custom assay design and validation, and bespoke pipeline integration. Every engagement starts with a free 30-minute scoping call — ${talk('talk to us')} about what you're planning.`,
+      },
+    ],
+  },
+  {
+    id: 'data',
+    tag: 'DATA & RESULTS',
+    heading: 'Data & results',
+    faqs: [
+      {
+        q: 'What deliverables do I get back?',
+        a: 'A FAIR-compliant data package by default: a Darwin Core Archive (DwC-A), a GBIF record, an NCBI SRA submission for raw reads, a Zenodo DOI for the final package, and a written analysis report with methods, results, and provenance trail. Raw FASTQ plus metadata are available on request.',
+      },
+      {
+        q: 'Can my results stay private, and who owns the data?',
+        a: `GBIF, SRA, and Zenodo deposits are part of the standard deliverable, but you can request a hold or embargo where institutional or publication considerations require it. If your project has specific confidentiality or data-ownership needs, ${talk('talk to us')} and we'll scope them into the quote.`,
+      },
+      {
+        q: 'Can I run my own bioinformatic pipeline instead?',
+        a: 'Yes. We can deliver raw FASTQ plus full metadata for downstream pipelines run by you or your collaborators. We also run our in-house BioInfoOS pipeline on request.',
+      },
+    ],
+  },
+  {
+    id: 'pricing',
+    tag: 'PRICING & LOGISTICS',
+    heading: 'Pricing & logistics',
+    faqs: [
+      {
+        q: 'How is pricing structured?',
+        a: 'Specimen barcoding and eDNA metabarcoding have published, volume-tiered per-unit rates — with separate academic/nonprofit and commercial pricing — on our <a href="/pricing" class="underline decoration-slate-400 hover:text-[var(--color-teal)]">pricing page</a>, and a <a href="/quote" class="underline decoration-slate-400 hover:text-[var(--color-teal)]">quote builder</a> if you already know your sample count. Everything else is project-rate, scoped per request; we typically return a written quote within a few days.',
+      },
+      {
+        q: "What's the typical turnaround time?",
+        a: 'Typical projects complete in 4–8 weeks from sample receipt; custom assay design can extend timelines. We provide a project-specific timeline at quote.',
+      },
+      {
+        q: 'How do we get started?',
+        a: `With a free 30-minute scoping call — we help shape sampling design, primer choice, replication, and analysis goals, then send a written quote. ${talk('Talk to us')} to book one.`,
+      },
+    ],
+  },
+];
+
+const pageNavSections = faqGroups.map((g) => ({ id: g.id, label: g.heading }));
+
+const stripTags = (html: string) => html.replace(/<[^>]*>/g, '');
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  '@id': 'https://biokea.ai/faq#faq',
+  mainEntity: faqGroups.flatMap((g) =>
+    g.faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: stripTags(f.a) },
+    })),
+  ),
+};
+---
+
+<BaseLayout
+  title="FAQ — BioKEA"
+  description="Answers to the questions we hear most from sequencing customers — samples and submission, sequencing technology, data and deliverables, pricing and logistics."
+>
+  <PageNav sections={pageNavSections} ariaLabel="FAQ sections" />
+
+  <section class="max-w-6xl mx-auto px-6 pt-16 pb-10">
+    <Eyebrow>SERVICES · FAQ</Eyebrow>
+    <h1
+      class="mt-3 text-4xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] text-[var(--color-ink)] max-w-[24ch]"
+    >
+      Frequently asked questions
+    </h1>
+    <p class="mt-5 max-w-[62ch] text-slate-600 leading-relaxed">
+      Answers to the questions we hear most from sequencing customers — and how to reach us when
+      your project doesn't fit a template.
+    </p>
+    <div class="mt-6 flex items-center gap-4 flex-wrap">
+      <a
+        href="/quote"
+        class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium"
+      >
+        Build a quote
+      </a>
+      <a href="/contact?topic=sequencing" class="text-[var(--color-teal)] text-sm font-medium">
+        Talk to us →
+      </a>
+      <a href="/services" class="text-[var(--color-teal)] text-sm font-medium">
+        See the service catalog →
+      </a>
+    </div>
+  </section>
+
+  {
+    faqGroups.map((group) => (
+      <section id={group.id} class="max-w-6xl mx-auto px-6 py-12">
+        <Eyebrow>{group.tag}</Eyebrow>
+        <h2 class="mt-3 text-2xl font-semibold tracking-tight text-[var(--color-ink)]">
+          {group.heading}
+        </h2>
+        <dl class="mt-6 space-y-6 max-w-[68ch]">
+          {group.faqs.map((f) => (
+            <div class="border-t border-slate-900/10 pt-4">
+              <dt class="font-semibold text-[var(--color-ink)]">{f.q}</dt>
+              <dd class="mt-2 text-sm text-slate-600 leading-relaxed" set:html={f.a} />
+            </div>
+          ))}
+        </dl>
+      </section>
+    ))
+  }
+
+  <CtaBand
+    title="Didn't find your answer?"
+    subtitle="Every engagement starts with a free 30-minute scoping call — tell us about your project and we'll respond within a few days."
+    cta={{ href: '/contact?topic=sequencing', label: 'Talk to us' }}
+  />
+
+  <script type="application/ld+json" is:inline set:html={stringifyJsonLd(faqJsonLd)} />
+</BaseLayout>
