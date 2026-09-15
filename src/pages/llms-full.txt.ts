@@ -126,7 +126,7 @@ BioKEA offers molecular sequencing as a service out of the Berkeley LDC, targete
 
 ${renderServiceOfferings()}
 
-Full catalog, FAQ, and quote intake: ${SITE}/services
+Full catalog and quote intake: ${SITE}/services · FAQ: ${SITE}/faq
 
 ## Team
 
