@@ -1,5 +1,6 @@
 // src/middleware.ts
 //
+// 0. Canonical host: www.biokea.ai → biokea.ai — see src/lib/canonical-host.ts.
 // 1. CSRF: replaces Astro's built-in origin check (disabled in
 //    astro.config.mjs) with the same rules plus an allow-list for
 //    games.biokea.ai — see src/lib/origin-check.ts.
@@ -8,11 +9,15 @@
 //    CF_ACCESS_DEV_EMAIL stands in for the header.
 import { defineMiddleware } from 'astro:middleware';
 import { env } from 'cloudflare:workers';
+import { canonicalHostRedirect } from '@/lib/canonical-host';
 import { rejectCrossSiteForm } from '@/lib/origin-check';
 import { isAdminPath, remoteAccessKeys, verifyAccessJwt } from '@/lib/access';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   if (context.isPrerendered) return next();
+
+  const redirect = canonicalHostRedirect(context.url);
+  if (redirect) return redirect;
 
   const rejection = rejectCrossSiteForm(context.request, context.url);
   if (rejection) return rejection;

@@ -10,6 +10,11 @@ describe('cors', () => {
       'access-control-max-age': '86400',
       vary: 'origin',
     });
+    // Shopify's theme editor previews the storefront from the myshopify
+    // domain, where the embedded widget must still reach /api/quote.
+    expect(corsHeaders('https://a9zmvz-xs.myshopify.com')['access-control-allow-origin']).toBe(
+      'https://a9zmvz-xs.myshopify.com',
+    );
     expect(corsHeaders('https://evil.example')).toEqual({});
     expect(corsHeaders(null)).toEqual({});
     expect(corsHeaders('http://localhost:4321', true)['access-control-allow-origin']).toBe(

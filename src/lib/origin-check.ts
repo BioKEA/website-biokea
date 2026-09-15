@@ -15,6 +15,9 @@
 export const ALLOWED_ORIGINS: readonly string[] = [
   'https://games.biokea.ai',
   'https://store.biokea.ai',
+  // The same storefront as previewed in Shopify's theme editor; the
+  // widget's pay hand-off is a native form POST from there too.
+  'https://a9zmvz-xs.myshopify.com',
 ];
 
 const FORM_CONTENT_TYPES = [

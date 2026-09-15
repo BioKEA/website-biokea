@@ -25,6 +25,13 @@ describe('rejectCrossSiteForm', () => {
     ).toBeNull();
   });
 
+  it('allows the pay hand-off form from the store and its myshopify preview origin', () => {
+    for (const origin of ['https://store.biokea.ai', 'https://a9zmvz-xs.myshopify.com']) {
+      expect(ALLOWED_ORIGINS).toContain(origin);
+      expect(rejectCrossSiteForm(req({ origin, contentType: FORM }), url)).toBeNull();
+    }
+  });
+
   it('allows form posts from games.biokea.ai (the in-game Lab-updates pill)', () => {
     expect(ALLOWED_ORIGINS).toContain('https://games.biokea.ai');
     expect(

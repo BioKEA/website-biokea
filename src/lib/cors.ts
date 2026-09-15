@@ -2,10 +2,17 @@
 //
 // CORS allow-list for endpoints called cross-origin from store.biokea.ai
 // (the Shopify storefront's embedded quote widget) as well as biokea.ai
-// itself. Origins outside the list get no CORS headers at all, which is
-// the same as denying the request from the browser's point of view.
+// itself. The myshopify.com domain is the same storefront as seen from
+// Shopify's theme editor, whose preview frame is served from there rather
+// than from the custom domain. Origins outside the list get no CORS
+// headers at all, which is the same as denying the request from the
+// browser's point of view.
 
-export const CORS_ORIGINS: readonly string[] = ['https://store.biokea.ai', 'https://biokea.ai'];
+export const CORS_ORIGINS: readonly string[] = [
+  'https://store.biokea.ai',
+  'https://a9zmvz-xs.myshopify.com',
+  'https://biokea.ai',
+];
 
 const DEV_ORIGIN = 'http://localhost:4321';
 
