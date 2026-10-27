@@ -42,6 +42,15 @@ export interface PricedService {
   conversationThreshold?: number;
 }
 
+/** Each marker after the first adds this fraction of the per-specimen tier rate. Barcoding only. */
+export const barcodingExtraMarkerFraction = 0.75;
+
+/** Per-sample surcharge for each marker beyond the first. eDNA only; the
+ * engine reads it from `pricedServices[].additionalMarkerPrice`. */
+export const ednaAdditionalMarkerPrice = { academic: 12, commercial: 15 };
+
+const pct = (fraction: number) => `${Math.round(fraction * 100)}%`;
+
 export const pricedServices: PricedService[] = [
   {
     slug: 'barcoding',
@@ -112,7 +121,7 @@ export const pricedServices: PricedService[] = [
     addons: [
       {
         title: 'Other or multiple markers',
-        body: '16S, 18S, ITS, 12S, and more, in place of or alongside COI. Each added marker is 75% of your per-specimen rate.',
+        body: `16S, 18S, ITS, 12S, and more, in place of or alongside COI. Each added marker is ${pct(barcodingExtraMarkerFraction)} of your per-specimen rate.`,
       },
       {
         title: 'Bulk eDNA from the sample preservative',
@@ -162,11 +171,11 @@ export const pricedServices: PricedService[] = [
         best: true,
       },
     ],
-    additionalMarkerPrice: { academic: 12, commercial: 15 },
+    additionalMarkerPrice: ednaAdditionalMarkerPrice,
     addons: [
       {
         title: 'Additional markers',
-        body: 'Stack fish, invertebrate, and general-eukaryote panels on the same samples. $12 per sample, per added marker (academic and nonprofit) or $15 (commercial).',
+        body: `Stack fish, invertebrate, and general-eukaryote panels on the same samples. $${ednaAdditionalMarkerPrice.academic} per sample, per added marker (academic and nonprofit) or $${ednaAdditionalMarkerPrice.commercial} (commercial).`,
       },
     ],
   },
@@ -183,9 +192,6 @@ export const identificationOnlyBarcoding = {
   description:
     'A lower-cost option when you don’t need specimens kept. You receive a DNA identification and confidence rating for each specimen, at a flat rate for any volume and any client type. Specimens aren’t retained as vouchers, but you’ll receive an image of each one in its sample well.',
 } as const;
-
-/** Each marker after the first adds this fraction of the per-specimen tier rate. */
-export const barcodingExtraMarkerFraction = 0.75;
 
 export const confidenceRatings: {
   level: 'High' | 'Moderate' | 'Unresolved';

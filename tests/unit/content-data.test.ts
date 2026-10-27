@@ -18,6 +18,7 @@ import {
   comparisonRows,
   pricingSections,
   priceRange,
+  ednaAdditionalMarkerPrice,
 } from '@/data/pricing';
 import { usd } from '@/lib/pricing/format';
 import { serviceOfferings } from '@/data/services';
@@ -476,5 +477,22 @@ describe('services data — priced and project-rate groups (spec 2026-10-26)', (
       expect(s.name).not.toContain('$');
       expect(s.description ?? '').not.toContain('$');
     }
+  });
+});
+
+describe('pricing data — add-on copy is derived from the constants it quotes', () => {
+  it('eDNA add-on body quotes additionalMarkerPrice, not a second hand-typed number', () => {
+    const e = pricedServices.find((s) => s.slug === 'metabarcoding')!;
+    const body = e.addons.map((a) => a.body).join(' ');
+    expect(e.additionalMarkerPrice).toEqual(ednaAdditionalMarkerPrice);
+    expect(body).toContain(`${usd(ednaAdditionalMarkerPrice.academic)} per sample`);
+    expect(body).toContain(`${usd(ednaAdditionalMarkerPrice.commercial)} (commercial)`);
+  });
+  it('barcoding add-on body quotes barcodingExtraMarkerFraction as a percentage', () => {
+    const b = pricedServices.find((s) => s.slug === 'barcoding')!;
+    const body = b.addons.map((a) => a.body).join(' ');
+    expect(body).toContain(
+      `${Math.round(barcodingExtraMarkerFraction * 100)}% of your per-specimen rate`,
+    );
   });
 });

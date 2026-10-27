@@ -442,13 +442,22 @@ const jsonLd = {
 
   <!-- Comparison -->
   <section id="compare" class="max-w-6xl mx-auto px-6 py-14 border-t border-slate-900/10">
-    <h2 class="text-2xl md:text-3xl font-semibold text-[var(--color-ink)] text-center">
+    <h2
+      id="compare-heading"
+      class="text-2xl md:text-3xl font-semibold text-[var(--color-ink)] text-center"
+    >
       Which service fits your project?
     </h2>
     <p class="mt-2 text-sm text-slate-500 text-center max-w-[560px] mx-auto">
       How our four services compare. Many programs combine them.
     </p>
-    <div class="mt-8 overflow-x-auto" data-table-scroll>
+    <div
+      class="mt-8 overflow-x-auto rounded-lg focus-visible:outline-2 focus-visible:outline-[var(--color-teal)]"
+      data-table-scroll
+      tabindex="0"
+      role="region"
+      aria-labelledby="compare-heading"
+    >
       <table
         class="w-full min-w-[900px] border-collapse bg-white rounded-lg overflow-hidden shadow-sm table-fixed"
       >

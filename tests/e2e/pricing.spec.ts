@@ -137,6 +137,26 @@ test('comparison table scrolls inside the page on a narrow phone', async ({ page
   expect(canScroll).toBe(true);
 });
 
+test('comparison scroller is a keyboard-reachable, labelled region', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await page.goto('/pricing');
+  const scroller = page.locator('#compare [data-table-scroll]');
+  await expect(scroller).toHaveAttribute('tabindex', '0');
+  await expect(scroller).toHaveAttribute('role', 'region');
+  const labelId = await scroller.getAttribute('aria-labelledby');
+  expect(labelId).toBeTruthy();
+  await expect(page.locator(`#${labelId}`)).toHaveText('Which service fits your project?');
+  await scroller.focus();
+  // Horizontal keyboard scrolling: arrow keys move a focused scroller sideways.
+  await page.keyboard.press('ArrowRight', { delay: 50 });
+  await page.keyboard.press('ArrowRight', { delay: 50 });
+  await page.waitForFunction(
+    () => (document.querySelector('#compare [data-table-scroll]') as HTMLElement).scrollLeft > 0,
+  );
+  const scrolled = await scroller.evaluate((el) => el.scrollLeft > 0);
+  expect(scrolled).toBe(true);
+});
+
 test('pricing hero CTAs: store, quote, contact, and the services catalog link', async ({
   page,
 }) => {

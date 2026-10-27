@@ -1,4 +1,10 @@
 import { test, expect } from '@playwright/test';
+import {
+  priceRange,
+  identificationOnlyBarcoding,
+  ednaAdditionalMarkerPrice,
+} from '../../src/data/pricing';
+import { usd } from '../../src/lib/pricing/format';
 
 test('llms.txt is served as markdown with agent-first sections', async ({ page }) => {
   const response = await page.goto('/llms.txt');
@@ -67,8 +73,22 @@ test('llms.txt lists the four priced services with their ranges and pricing anch
   expect(text).toContain('https://biokea.ai/pricing#metabarcoding');
   expect(text).toContain('https://biokea.ai/pricing#metagenomics');
   expect(text).toContain('https://biokea.ai/pricing#targeted-edna');
-  expect(text).toContain('$6–$20 per specimen');
-  expect(text).toContain('$115–$205 per sample');
-  expect(text).toContain('$2,400–$4,200 per specimen');
+  // Expectations come from the data file, so a tier change forces this
+  // hand-edited feed to move with it instead of silently going stale.
+  const range = (slug: string) => {
+    const r = priceRange(slug)!;
+    return `${usd(r.min)}–${usd(r.max)} per ${r.unit}`;
+  };
+  expect(text).toContain(range('barcoding'));
+  expect(text).toContain(range('metabarcoding'));
+  expect(text).toContain(range('metagenomics'));
+  expect(text).toContain(
+    `identification-only (no voucher) ${usd(identificationOnlyBarcoding.price)} flat`,
+  );
+  expect(text).toContain(
+    `extra markers ${usd(ednaAdditionalMarkerPrice.academic)}–${usd(ednaAdditionalMarkerPrice.commercial)} per sample`,
+  );
+  expect(text).toContain('Three services have published rate cards');
+  expect(text).not.toMatch(/Four services have published rate cards/);
   expect(text).not.toMatch(/from \$/i);
 });

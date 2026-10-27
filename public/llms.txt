@@ -12,7 +12,7 @@ BioKEA (**Bi**ology **K**nowledge **E**xploration **A**ssistant) is an independe
 
 ## Services (molecular sequencing as a service)
 
-BioKEA offers molecular sequencing as a service out of the Berkeley LDC, targeted at environmental DNA (eDNA) and related customers — conservation nonprofits, state/federal agencies, academic labs, and environmental consultancies. Four services have published rate cards with academic/nonprofit and commercial rates; consulting is quoted per request.
+BioKEA offers molecular sequencing as a service out of the Berkeley LDC, targeted at environmental DNA (eDNA) and related customers — conservation nonprofits, state/federal agencies, academic labs, and environmental consultancies. Three services have published rate cards with academic/nonprofit and commercial rates; targeted eDNA (qPCR) is quoted per project, and consulting is quoted per request.
 
 Priced services (full rate cards at https://biokea.ai/pricing; instant quotes at https://biokea.ai/quote):
 

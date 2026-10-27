@@ -26,6 +26,14 @@ test('services page renders hero and lede', async ({ page }) => {
   ).toBeVisible();
 });
 
+test('catalog lede counts rate cards honestly: three priced, qPCR quoted per project', async ({
+  page,
+}) => {
+  await page.goto('/services');
+  await expect(page.getByText(/Three sequencing services with published rate cards/)).toBeVisible();
+  await expect(page.getByText(/Four sequencing services with published rate cards/)).toHaveCount(0);
+});
+
 test('services page has no dollar-sign prices anywhere', async ({ page }) => {
   await page.goto('/services');
   const bodyText = (await page.locator('body').innerText()) ?? '';

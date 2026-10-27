@@ -167,4 +167,8 @@ test('home FAQ names all four priced services', async ({ page }) => {
   for (const needle of ['barcoding', 'eDNA metabarcoding', 'metatranscriptome', 'qPCR']) {
     expect(answer).toContain(needle);
   }
+  // Only three services have numbers; targeted eDNA is quoted per project.
+  expect(answer).toMatch(/Three .*published rate cards/);
+  expect(answer).not.toMatch(/four priced/i);
+  expect(answer).toMatch(/quoted per project/i);
 });
