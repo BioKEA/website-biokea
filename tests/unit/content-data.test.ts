@@ -20,6 +20,7 @@ import {
   priceRange,
 } from '@/data/pricing';
 import { usd } from '@/lib/pricing/format';
+import { serviceOfferings } from '@/data/services';
 
 describe('team data', () => {
   it('has three core team members and two advisors', () => {
@@ -434,5 +435,46 @@ describe('pricing data — catalog additions (spec 2026-10-26)', () => {
   it('usd formats whole dollars with thousands separators', () => {
     expect(usd(5)).toBe('$5');
     expect(usd(2400)).toBe('$2,400');
+  });
+});
+
+describe('services data — priced and project-rate groups (spec 2026-10-26)', () => {
+  it('has eight offerings: four priced, then four project-rate', () => {
+    expect(serviceOfferings).toHaveLength(8);
+    expect(serviceOfferings.slice(0, 4).every((s) => s.kind === 'priced')).toBe(true);
+    expect(serviceOfferings.slice(4).every((s) => s.kind === 'project-rate')).toBe(true);
+  });
+
+  it('priced rows anchor to the four pricing sections in order', () => {
+    const anchors = serviceOfferings.filter((s) => s.kind === 'priced').map((s) => s.pricingAnchor);
+    expect(anchors).toEqual(pricingSections.map((s) => s.id));
+  });
+
+  it('only barcoding and eDNA are configurable in the quote widget today', () => {
+    const byAnchor = Object.fromEntries(
+      serviceOfferings
+        .filter((s) => s.kind === 'priced')
+        .map((s) => [s.pricingAnchor, s.configurable]),
+    );
+    expect(byAnchor).toEqual({
+      barcoding: true,
+      metabarcoding: true,
+      metagenomics: false,
+      'targeted-edna': false,
+    });
+  });
+
+  it('project-rate rows carry no anchor and no configurable flag', () => {
+    for (const s of serviceOfferings.filter((s) => s.kind === 'project-rate')) {
+      expect(s.pricingAnchor).toBeUndefined();
+      expect(s.configurable).toBeUndefined();
+    }
+  });
+
+  it('no description contains a dollar sign — /services must stay price-free', () => {
+    for (const s of serviceOfferings) {
+      expect(s.name).not.toContain('$');
+      expect(s.description ?? '').not.toContain('$');
+    }
   });
 });

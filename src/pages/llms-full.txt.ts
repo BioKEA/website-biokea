@@ -87,13 +87,28 @@ const renderProjects = () =>
 const renderMilestones = () =>
   milestones.map((m) => `- **${m.date}** — ${m.title}${m.body ? `\n  ${m.body}` : ''}`).join('\n');
 
-const renderServiceOfferings = () =>
-  serviceOfferings
-    .map((s) => {
-      const desc = s.description ? `\n  ${s.description}` : '';
-      return `- **${s.name}**${desc}`;
-    })
+const renderServiceOfferings = () => {
+  const row = (s: (typeof serviceOfferings)[number]) => {
+    const desc = s.description ? `\n  ${s.description}` : '';
+    const link = s.pricingAnchor ? `\n  Pricing: ${SITE}/pricing#${s.pricingAnchor}` : '';
+    return `- **${s.name}**${desc}${link}`;
+  };
+  const priced = serviceOfferings
+    .filter((s) => s.kind === 'priced')
+    .map(row)
     .join('\n');
+  const projectRate = serviceOfferings
+    .filter((s) => s.kind === 'project-rate')
+    .map(row)
+    .join('\n');
+  return [
+    '### Priced services (rate cards on /pricing; academic/nonprofit and commercial rates)',
+    priced,
+    '',
+    '### Project-rate services (quoted per request)',
+    projectRate,
+  ].join('\n');
+};
 
 const body = `# BioKEA — long-form summary for LLM agents
 
