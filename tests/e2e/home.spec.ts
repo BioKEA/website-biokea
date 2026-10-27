@@ -102,3 +102,69 @@ test('home <head> advertises llms-full.txt as alternate', async ({ page }) => {
   const link = page.locator('link[rel="alternate"][type="text/markdown"]');
   await expect(link).toHaveAttribute('href', '/llms-full.txt');
 });
+
+test('home shows a four-card services strip with honest price ranges', async ({ page }) => {
+  await page.goto('/');
+  await expect(
+    page.getByRole('heading', { name: 'Four services. One Berkeley lab.' }),
+  ).toBeVisible();
+  const cards = page.locator('[data-services-strip] article');
+  await expect(cards).toHaveCount(4);
+
+  const barcoding = cards.filter({ hasText: 'Specimen barcoding' });
+  await expect(barcoding).toContainText('$6–$20 per specimen');
+  await expect(barcoding.getByRole('link', { name: 'See pricing →' })).toHaveAttribute(
+    'href',
+    '/pricing#barcoding',
+  );
+
+  const edna = cards.filter({ hasText: 'eDNA metabarcoding' });
+  await expect(edna).toContainText('$115–$205 per sample');
+  await expect(edna.getByRole('link', { name: 'See pricing →' })).toHaveAttribute(
+    'href',
+    '/pricing#metabarcoding',
+  );
+
+  const meta = cards.filter({ hasText: 'Metagenomics' });
+  await expect(meta).toContainText('$2,400–$4,200 per specimen');
+  await expect(meta.getByRole('link', { name: 'See pricing →' })).toHaveAttribute(
+    'href',
+    '/pricing#metagenomics',
+  );
+
+  const qpcr = cards.filter({ hasText: 'Targeted eDNA (qPCR)' });
+  await expect(qpcr).toContainText('Custom quote');
+  await expect(qpcr.getByRole('link', { name: 'Talk to us →' })).toHaveAttribute(
+    'href',
+    '/contact?topic=sequencing',
+  );
+
+  // The strip never leads with the lowest rate as if everyone got it.
+  const stripText = await page.locator('[data-services-strip]').innerText();
+  expect(stripText).not.toMatch(/from \$/i);
+  await expect(
+    page
+      .locator('[data-services-strip]')
+      .getByRole('link', { name: /Build a quote in about a minute/ }),
+  ).toHaveAttribute('href', '/quote');
+});
+
+test('home FAQ names all four priced services', async ({ page }) => {
+  await page.goto('/');
+  const scripts = await page.locator('script[type="application/ld+json"]').allTextContents();
+  const faq = scripts
+    .map((s) => {
+      try {
+        return JSON.parse(s);
+      } catch {
+        return null;
+      }
+    })
+    .find((j) => j && j['@type'] === 'FAQPage');
+  const answer = faq.mainEntity.find(
+    (q: { name: string }) => q.name === 'What services does BioKEA offer?',
+  ).acceptedAnswer.text as string;
+  for (const needle of ['barcoding', 'eDNA metabarcoding', 'metatranscriptome', 'qPCR']) {
+    expect(answer).toContain(needle);
+  }
+});

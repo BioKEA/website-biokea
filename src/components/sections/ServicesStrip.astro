@@ -1,0 +1,86 @@
+---
+// src/components/sections/ServicesStrip.astro
+// Four-card summary of the sequencing services, placed under the homepage
+// hero. Every price line is a range across all tiers and both audiences,
+// computed from src/data/pricing.ts, so the strip can never disagree with
+// /pricing and never says "from $6" (a rate only the largest academic
+// programme gets).
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import { pricedServices, metagenomics, targetedEdna, priceRange } from '@/data/pricing';
+import { usd } from '@/lib/pricing/format';
+
+const contactHref = '/contact?topic=sequencing';
+
+const rangeLine = (slug: string, tiered: boolean): string => {
+  const r = priceRange(slug);
+  if (!r) return 'Custom quote';
+  return `${usd(r.min)}–${usd(r.max)} per ${r.unit}${tiered ? ' · volume-tiered' : ''}`;
+};
+
+const barcoding = pricedServices.find((s) => s.slug === 'barcoding')!;
+const edna = pricedServices.find((s) => s.slug === 'metabarcoding')!;
+
+const cards = [
+  {
+    tag: barcoding.serviceTag,
+    name: 'Specimen barcoding',
+    body: 'One identification per physical specimen, imaged and vouchered, with a confidence rating.',
+    price: rangeLine('barcoding', true),
+    href: '/pricing#barcoding',
+    linkLabel: 'See pricing →',
+  },
+  {
+    tag: edna.serviceTag,
+    name: 'eDNA metabarcoding',
+    body: 'Whole communities from a single water, soil, sediment, or air sample. Stack markers on the same samples.',
+    price: rangeLine('metabarcoding', true),
+    href: '/pricing#metabarcoding',
+    linkLabel: 'See pricing →',
+  },
+  {
+    tag: metagenomics.serviceTag,
+    name: 'Metagenomics',
+    body: 'All the DNA in a specimen, or the genes it and its microbes are actively using, on a dedicated flow cell.',
+    price: rangeLine('metagenomics', false),
+    href: '/pricing#metagenomics',
+    linkLabel: 'See pricing →',
+  },
+  {
+    tag: targetedEdna.serviceTag,
+    name: 'Targeted eDNA (qPCR)',
+    body: 'Detect or measure one or a few named species with high sensitivity. Custom assays where none exists.',
+    price: rangeLine('targeted-edna', false),
+    href: contactHref,
+    linkLabel: 'Talk to us →',
+  },
+];
+---
+
+<section class="max-w-6xl mx-auto px-6 py-16" data-services-strip>
+  <Eyebrow>WHAT WE SEQUENCE</Eyebrow>
+  <h2 class="mt-3 text-2xl font-semibold tracking-tight text-[var(--color-ink)]">
+    Four services. One Berkeley lab.
+  </h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+    {
+      cards.map((c) => (
+        <article class="bg-[var(--color-cream-warm)] border border-slate-900/10 rounded-md p-5 flex flex-col">
+          <div class="font-mono text-[10px] tracking-[0.14em] text-[var(--color-teal)] uppercase">
+            {c.tag}
+          </div>
+          <h3 class="mt-1 font-semibold text-[var(--color-ink)]">{c.name}</h3>
+          <p class="mt-1 text-xs text-slate-600 leading-relaxed">{c.body}</p>
+          <p class="mt-4 font-semibold text-[15px] text-[var(--color-ink)]">{c.price}</p>
+          <a href={c.href} class="inline-block mt-3 font-mono text-[11px] text-[var(--color-pink)]">
+            {c.linkLabel}
+          </a>
+        </article>
+      ))
+    }
+  </div>
+  <p class="mt-6 text-sm text-slate-600">
+    Academic and nonprofit rates on every service.
+    <a href="/quote" class="text-[var(--color-teal)] underline">Build a quote in about a minute →</a
+    >
+  </p>
+</section>

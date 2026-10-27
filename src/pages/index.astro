@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Hero from '@/components/sections/Hero.astro';
+import ServicesStrip from '@/components/sections/ServicesStrip.astro';
 import Thesis from '@/components/sections/Thesis.astro';
 import Evidence from '@/components/sections/Evidence.astro';
 import Ecosystem from '@/components/sections/Ecosystem.astro';
@@ -66,6 +67,8 @@ const ecosystemTiles = [
     badgeCaptionEyebrow="Fig · The Large Data Collider"
     badgeCaptionBody="Two strands of biology converge at a single spark of synthesis. Orbital tracks carry packetized data marks across an AI lattice of nodes; directional chevrons set the flow; barcode-like omics ticks frame the rim. The field, the lab, the journal, the archive — our instrument for verifiable public-interest science, from sample to published claim."
   />
+
+  <ServicesStrip />
 
   <Thesis
     eyebrow="MISSION"
@@ -212,7 +215,7 @@ const ecosystemTiles = [
           name: 'What services does BioKEA offer?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Molecular sequencing as a service for environmental-DNA and biodiversity-omics customers: eDNA and metabarcoding (primary), DNA barcoding surveys, long-read microbial genomics, specimen screening (DiversityScanner, summer 2026), and bespoke sample-to-claim pipeline integration.',
+            text: 'Four priced sequencing services with academic/nonprofit and commercial rates: voucher-linked specimen barcoding, eDNA metabarcoding, metagenome and metatranscriptome sequencing, and targeted eDNA (qPCR). Plus project-rate study design, bioinformatics, custom assay design, and field collection support. Rates at biokea.ai/pricing; instant quotes at biokea.ai/quote.',
           },
         },
         {
