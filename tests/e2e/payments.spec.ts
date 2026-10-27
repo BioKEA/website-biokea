@@ -45,11 +45,15 @@ test('the webhook refuses an unsigned post', async ({ request }) => {
   expect([401, 500]).toContain(res.status());
 });
 
-test('pricing and services advertise paying online', async ({ page }) => {
+test('pricing advertises paying online for both store-backed services', async ({ page }) => {
   await page.goto('/pricing');
-  await expect(page.getByRole('link', { name: /Configure & pay online/i }).first()).toBeVisible();
+  const store = page.getByRole('link', { name: /Configure and pay online/i });
+  await expect(store.first()).toBeVisible();
+  const hrefs = await store.evaluateAll((els) => els.map((e) => e.getAttribute('href')));
+  expect(hrefs).toContain('https://store.biokea.ai/products/specimen-barcoding');
+  expect(hrefs).toContain('https://store.biokea.ai/products/edna-metabarcoding');
+  // /services carries no store buttons any more (spec 2026-10-26 §5), but
+  // still tells the reader that paying online is possible.
   await page.goto('/services');
-  await expect(
-    page.getByRole('link', { name: /Configure barcoding & pay online/i }).first(),
-  ).toBeVisible();
+  await expect(page.getByText(/pay online by card/i)).toBeVisible();
 });

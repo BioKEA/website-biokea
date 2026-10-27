@@ -12,16 +12,16 @@ BioKEA (**Bi**ology **K**nowledge **E**xploration **A**ssistant) is an independe
 
 ## Services (molecular sequencing as a service)
 
-BioKEA offers molecular sequencing as a service out of the Berkeley LDC, targeted at environmental DNA (eDNA) and related customers — conservation nonprofits, state/federal agencies, academic labs, and environmental consultancies.
+BioKEA offers molecular sequencing as a service out of the Berkeley LDC, targeted at environmental DNA (eDNA) and related customers — conservation nonprofits, state/federal agencies, academic labs, and environmental consultancies. Four services have published rate cards with academic/nonprofit and commercial rates; consulting is quoted per request.
 
-- **eDNA & metabarcoding** (primary target) — water, soil, and sediment samples through extraction → amplification → quantification → long-read or amplicon sequencing → taxonomic assignment, delivered as a FAIR-compliant data package
-- **DNA barcoding** — Sanger-replacement barcode surveys via amplicon sequencing on the ONT Promethion 2 (COI, 16S, 18S, ITS, rbcL, matK, and custom primers)
-- **Long-read microbial genomics** — whole-genome, metagenomic, and hybrid assemblies on the ONT Promethion 2
-- **Specimen screening (arriving early summer 2026)** — high-throughput morphological imaging on DiversityScanner, pipelined into the LDC molecular workflow
-- **Pipeline integration** — bespoke sample-to-claim workflows for partner organizations that need more than a raw FASTQ drop
-- **Data-package delivery** — every service output lands as a DwC-A archive plus NCBI SRA / GBIF / Zenodo deposits, not a PDF
+Priced services (full rate cards at https://biokea.ai/pricing; instant quotes at https://biokea.ai/quote):
 
-Engagements are project-rate and scoped per request. See https://biokea.ai/services for the offerings catalog and to request a quote.
+- **Voucher-linked specimen barcoding** — every specimen imaged, non-destructively extracted, COI-barcoded on Oxford Nanopore, identified against BOLD/NCBI with a confidence rating. $6–$20 per specimen by volume tier; identification-only (no voucher) $5 flat. Other markers at 75% of the per-specimen rate. https://biokea.ai/pricing#barcoding
+- **Environmental DNA (eDNA) metabarcoding** — community-level detection from water, soil, sediment, or air samples; one marker or several stacked. $115–$205 per sample by volume tier; extra markers $12–$15 per sample. https://biokea.ai/pricing#metabarcoding
+- **Metagenome and metatranscriptome sequencing** — all the DNA in a specimen, or its active genes from RNA, on a dedicated long-read flow cell. $2,400–$4,200 per specimen. https://biokea.ai/pricing#metagenomics
+- **Targeted eDNA (qPCR)** — presence and abundance of one or more named species; custom assay development. Custom quote. https://biokea.ai/pricing#targeted-edna
+
+Project-rate services (quoted per request): study design; bioinformatic data analysis and interpretation; custom eDNA / qPCR assay design and validation; field collection assistance. Every service output lands as a DwC-A archive plus NCBI SRA / GBIF / Zenodo deposits, not a PDF. See https://biokea.ai/services for how projects run.
 
 Engagement routes (Contact-form topics): Sequencing service inquiry, Partnership / collaboration, Funding, Press / media, Hiring, BioKEA Works — request access, Something else.
 

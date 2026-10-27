@@ -54,3 +54,21 @@ test('llms.txt describes BioKEA Works instead of standalone Agentis/Droplet', as
   expect(body).not.toContain('aquatic eDNA/metabarcoding service line');
   expect(body).not.toContain('AT Protocol');
 });
+
+test('llms.txt lists the four priced services with their ranges and pricing anchors', async ({
+  request,
+}) => {
+  // Fetch outside the browser: the file is served as bare text/plain (no
+  // charset), and a navigated document's body comes back re-encoded from
+  // the browser's Latin-1 guess, which mangles the en dashes in the ranges.
+  const response = await request.get('/llms.txt');
+  const text = (await response.body()).toString('utf8');
+  expect(text).toContain('https://biokea.ai/pricing#barcoding');
+  expect(text).toContain('https://biokea.ai/pricing#metabarcoding');
+  expect(text).toContain('https://biokea.ai/pricing#metagenomics');
+  expect(text).toContain('https://biokea.ai/pricing#targeted-edna');
+  expect(text).toContain('$6–$20 per specimen');
+  expect(text).toContain('$115–$205 per sample');
+  expect(text).toContain('$2,400–$4,200 per specimen');
+  expect(text).not.toMatch(/from \$/i);
+});
