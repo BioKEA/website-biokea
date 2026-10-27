@@ -1,0 +1,60 @@
+---
+// src/components/ui/NamedPriceRows.astro
+// Like PriceLadder, but each row is a named product (e.g. an assay) rather
+// than a volume tier. Same legend, same two-price layout, no "best" badge.
+import { usd } from '@/lib/pricing/format';
+
+interface Row {
+  title: string;
+  description: string;
+  academicPrice: number;
+  commercialPrice: number;
+}
+interface Props {
+  rows: Row[];
+  unitLabel: string;
+}
+const { rows, unitLabel } = Astro.props;
+---
+
+<div class="flex flex-col gap-3">
+  <div class="flex gap-4 font-mono text-[11px] text-slate-500">
+    <span class="flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-[var(--color-teal)]"></span>
+      Academic &amp; nonprofit — per {unitLabel}
+    </span>
+    <span class="flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-[var(--color-ink)]"></span>
+      Commercial — per {unitLabel}
+    </span>
+  </div>
+  {
+    rows.map((r) => (
+      <div class="flex flex-wrap items-center justify-between gap-4 bg-white border border-slate-900/10 border-l-4 border-l-[var(--color-teal)] rounded-md px-5 py-3.5">
+        <div class="flex flex-col gap-0.5 min-w-[150px]">
+          <span class="font-semibold text-[15px] text-[var(--color-ink)]">{r.title}</span>
+          <span class="text-[12.5px] text-slate-500">{r.description}</span>
+        </div>
+        <div class="flex items-stretch gap-4">
+          <div class="flex flex-col items-end min-w-[90px]">
+            <span class="font-semibold text-[22px] leading-none text-[var(--color-teal)]">
+              {usd(r.academicPrice)}
+            </span>
+            <span class="font-medium text-[10.5px] text-slate-500 mt-1 whitespace-nowrap">
+              academic/nonprofit
+            </span>
+          </div>
+          <div class="w-px bg-slate-900/10" />
+          <div class="flex flex-col items-end min-w-[90px]">
+            <span class="font-semibold text-[22px] leading-none text-[var(--color-ink)]">
+              {usd(r.commercialPrice)}
+            </span>
+            <span class="font-medium text-[10.5px] text-slate-500 mt-1 whitespace-nowrap">
+              commercial
+            </span>
+          </div>
+        </div>
+      </div>
+    ))
+  }
+</div>

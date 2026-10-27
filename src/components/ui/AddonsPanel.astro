@@ -1,0 +1,33 @@
+---
+// src/components/ui/AddonsPanel.astro
+// The ochre "Add-ons" panel used beside each priced service's included list.
+import type { Addon } from '@/data/pricing';
+
+interface Props {
+  addons: Addon[];
+}
+const { addons } = Astro.props;
+---
+
+<div
+  class="bg-[var(--color-cream-warm)] border border-[var(--color-ochre)]/30 border-t-[3px] border-t-[var(--color-ochre)] rounded-md px-5 py-4"
+>
+  <h3 class="font-mono text-[13px] tracking-[0.08em] uppercase text-[var(--color-ochre)] font-bold">
+    Add-ons
+  </h3>
+  <ul class="mt-3 flex flex-col">
+    {
+      addons.map((a, i) => (
+        <li
+          class:list={[
+            'py-2.5 text-[14px] leading-relaxed',
+            i > 0 && 'border-t border-[var(--color-ochre)]/20',
+          ]}
+        >
+          <strong class="block text-[var(--color-ink)]">{a.title}</strong>
+          <span class="text-slate-600">{a.body}</span>
+        </li>
+      ))
+    }
+  </ul>
+</div>
