@@ -5,6 +5,10 @@ import CtaBand from '@/components/sections/CtaBand.astro';
 import { serviceOfferings } from '@/data/services';
 import { stringifyJsonLd } from '@/lib/json-ld';
 
+const contactHref = '/contact?topic=sequencing';
+const priced = serviceOfferings.filter((s) => s.kind === 'priced');
+const projectRate = serviceOfferings.filter((s) => s.kind === 'project-rate');
+
 const audiences = [
   'Conservation nonprofits',
   'State and federal agencies (DFW, USGS, NPS, EPA, NOAA)',
@@ -45,7 +49,7 @@ const workflow = [
   },
 ];
 
-const faqs = [
+const faqs: { q: string; a: string; link?: { href: string; label: string } }[] = [
   {
     q: "What's the typical turnaround time?",
     a: 'Typical projects complete in 4–8 weeks from sample receipt; custom assay design can extend timelines. We provide a project-specific timeline at quote.',
@@ -53,6 +57,11 @@ const faqs = [
   {
     q: "What's the minimum sample volume or batch size?",
     a: 'Per-assay minimums vary. For eDNA water samples we typically accept 1–2 L filtered samples. For bulk specimens, 96-well-plate-compatible batches are most efficient. Single-specimen barcoding has no batch minimum.',
+  },
+  {
+    q: "What's the difference between barcoding, eDNA metabarcoding, metagenomics, and targeted qPCR?",
+    a: 'Barcoding identifies individual physical specimens one at a time; eDNA metabarcoding detects whole communities from a water, soil, sediment, or air sample; metagenomics sequences everything living in and on a single specimen; targeted qPCR detects or measures one or a few named species with high sensitivity. Many programs combine them.',
+    link: { href: '/pricing#compare', label: 'Compare them side by side →' },
   },
   {
     q: 'Do you accept international samples?',
@@ -73,14 +82,15 @@ const faqs = [
 ];
 
 // Schema.org Service JSON-LD nodes — one per offering, attached to the
-// BioKEA Organization. No `offers` / priceSpecification: BioKEA is in
-// early commercial operation and engagements are project-rate, scoped
-// per request. Pricing intentionally not surfaced.
+// BioKEA Organization. No `offers` / priceSpecification here by policy:
+// prices are published on /pricing only, and that page carries the Offer
+// nodes.
 const serviceJsonLd = serviceOfferings.map((s) => ({
   '@type': 'Service',
   name: s.name,
   description: s.description,
   provider: { '@id': 'https://biokea.ai/#org' },
+  ...(s.pricingAnchor ? { url: `https://biokea.ai/pricing#${s.pricingAnchor}` } : {}),
 }));
 ---
 
@@ -106,10 +116,8 @@ const serviceJsonLd = serviceOfferings.map((s) => ({
       >
         Build a quote
       </a>
-      <a href="/contact?topic=sequencing" class="text-[var(--color-teal)] text-sm font-medium">
-        Talk to us →
-      </a>
-      <a href="/lab" class="text-[var(--color-teal)] text-sm font-medium"> See the lab → </a>
+      <a href={contactHref} class="text-[var(--color-teal)] text-sm font-medium">Talk to us →</a>
+      <a href="/lab" class="text-[var(--color-teal)] text-sm font-medium">See the lab →</a>
     </div>
     <p class="mt-3 text-sm text-slate-500">
       Configure a quote in a minute — and pay online by card, Shop Pay, or PayPal.
@@ -138,43 +146,71 @@ const serviceJsonLd = serviceOfferings.map((s) => ({
       What we offer
     </h2>
     <p class="mt-3 max-w-[62ch] text-sm text-slate-600 leading-relaxed">
-      Project-rate engagements scoped per request. Tell us about your project and we'll come back
-      with a quote — typically within a few days.
+      Four sequencing services with published rate cards, and the consulting that wraps around them.
+      Rates are on the
+      <a href="/pricing" class="text-[var(--color-teal)] underline">pricing page</a>; everything
+      else is scoped per request.
     </p>
 
-    <div class="mt-6 flex items-center gap-4 flex-wrap">
-      <a
-        href="https://store.biokea.ai/products/specimen-barcoding"
-        class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium inline-block"
-      >
-        Configure barcoding & pay online →
-      </a>
-      <a href="/quote" class="text-[var(--color-teal)] text-sm font-medium">
-        or build a quote here
-      </a>
-    </div>
-
-    <p class="mt-4 max-w-[62ch] text-sm text-slate-600 leading-relaxed">
-      Bulk samples are imaged, triaged, and plated by <strong>BugPicker</strong>, our in-house
-      picking robot — <a href="/lab#lab-bugpicker" class="text-[var(--color-teal)] underline"
-        >see it running on the lab bench →</a
-      >
-    </p>
-
-    <ul class="mt-8 border-t border-slate-900/10">
+    <h3
+      class="mt-8 font-mono text-[13px] tracking-[0.08em] uppercase text-[var(--color-teal)] font-bold"
+    >
+      Priced services
+    </h3>
+    <ul class="mt-3 border-t border-slate-900/10" data-offerings="priced">
       {
-        serviceOfferings.map((s) => (
+        priced.map((s) => (
           <li class="border-b border-slate-900/10 py-5">
             <div class="flex items-baseline justify-between gap-4 flex-wrap">
               <div class="font-semibold text-[var(--color-ink)]">{s.name}</div>
-              {s.pricingAnchor && (
-                <a
-                  href={`/pricing#${s.pricingAnchor}`}
-                  class="font-mono text-[12px] text-[var(--color-pink)] shrink-0"
-                >
+              <div class="flex items-baseline gap-4 shrink-0 font-mono text-[12px]">
+                <a href={`/pricing#${s.pricingAnchor}`} class="text-[var(--color-pink)]">
                   See pricing →
                 </a>
-              )}
+                {s.configurable ? (
+                  <a href="/quote" class="text-[var(--color-teal)]">
+                    Configure →
+                  </a>
+                ) : (
+                  <a href={contactHref} class="text-[var(--color-teal)]">
+                    Talk to us →
+                  </a>
+                )}
+              </div>
+            </div>
+            {s.description && (
+              <p class="mt-1 text-sm text-slate-600 leading-relaxed max-w-[68ch]">
+                {s.description}
+              </p>
+            )}
+            {s.pricingAnchor === 'barcoding' && (
+              <p class="mt-2 text-sm text-slate-600 leading-relaxed max-w-[68ch]">
+                Bulk samples are imaged, triaged, and plated by <strong>BugPicker</strong>, our
+                in-house picking robot —{' '}
+                <a href="/lab#lab-bugpicker" class="text-[var(--color-teal)] underline">
+                  see it running on the lab bench →
+                </a>
+              </p>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+
+    <h3
+      class="mt-10 font-mono text-[13px] tracking-[0.08em] uppercase text-[var(--color-teal)] font-bold"
+    >
+      Project-rate services
+    </h3>
+    <ul class="mt-3 border-t border-slate-900/10" data-offerings="project-rate">
+      {
+        projectRate.map((s) => (
+          <li class="border-b border-slate-900/10 py-5">
+            <div class="flex items-baseline justify-between gap-4 flex-wrap">
+              <div class="font-semibold text-[var(--color-ink)]">{s.name}</div>
+              <a href={contactHref} class="font-mono text-[12px] text-[var(--color-teal)] shrink-0">
+                Talk to us →
+              </a>
             </div>
             {s.description && (
               <p class="mt-1 text-sm text-slate-600 leading-relaxed max-w-[68ch]">
@@ -185,18 +221,6 @@ const serviceJsonLd = serviceOfferings.map((s) => ({
         ))
       }
     </ul>
-
-    <div class="mt-8 flex items-center gap-4 flex-wrap">
-      <a
-        href="https://store.biokea.ai/products/edna-metabarcoding"
-        class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium inline-block"
-      >
-        Configure eDNA & pay online →
-      </a>
-      <a href="/quote" class="text-[var(--color-teal)] text-sm font-medium">
-        or build a quote here
-      </a>
-    </div>
   </section>
 
   <section class="max-w-6xl mx-auto px-6 py-12">
@@ -252,7 +276,17 @@ const serviceJsonLd = serviceOfferings.map((s) => ({
         faqs.map((f) => (
           <div class="border-t border-slate-900/10 pt-4">
             <dt class="font-semibold text-[var(--color-ink)]">{f.q}</dt>
-            <dd class="mt-2 text-sm text-slate-600 leading-relaxed">{f.a}</dd>
+            <dd class="mt-2 text-sm text-slate-600 leading-relaxed">
+              {f.a}
+              {f.link && (
+                <>
+                  {' '}
+                  <a href={f.link.href} class="text-[var(--color-teal)] underline">
+                    {f.link.label}
+                  </a>
+                </>
+              )}
+            </dd>
           </div>
         ))
       }
