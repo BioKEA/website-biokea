@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configure your project | BioKEA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --forest:#0b1f1a; --forest-2:#163a31; --ink:#12221d; --muted:#4f5f59;
+  --paper:#f6f8f5; --white:#fff; --line:#d5ddd8; --teal:#0f6e56; --mint:#e3f2ec;
+  --amber:#7a4a06; --amber-bg:#fbefd9; --danger:#a32d2d; --radius:12px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.55;color:var(--ink);background:var(--paper)}
+a{color:var(--teal)}
+:focus-visible{outline:3px solid #5dcaa5;outline-offset:2px;border-radius:4px}
+.site-header{background:var(--forest);color:#fff;padding:16px 0}
+.wrap{max-width:780px;margin:0 auto;padding:0 24px}
+.brand{color:#fff;font-weight:600;font-size:20px;text-decoration:none}
+.proto{background:var(--amber-bg);border:1px solid #e5c58e;color:var(--amber);border-radius:10px;padding:10px 14px;font-size:14px;margin:24px 0 0}
+h1{font-size:clamp(30px,4vw,40px);line-height:1.15;letter-spacing:-.015em;font-weight:600;margin:28px 0 8px}
+.lede{color:var(--muted);margin:0 0 28px}
+
+#cfg{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:28px}
+fieldset{border:0;margin:0 0 24px;padding:0}
+legend,.field>label{display:block;font-weight:600;font-size:16px;margin:0 0 8px;padding:0}
+.field{margin:0 0 24px}
+.hint{font-size:14px;color:var(--muted);margin:6px 0 0}
+.err{font-size:14px;color:var(--danger);margin:6px 0 0;min-height:0}
+.err:empty{display:none}
+select,input[type=number],input[type=text],input[type=email],textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px}
+select:focus,input:focus,textarea:focus{border-color:var(--teal);outline:none;box-shadow:0 0 0 3px rgba(15,110,86,.15)}
+[aria-invalid=true]{border-color:var(--danger)!important}
+textarea{min-height:96px;resize:vertical}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg label{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;font-size:16px;min-height:48px}
+.seg label:has(input:checked){border-color:var(--teal);background:var(--mint)}
+.seg input{accent-color:var(--teal);width:18px;height:18px;margin:0;flex:none}
+.checks{display:grid;gap:8px}
+.check{display:flex;align-items:flex-start;gap:10px;font-size:16px;cursor:pointer}
+.check input{accent-color:var(--teal);width:18px;height:18px;margin:3px 0 0;flex:none}
+.sub{margin:12px 0 0 28px}
+.notice{background:#eef3f8;border:1px solid #c9d9ea;color:#1f4f82;border-radius:10px;padding:10px 14px;font-size:15px;margin:10px 0 0}
+.btn{display:inline-flex;align-items:center;justify-content:center;font:inherit;font-weight:600;font-size:16px;border-radius:999px;padding:12px 22px;border:0;cursor:pointer;min-height:48px;text-decoration:none}
+.btn-primary{background:var(--forest);color:#fff}
+.btn-primary:hover{background:var(--forest-2)}
+.btn-secondary{background:#fff;color:var(--forest);border:1.5px solid var(--forest)}
+.btn-secondary:hover{background:var(--mint)}
+.btn[disabled]{background:#e7ebe9;color:#7a8580;border-color:#e7ebe9;cursor:not-allowed}
+
+#quote{margin:28px 0 64px;background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:28px}
+.q-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 16px;align-items:baseline;margin-bottom:6px}
+.q-head h2{font-size:24px;font-weight:600;margin:0}
+.q-meta{color:var(--muted);font-size:15px;margin:0 0 14px}
+.status{display:inline-block;font-size:14px;font-weight:600;border-radius:999px;padding:3px 12px;margin-bottom:18px}
+.status-ok{background:var(--mint);color:var(--teal)}
+.status-consult{background:var(--amber-bg);color:var(--amber)}
+table{width:100%;border-collapse:collapse;font-size:16px}
+th,td{text-align:left;padding:12px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td.amt,th.amt{text-align:right;white-space:nowrap;padding-left:16px}
+.line-desc{display:block;font-size:14px;color:var(--muted)}
+tr.tbc td{color:var(--amber)}
+tr.total td{border-bottom:0;font-weight:600;font-size:19px;padding-top:16px}
+.total-note{display:block;font-size:14px;font-weight:400;color:var(--amber)}
+.q-foot{font-size:14px;color:var(--muted);margin:14px 0 22px}
+.actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.pay-note{font-size:14px;color:var(--muted);flex-basis:100%}
+
+dialog{border:0;border-radius:16px;padding:0;max-width:600px;width:calc(100% - 32px);color:var(--ink);box-shadow:0 24px 60px rgba(11,31,26,.25)}
+dialog::backdrop{background:rgba(11,31,26,.55)}
+.dlg{padding:28px}
+.dlg h2{font-size:24px;line-height:1.25;font-weight:600;margin:0 0 8px}
+.dlg p{margin:0 0 14px;color:var(--muted)}
+.triggers{list-style:none;margin:0 0 20px;padding:0;border:1px solid #e5c58e;background:var(--amber-bg);border-radius:10px}
+.triggers li{padding:10px 14px;border-top:1px solid #ecd3a6;font-size:15px}
+.triggers li:first-child{border-top:0}
+.triggers b{display:block;color:var(--amber)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.dlg .field{margin-bottom:16px}
+.dlg-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:flex-end;margin-top:8px}
+.sent{text-align:left}
+@media (max-width:600px){
+  #cfg,#quote{padding:20px}
+  .seg,.grid2{grid-template-columns:1fr}
+}
+.subs{margin:8px 0 6px 28px;padding:12px 14px;background:#f6f8f5;border:1px solid var(--line);border-radius:10px}
+.subs-title{float:left;width:100%;padding:0;font-size:14px;font-weight:600;color:var(--muted);margin:0 0 8px}
+.subs .checks{clear:both}
+.subs .checks{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 16px}
+.subs .check{font-size:15px}
+.marker-desc{color:var(--muted);font-size:14px}
+.opt-desc{display:block;font-size:14px;font-weight:400;color:var(--muted)}
+.subhead{font-size:15px;font-weight:600;color:var(--muted);margin:0 0 10px}
+.inline-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:16px}
+.inline-row input[type=checkbox]{accent-color:var(--teal);width:18px;height:18px;margin:0;flex:none}
+.num-sm{width:120px!important}
+.seg3{grid-template-columns:repeat(2,1fr)}
+@media (max-width:680px){.seg3{grid-template-columns:1fr}}
+.linkbtn{background:none;border:0;padding:0;font:inherit;font-size:14px;color:var(--teal);text-decoration:underline;cursor:pointer}
+@media (max-width:600px){.subs .checks{grid-template-columns:1fr}.subs{margin-left:0}}
+</style>
+</head>
+<body>
+<header class="site-header"><div class="wrap"><a class="brand" href="https://biokea.ai/">BioKEA</a></div></header>
+
+<main class="wrap">
+  <p class="proto">Prototype for review. Prices and options come from one shared configuration at the top of the script. No orders are placed and no emails are sent.</p>
+  <h1>Configure your project</h1>
+  <p class="lede">Choose your options to get an instant draft quote. If anything needs a conversation, we’ll set that up before you pay.</p>
+
+  <form id="cfg" novalidate>
+    <fieldset>
+      <legend>Service</legend>
+      <div class="seg seg3">
+        <label><input type="radio" name="service" value="barcoding" checked> <span>Specimen barcoding<span class="opt-desc">Identify individual specimens one by one</span></span></label>
+        <label><input type="radio" name="service" value="edna"> <span>eDNA metabarcoding<span class="opt-desc">Detect many species at once from water, soil, or air</span></span></label>
+        <label><input type="radio" name="service" value="meta"> <span>Metagenomics<span class="opt-desc">Sequence all the DNA or RNA in a specimen</span></span></label>
+        <label><input type="radio" name="service" value="qpcr"> <span>Targeted eDNA<span class="opt-desc">Detect or measure specific species with qPCR</span></span></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Pricing</legend>
+      <div class="seg">
+        <label><input type="radio" name="rate" value="academic" checked> Academic or nonprofit</label>
+        <label><input type="radio" name="rate" value="commercial"> Commercial</label>
+      </div>
+    </fieldset>
+
+    <div id="std-wrap">
+    <fieldset id="handling-wrap">
+      <legend>Specimen handling</legend>
+      <div class="seg">
+        <label><input type="radio" name="handling" value="voucher" checked> <span>Voucher-linked<span class="opt-desc">Specimen preserved and imaged</span></span></label>
+        <label><input type="radio" name="handling" value="idOnly"> <span>Identification only<span class="opt-desc">DNA ID, voucher not retained</span></span></label>
+      </div>
+    </fieldset>
+
+    <div class="field" id="target-single-wrap">
+      <label for="target-single">Target organism</label>
+      <select id="target-single" aria-describedby="target-err"></select>
+      <fieldset class="subs" id="subs-single" hidden></fieldset>
+    </div>
+
+    <fieldset id="target-multi-wrap" hidden>
+      <legend>Target organisms</legend>
+      <p class="hint" style="margin:0 0 10px">Choose all that apply.</p>
+      <div class="checks" id="target-multi"></div>
+    </fieldset>
+    <p class="err" id="target-err"></p>
+
+    <div class="field" id="target-other-wrap" hidden>
+      <label for="target-other">Describe the organisms you’re targeting</label>
+      <input type="text" id="target-other" aria-describedby="target-other-err">
+      <p class="err" id="target-other-err"></p>
+    </div>
+
+    <fieldset id="markers-wrap">
+      <legend>Genetic markers</legend>
+      <p class="hint" style="margin:0 0 10px" id="marker-price-hint"></p>
+      <div class="checks" id="markers"></div>
+      <p class="hint" id="marker-suggest"></p>
+      <p class="err" id="marker-err"></p>
+      <div class="field" id="marker-other-wrap" hidden style="margin:12px 0 0 28px">
+        <label for="marker-other">Which marker?</label>
+        <input type="text" id="marker-other" aria-describedby="marker-other-err" placeholder="For example, rbcL or 23S">
+        <p class="err" id="marker-other-err"></p>
+      </div>
+    </fieldset>
+
+    <div class="field">
+      <label for="sample-type">Sample type</label>
+      <select id="sample-type" aria-describedby="sample-hint sample-err"></select>
+      <p class="hint" id="sample-hint"></p>
+      <p class="err" id="sample-err"></p>
+    </div>
+
+    <div class="field" id="sample-other-wrap" hidden>
+      <label for="sample-other">Tell us about your samples</label>
+      <textarea id="sample-other" aria-describedby="sample-other-err" placeholder="What you’re collecting, where, and how"></textarea>
+      <p class="err" id="sample-other-err"></p>
+    </div>
+
+    <div class="field" id="kit-count-wrap">
+      <label for="kit-count">How many samples will you send (bags, tubes, or traps)?</label>
+      <input type="number" id="kit-count" min="1" step="1" inputmode="numeric" aria-describedby="kit-hint kit-err">
+      <p class="hint" id="kit-hint">A single sample can hold many specimens.</p>
+      <p class="err" id="kit-err"></p>
+    </div>
+
+    <div class="field" id="qty-wrap" hidden>
+      <label for="qty" id="qty-label">Number of samples</label>
+      <input type="number" id="qty" min="1" step="1" inputmode="numeric" aria-describedby="tier-hint qty-err">
+      <p class="hint" id="tier-hint"></p>
+      <p class="err" id="qty-err"></p>
+    </div>
+
+    <fieldset id="sel-wrap">
+      <legend>Specimen selection and barcoding</legend>
+      <p class="subhead">Specimens to barcode per sample</p>
+      <div class="inline-row">
+        <input type="checkbox" id="max-chk" aria-label="Set a maximum number of organisms to barcode in each sample">
+        <input type="number" id="per-sample" class="num-sm" min="1" step="1" inputmode="numeric" aria-describedby="sel-hint per-sample-err">
+        <label for="per-sample">maximum organisms in each sample</label>
+      </div>
+      <p class="hint" id="sel-hint"></p>
+      <p class="err" id="per-sample-err"></p>
+      <label class="check" style="margin-top:14px"><input type="checkbox" id="unique-chk"> I want to focus on unique organisms</label>
+      <div class="field sub" id="unique-wrap" hidden style="margin-top:10px;margin-bottom:0">
+        <label for="unique-notes">Describe your requested study design</label>
+        <textarea id="unique-notes" aria-describedby="unique-notes-err" placeholder="For example, one specimen of each distinct type per sample, or only taxa missing from reference databases"></textarea>
+        <p class="err" id="unique-notes-err"></p>
+      </div>
+      <p class="err" id="sel-err"></p>
+    </fieldset>
+
+    <fieldset id="addons-wrap">
+      <legend>Add-ons</legend>
+      <label class="check"><input type="checkbox" id="pres"> <span>Bulk eDNA from the sample preservative<span class="opt-desc">Detects taxa too small, damaged, or missed at sorting. Priced per sample at eDNA metabarcoding rates, using the same markers.</span></span></label>
+    </fieldset>
+
+    <fieldset id="material-wrap" hidden>
+      <legend>What material will you collect from the animals?</legend>
+      <p class="notice" style="margin:0 0 12px">Please use methods that don’t harm live animals, such as swabs, hair with follicles, or feces. Collection from live animals should follow your institution’s animal care requirements and any permits that apply.</p>
+      <div class="checks">
+        <label class="check"><input type="checkbox" name="material" value="Swabs"> Swabs (buccal or skin)</label>
+        <label class="check"><input type="checkbox" name="material" value="Hair with follicles"> Hair with follicles</label>
+        <label class="check"><input type="checkbox" name="material" value="Feces"> Feces</label>
+        <label class="check"><input type="checkbox" name="material" value="Other"> Other</label>
+      </div>
+      <p class="err" id="material-err"></p>
+      <div class="field" style="margin:12px 0 0">
+        <label for="material-notes">Comments <span id="material-notes-req" style="font-weight:400;color:var(--muted)">(optional)</span></label>
+        <textarea id="material-notes" aria-describedby="material-notes-err" placeholder="For example, which species, how you’ll collect, and whether the animals are live, deceased, or museum specimens"></textarea>
+        <p class="err" id="material-notes-err"></p>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Sampling kits</legend>
+      <label class="check"><input type="checkbox" id="kit"> <span id="kit-label">Send me sampling kits</span></label>
+      <p class="hint sub" id="kit-edna-hint" hidden></p>
+    </fieldset>
+
+    </div>
+
+    <div id="meta-wrap" hidden>
+      <fieldset>
+        <legend>Sequencing type</legend>
+        <div class="checks">
+          <label class="check"><input type="checkbox" name="assay" value="mg"> <span>Metagenome<span class="opt-desc">All the DNA in a specimen: the organism plus its microbiome, symbionts, and pathogens</span></span></label>
+          <label class="check"><input type="checkbox" name="assay" value="mt"> <span>Metatranscriptome<span class="opt-desc">RNA sequencing that shows which genes the specimen and its microbes are actively using</span></span></label>
+        </div>
+        <p class="notice" id="mt-note" hidden>Metatranscriptomes need specimens preserved for RNA, such as flash-frozen or stored in an RNA preservative. Ethanol-preserved specimens may not work. Ask us if you’re unsure.</p>
+        <p class="err" id="assay-err"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>What will you send?</legend>
+        <div class="seg">
+          <label><input type="radio" name="source" value="specimen" checked> <span>Single specimens<span class="opt-desc">One organism per sample</span></span></label>
+          <label><input type="radio" name="source" value="env"> <span>Environmental samples<span class="opt-desc">Water, soil, or similar, by consultation</span></span></label>
+        </div>
+      </fieldset>
+
+      <div class="field" id="env-wrap" hidden>
+        <label for="env-notes">Describe your environmental samples</label>
+        <textarea id="env-notes" aria-describedby="env-notes-err" placeholder="Sample type, how it was collected and preserved, and what you want to learn"></textarea>
+        <p class="err" id="env-notes-err"></p>
+      </div>
+
+      <div class="field">
+        <label for="meta-qty" id="meta-qty-label">Number of specimens</label>
+        <input type="number" id="meta-qty" min="1" step="1" inputmode="numeric" aria-describedby="meta-hint meta-qty-err">
+        <p class="hint" id="meta-hint"></p>
+        <p class="err" id="meta-qty-err"></p>
+      </div>
+    </div>
+
+    <div id="qpcr-wrap" hidden>
+      <p class="notice" style="margin:0 0 20px">We specialize in applying qPCR to measure the presence and abundance of species in a variety of sample types, and in developing custom assays for species of interest. Tell us about your project and we’ll prepare a custom quote.</p>
+      <div class="field">
+        <label for="q-species">Species of interest</label>
+        <textarea id="q-species" aria-describedby="q-species-err" placeholder="One or more species, for example an invasive mussel or a native salmon"></textarea>
+        <p class="err" id="q-species-err"></p>
+      </div>
+      <fieldset>
+        <legend>What do you want to measure?</legend>
+        <div class="checks">
+          <label class="check"><input type="radio" name="q-measure" value="Presence"> Presence or absence</label>
+          <label class="check"><input type="radio" name="q-measure" value="Presence and abundance"> Presence and abundance</label>
+          <label class="check"><input type="radio" name="q-measure" value="Not sure" checked> Not sure yet</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Is there an existing qPCR assay for your species?</legend>
+        <div class="checks">
+          <label class="check"><input type="radio" name="q-assay" value="Yes"> Yes, a published or established assay</label>
+          <label class="check"><input type="radio" name="q-assay" value="No, needs a custom assay"> No, it needs a custom assay</label>
+          <label class="check"><input type="radio" name="q-assay" value="Not sure" checked> Not sure</label>
+        </div>
+      </fieldset>
+      <div class="field">
+        <label for="q-sample">Sample type</label>
+        <select id="q-sample" aria-describedby="q-sample-err">
+          <option value="">Choose one</option>
+          <option>Water</option><option>Soil or sediment</option><option>Air</option><option>Tissue or swabs</option><option>Other</option>
+        </select>
+        <p class="err" id="q-sample-err"></p>
+      </div>
+      <div class="field">
+        <label for="q-n">Approximate number of samples <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+        <input type="number" id="q-n" min="1" step="1" inputmode="numeric" aria-describedby="q-n-err">
+        <p class="err" id="q-n-err"></p>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Get my quote</button>
+  </form>
+
+  <section id="quote" hidden aria-live="polite" tabindex="-1"></section>
+</main>
+
+<dialog id="consult" aria-labelledby="consult-title">
+  <div class="dlg" id="consult-body"></div>
+</dialog>
+
+<script>
+/* Shared configuration: the single source of truth for both the Shopify store and the quote builder. */
+const CONFIG = {
+  kitPrice: 20,
+  services: {
+    barcoding: {
+      label: "Voucher-linked specimen barcoding",
+      unit: "specimen", units: "specimens",
+      qtyLabel: "Maximum number of specimens to barcode",
+      handling: {
+        voucher: {
+          label: "Voucher-linked",
+          tiers: [
+            { min: 1, max: 299, label: "1–299", academic: 16, commercial: 20 },
+            { min: 300, max: 999, label: "300–999", academic: 12, commercial: 15 },
+            { min: 1000, max: 4999, label: "1,000–4,999", academic: 10, commercial: 13 },
+            { min: 5000, max: Infinity, label: "5,000+", academic: 6, commercial: 8 }
+          ]
+        },
+        idOnly: {
+          label: "Identification only (no voucher)",
+          tiers: [{ min: 1, max: Infinity, flat: true, academic: 5, commercial: 5 }]
+        }
+      },
+      /* Each marker after the first adds this fraction of the per-specimen rate at the customer's tier and pricing type */
+      extraMarkerFraction: 0.75,
+      defaultMarkers: ["COI"],
+      targetMode: "single",
+      kitsMatchQuantity: false,
+      sampleHints: {
+        water: "Aquatic specimens, such as plankton tows.",
+        soil: "Invertebrates extracted from soil or leaf litter.",
+        net: "Insects or other invertebrates from nets or traps."
+      }
+    },
+    meta: {
+      label: "Metagenome and metatranscriptome sequencing",
+      unit: "specimen", units: "specimens",
+      targetMode: "none",
+      /* Cost basis per specimen, including 10% overhead:
+         metagenome $1,220 materials + 10 h labor at $60 = $1,820, plus 10% = $2,002;
+         metatranscriptome $1,220 materials + 22 h labor at $60 = $2,540, plus 10% = $2,794.
+         Academic is about 20% over cost; commercial keeps the 80% academic-to-commercial ratio used elsewhere. */
+      assays: {
+        mg: { label: "Metagenome", academic: 2400, commercial: 3000 },
+        mt: { label: "Metatranscriptome", academic: 3350, commercial: 4200 }
+      }
+    },
+    edna: {
+      label: "Environmental DNA (eDNA) metabarcoding",
+      unit: "sample", units: "samples",
+      qtyLabel: "Number of samples",
+      tiers: [
+        { min: 1, max: 48, label: "1–48", academic: 165, commercial: 205 },
+        { min: 49, max: 199, label: "49–199", academic: 130, commercial: 160 },
+        { min: 200, max: Infinity, label: "200+", academic: 115, commercial: 145 }
+      ],
+      /* Each marker after the first adds this amount per sample */
+      extraMarkerPerSample: { academic: 12, commercial: 15 },
+      defaultMarkers: [],
+      targetMode: "multi",
+      kitsMatchQuantity: true,
+      sampleHints: {
+        water: "Filtered water from streams, lakes, or the ocean.",
+        soil: "Soil or sediment.",
+        net: "Bulk net or trap contents, analyzed as a whole community."
+      }
+    }
+  },
+  /* services: which services offer the group. marker: suggested marker per service. subs: optional categories per service. */
+  targets: [
+    { id: "bacteria", label: "Bacteria and archaea", services: ["edna"], marker: { edna: "16S" },
+      subs: { edna: ["Whole bacterial and archaeal community", "Indicator or pathogen-associated taxa"] } },
+    { id: "phytoplankton", label: "Phytoplankton (diatoms, dinoflagellates, cyanobacteria, green algae, haptophytes, harmful algal bloom species)", services: ["edna"], marker: { edna: "18S" } },
+    { id: "microeuk", label: "Microeukaryotes (ciliates, flagellates, amoebae, parasitic protists, oomycetes)", services: ["edna"], marker: { edna: "18S" } },
+    { id: "invertebrates", label: "Invertebrates (plankton, insects, worms, etc.)", services: ["barcoding", "edna"], marker: { barcoding: "COI", edna: "COI" },
+      subs: { all: ["Aquatic zooplankton (copepods, rotifers)", "Macrobenthos (amphipods, bivalves)", "Insects (beetles, flies)", "Arachnids (spiders, mites)", "Worms and annelids (earthworms, polychaetes)", "Crustaceans (crabs, isopods)", "Mollusks (snails, clams)", "Cnidarians (corals, jellyfish)", "Echinoderms (sea stars, sea urchins)", "Myriapods (centipedes, millipedes)"] } },
+    { id: "vertebrates", label: "Vertebrates (non-human)", services: ["barcoding", "edna"], marker: { barcoding: "COI", edna: "12S" },
+      subs: { all: ["Fish", "Sharks and rays", "Amphibians", "Reptiles", "Birds", "Mammals", "Ungulates (hoofed mammals)", "Marine mammals", "Bats"] } },
+    { id: "fungi", label: "Fungi", services: ["barcoding", "edna"], marker: { barcoding: "ITS", edna: "ITS" },
+      subs: { edna: ["Mycorrhizal fungi", "Plant pathogens", "Decomposers", "Yeasts and molds", "Aquatic fungi"] } },
+    { id: "other", label: "Other", services: ["barcoding", "edna"], consult: true }
+  ],
+  markers: [
+    { id: "COI", label: "COI", desc: "Animals, especially invertebrates" },
+    { id: "12S", label: "12S", desc: "Vertebrates, especially fish" },
+    { id: "16S", label: "16S rRNA", desc: "Bacteria and archaea" },
+    { id: "18S", label: "18S", desc: "Eukaryotes broadly, including plankton and protists" },
+    { id: "ITS", label: "ITS", desc: "Fungi" },
+    { id: "other", label: "Other marker", desc: "Tell us which one", consult: true }
+  ],
+  sampleTypes: [
+    { id: "water", label: "Water", kit: "Water sampling kit" },
+    { id: "soil", label: "Soil", kit: "Soil sampling kit" },
+    { id: "net", label: "Net-collected", kit: "Net-collection kit" },
+    { id: "other", label: "Other", consult: true },
+    { id: "unknown", label: "Unknown", consult: true }
+  ]
+};
+
+const $ = id => document.getElementById(id);
+const money = n => n.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: Math.round(n * 100) % 100 ? 2 : 0, maximumFractionDigits: 2 });
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const svcId = () => document.querySelector("input[name=service]:checked").value;
+const svc = () => CONFIG.services[svcId()];
+const rate = () => document.querySelector("input[name=rate]:checked").value;
+const handling = () => (document.querySelector("input[name=handling]:checked") || {}).value || "voucher";
+const tiersOf = s => s.handling ? s.handling[handling()].tiers : s.tiers;
+const tierFor = (s, n) => tiersOf(s).find(t => n >= t.min && n <= t.max);
+const tierName = t => t.flat ? "flat rate, any volume" : `${t.label} tier`;
+const targetById = id => CONFIG.targets.find(t => t.id === id);
+const sampleOf = id => CONFIG.sampleTypes.find(t => t.id === id);
+const markerById = id => CONFIG.markers.find(m => m.id === id);
+const subLabel = s => typeof s === "string" ? s : s.label;
+const subsFor = (t, sid) => t.subs ? (t.subs[sid] || t.subs.all || []) : [];
+const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+let markersTouched = false;
+
+/* Static option lists */
+$("sample-type").innerHTML = '<option value="">Choose one</option>' + CONFIG.sampleTypes.map(t => `<option value="${t.id}">${esc(t.label)}</option>`).join("");
+$("markers").innerHTML = CONFIG.markers.map(m => `<label class="check"><input type="checkbox" name="marker" value="${m.id}"> <span><b>${esc(m.label)}</b> <span class="marker-desc">${esc(m.desc)}</span></span></label>`).join("");
+$("kit-label").textContent = `Send me sampling kits (${money(CONFIG.kitPrice)} per kit)`;
+
+function subsHtml(t, sid, name) {
+  const subs = subsFor(t, sid);
+  if (!subs.length) return "";
+  return `<legend class="subs-title">Narrow it down (optional)</legend><div class="checks">` +
+    subs.map(s => `<label class="check"><input type="checkbox" name="${name}" value="${esc(subLabel(s))}"> ${esc(subLabel(s))}</label>`).join("") + `</div>`;
+}
+
+/* Rebuild the target controls whenever the service changes */
+function buildTargets() {
+  const sid = svcId();
+  const list = CONFIG.targets.filter(t => t.services.includes(sid));
+  $("target-single").innerHTML = '<option value="">Choose one</option>' + list.map(t => `<option value="${t.id}">${esc(t.label)}</option>`).join("");
+  $("subs-single").innerHTML = ""; $("subs-single").hidden = true;
+  $("target-multi").innerHTML = list.map(t => {
+    const subs = subsHtml(t, sid, `sub-${t.id}`);
+    return `<label class="check"><input type="checkbox" name="target-multi" value="${t.id}"> ${esc(t.label)}</label>` +
+      (subs ? `<fieldset class="subs" data-for="${t.id}" hidden>${subs}</fieldset>` : "");
+  }).join("");
+}
+
+function selectedTargets() {
+  if (svc().targetMode === "single") return $("target-single").value ? [$("target-single").value] : [];
+  return [...document.querySelectorAll("input[name=target-multi]:checked")].map(i => i.value);
+}
+function selectedSubs(tid) {
+  return [...document.querySelectorAll(`input[name="sub-${tid}"]:checked`)].map(i => i.value);
+}
+function selectedAssays() {
+  return [...document.querySelectorAll("input[name=assay]:checked")].map(i => i.value);
+}
+const metaSource = () => document.querySelector("input[name=source]:checked").value;
+function refreshMeta() {
+  const s = CONFIG.services.meta, r = rate(), assays = selectedAssays(), env = metaSource() === "env";
+  $("env-wrap").hidden = !env;
+  $("mt-note").hidden = !assays.includes("mt");
+  $("meta-qty-label").textContent = env ? "Number of environmental samples" : "Number of specimens";
+  $("meta-hint").textContent = assays.length
+    ? `${assays.map(id => `${s.assays[id].label}: ${money(s.assays[id][r])}`).join(", ")} per ${env ? "sample (estimate, confirmed in consultation)" : "specimen"}.`
+    : "Priced per specimen.";
+}
+function barcodeSamples() {
+  const k = parseInt($("kit-count").value, 10);
+  return k > 0 ? k : 0;
+}
+function totalCount() {
+  if (svcId() === "barcoding") {
+    const per = parseInt($("per-sample").value, 10);
+    return $("max-chk").checked && per > 0 && barcodeSamples() > 0 ? per * barcodeSamples() : 0;
+  }
+  const n = parseInt($("qty").value, 10);
+  return n > 0 ? n : 0;
+}
+function materialShown() {
+  return svcId() === "barcoding" && selectedTargets().includes("vertebrates");
+}
+function selectedMaterials() {
+  return [...document.querySelectorAll("input[name=material]:checked")].map(i => i.value);
+}
+function selectedMarkers() {
+  return [...document.querySelectorAll("input[name=marker]:checked")].map(i => i.value);
+}
+
+function suggestedMarkers() {
+  const sid = svcId(), out = [];
+  selectedTargets().forEach(tid => {
+    const t = targetById(tid);
+    if (t.marker && t.marker[sid]) out.push(t.marker[sid]);
+    subsFor(t, sid).forEach(s => { if (typeof s === "object" && s.marker && selectedSubs(tid).includes(s.label)) out.push(s.marker); });
+  });
+  const uniq = [...new Set(out)];
+  return uniq.length ? uniq : svc().defaultMarkers.slice();
+}
+
+function applyMarkers(ids) {
+  document.querySelectorAll("input[name=marker]").forEach(i => { i.checked = ids.includes(i.value); });
+}
+
+function refresh() {
+  const sidNow = svcId(), isMeta = sidNow === "meta", isQpcr = sidNow === "qpcr";
+  $("std-wrap").hidden = isMeta || isQpcr;
+  $("meta-wrap").hidden = !isMeta;
+  $("qpcr-wrap").hidden = !isQpcr;
+  if (isMeta) { refreshMeta(); return; }
+  if (isQpcr) return;
+  const s = svc(), sid = svcId(), multi = s.targetMode === "multi", targets = selectedTargets(), r = rate();
+  $("handling-wrap").hidden = sid !== "barcoding";
+  $("addons-wrap").hidden = sid !== "barcoding";
+  $("target-single-wrap").hidden = multi;
+  $("target-multi-wrap").hidden = !multi;
+  if (!multi) {
+    const t = targets[0] ? targetById(targets[0]) : null;
+    const want = t ? t.id : "";
+    if ($("subs-single").dataset.for !== want) {
+      $("subs-single").innerHTML = t ? subsHtml(t, sid, `sub-${t.id}`) : "";
+      $("subs-single").dataset.for = want;
+    }
+    $("subs-single").hidden = !$("subs-single").innerHTML;
+  } else {
+    document.querySelectorAll("#target-multi .subs").forEach(f => { f.hidden = !targets.includes(f.dataset.for); });
+  }
+  $("target-other-wrap").hidden = !targets.includes("other");
+  $("material-wrap").hidden = !materialShown();
+  $("material-notes-req").textContent = selectedMaterials().includes("Other") ? "(required: describe the other material)" : "(optional)";
+
+  /* Markers: follow suggestions until the customer changes them */
+  const sug = suggestedMarkers();
+  if (!markersTouched) applyMarkers(sug);
+  const chosen = selectedMarkers();
+  const sugText = sug.length ? `Suggested for your targets: ${sug.map(id => markerById(id).label).join(", ")}.` : "";
+  const differs = markersTouched && sug.length && (sug.length !== chosen.length || sug.some(x => !chosen.includes(x)));
+  $("marker-suggest").innerHTML = esc(sugText) + (differs ? ' <button type="button" class="linkbtn" id="use-sug">Use suggested markers</button>' : "");
+  if (differs) $("use-sug").addEventListener("click", () => { markersTouched = false; refresh(); });
+  $("marker-other-wrap").hidden = !chosen.includes("other");
+
+  const n = totalCount();
+  const t = n > 0 ? tierFor(s, n) : null;
+  $("marker-price-hint").textContent = sid === "barcoding"
+    ? `Your first marker is included. Each additional marker adds 75% of your per-specimen rate${t ? ` (${money(t[r] * s.extraMarkerFraction)} per specimen at your current tier)` : ""}.`
+    : `Your first marker is included. Each additional marker adds ${money(s.extraMarkerPerSample[r])} per sample.`;
+
+  const st = $("sample-type").value;
+  $("sample-hint").textContent = st && s.sampleHints[st] ? s.sampleHints[st] : (st === "unknown" ? "No problem. Tell us what you know and we’ll help you choose." : "");
+  $("sample-other-wrap").hidden = !(st && sampleOf(st).consult);
+
+  const tierText = t
+    ? `${tierName(t).replace(/^./, c => c.toUpperCase())}: ${money(t[r])} per ${s.unit}.`
+    : (sid === "barcoding" && handling() === "idOnly" ? `Flat ${money(tiersOf(s)[0][r])} per specimen at any volume.` : `Priced per ${s.unit}, with lower rates at higher volumes.`);
+  $("tier-hint").textContent = tierText;
+  const bc = sid === "barcoding";
+  $("qty-wrap").hidden = bc;
+  $("sel-wrap").hidden = !bc;
+  $("kit-count-wrap").hidden = !bc;
+  $("unique-wrap").hidden = !$("unique-chk").checked;
+  if (bc) {
+    const per = parseInt($("per-sample").value, 10), k = barcodeSamples();
+    let hint = n ? `Up to ${per.toLocaleString()} per sample × ${k.toLocaleString()} ${k === 1 ? "sample" : "samples"} = up to ${n.toLocaleString()} specimens. ${tierText}` : tierText;
+    if ($("unique-chk").checked && !$("max-chk").checked) hint = "Without a maximum per sample, we’ll confirm the number of specimens with you in a consultation.";
+    $("sel-hint").textContent = hint;
+  }
+  $("kit-edna-hint").hidden = !(s.kitsMatchQuantity && $("kit").checked);
+  $("kit-edna-hint").textContent = n > 0 ? `One kit per sample: ${n} ${n === 1 ? "kit" : "kits"}.` : "One kit per sample.";
+}
+
+function setErr(id, inputEl, msg) {
+  $(id).textContent = msg || "";
+  if (inputEl) inputEl.setAttribute("aria-invalid", msg ? "true" : "false");
+  return !msg;
+}
+
+const radioVal = name => (document.querySelector(`input[name="${name}"]:checked`) || {}).value || "Not sure";
+function validateQpcr() {
+  let ok = true, first = null;
+  const check = (cond, errId, el, msg) => { const pass = setErr(errId, el, cond ? "" : msg); if (!pass) { ok = false; first = first || el; } };
+  check($("q-species").value.trim(), "q-species-err", $("q-species"), "Tell us which species you’re interested in.");
+  check($("q-sample").value, "q-sample-err", $("q-sample"), "Choose a sample type.");
+  const raw = $("q-n").value.trim(), n = parseInt(raw, 10);
+  check(!raw || (n >= 1 && String(n) === raw), "q-n-err", $("q-n"), "Enter a whole number, or leave this blank.");
+  if (first) first.focus();
+  return ok;
+}
+function buildQpcrQuote() {
+  const r = rate(), d = new Date();
+  const species = $("q-species").value.trim(), measure = radioVal("q-measure"), assay = radioVal("q-assay"), sample = $("q-sample").value, n = $("q-n").value.trim();
+  return {
+    id: `Q-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`,
+    date: d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
+    service: "Targeted eDNA (qPCR)", rate: r === "academic" ? "Academic or nonprofit" : "Commercial",
+    custom: true,
+    foot: `Species: ${species}. Measurement: ${measure}. Existing assay: ${assay}. Sample type: ${sample}.${n ? ` Approximate samples: ${n}.` : ""}`,
+    msg: [`Species of interest: ${species}`, `Measurement: ${measure}`, `Existing assay: ${assay}`, `Sample type: ${sample}`, ...(n ? [`Approximate number of samples: ${n}`] : [])],
+    lines: [{ name: "Targeted eDNA (qPCR)", desc: "Custom quote based on your species, sample type, and assay needs", tbc: true }],
+    triggers: [{ label: "Targeted eDNA request", detail: species }],
+    total: 0, hasTbc: true, consult: true, requested: false
+  };
+}
+function validateMeta() {
+  let ok = true, first = null;
+  const check = (cond, errId, el, msg) => { const pass = setErr(errId, el, cond ? "" : msg); if (!pass) { ok = false; first = first || el; } };
+  check(selectedAssays().length > 0, "assay-err", document.querySelector("input[name=assay]"), "Choose metagenome, metatranscriptome, or both.");
+  if (metaSource() === "env") check($("env-notes").value.trim(), "env-notes-err", $("env-notes"), "Describe your environmental samples.");
+  else setErr("env-notes-err", $("env-notes"), "");
+  const n = parseInt($("meta-qty").value, 10);
+  check(n >= 1 && String(n) === $("meta-qty").value.trim(), "meta-qty-err", $("meta-qty"), "Enter a whole number.");
+  if (first) first.focus();
+  return ok;
+}
+
+function validate() {
+  if (svcId() === "meta") return validateMeta();
+  if (svcId() === "qpcr") return validateQpcr();
+  const s = svc(), targets = selectedTargets();
+  let ok = true, first = null;
+  const check = (cond, errId, el, msg) => { const pass = setErr(errId, el, cond ? "" : msg); if (!pass) { ok = false; first = first || el; } };
+  check(targets.length > 0, "target-err", s.targetMode === "single" ? $("target-single") : document.querySelector("input[name=target-multi]"), "Choose a target organism.");
+  if (targets.includes("other")) check($("target-other").value.trim(), "target-other-err", $("target-other"), "Describe the organisms you’re targeting.");
+  else setErr("target-other-err", $("target-other"), "");
+  const markers = selectedMarkers();
+  check(markers.length > 0, "marker-err", document.querySelector("input[name=marker]"), "Choose at least one marker.");
+  if (markers.includes("other")) check($("marker-other").value.trim(), "marker-other-err", $("marker-other"), "Tell us which marker you need.");
+  else setErr("marker-other-err", $("marker-other"), "");
+  if (materialShown()) {
+    check(selectedMaterials().length > 0, "material-err", document.querySelector("input[name=material]"), "Choose the material you’ll collect.");
+    if (selectedMaterials().includes("Other")) check($("material-notes").value.trim(), "material-notes-err", $("material-notes"), "Describe the other material you’ll collect.");
+    else setErr("material-notes-err", $("material-notes"), "");
+  } else { setErr("material-err", null, ""); setErr("material-notes-err", $("material-notes"), ""); }
+  const st = $("sample-type").value;
+  check(st, "sample-err", $("sample-type"), "Choose a sample type.");
+  if (st && sampleOf(st).consult) check($("sample-other").value.trim(), "sample-other-err", $("sample-other"), "Tell us a little about your samples.");
+  else setErr("sample-other-err", $("sample-other"), "");
+  if (svcId() === "barcoding") {
+    const k = parseInt($("kit-count").value, 10);
+    check(k >= 1 && String(k) === $("kit-count").value.trim(), "kit-err", $("kit-count"), "Enter how many samples you’ll send.");
+    check($("max-chk").checked || $("unique-chk").checked, "sel-err", $("max-chk"), "Set a maximum per sample, or choose to focus on unique organisms.");
+    if ($("max-chk").checked) {
+      const per = parseInt($("per-sample").value, 10);
+      check(per >= 1 && String(per) === $("per-sample").value.trim(), "per-sample-err", $("per-sample"), "Enter the maximum organisms per sample as a whole number.");
+    } else setErr("per-sample-err", $("per-sample"), "");
+    if ($("unique-chk").checked) check($("unique-notes").value.trim(), "unique-notes-err", $("unique-notes"), "Describe your requested study design.");
+    else setErr("unique-notes-err", $("unique-notes"), "");
+    setErr("qty-err", $("qty"), "");
+  } else {
+    const n = parseInt($("qty").value, 10);
+    check(n >= 1 && String(n) === $("qty").value.trim(), "qty-err", $("qty"), `Enter the number of ${s.units} as a whole number.`);
+    setErr("kit-err", $("kit-count"), "");
+  }
+  if (first) first.focus();
+  return ok;
+}
+
+function targetSummary(tid) {
+  const t = targetById(tid), subs = selectedSubs(tid);
+  if (tid === "other") return `Other (${$("target-other").value.trim()})`;
+  return subs.length ? `${t.label}: ${subs.join(", ")}` : t.label;
+}
+
+function buildMetaQuote() {
+  const s = CONFIG.services.meta, r = rate(), assays = selectedAssays(), env = metaSource() === "env";
+  const n = parseInt($("meta-qty").value, 10);
+  const unitText = env ? (n === 1 ? "environmental sample" : "environmental samples") : (n === 1 ? "specimen" : "specimens");
+  const lines = assays.map(id => ({
+    name: s.assays[id].label + (env ? " (environmental, estimate)" : ""),
+    desc: `${n.toLocaleString()} ${unitText} × ${money(s.assays[id][r])}${env ? " at the specimen rate; final price confirmed in consultation" : ""}`,
+    amt: n * s.assays[id][r]
+  }));
+  const triggers = env ? [{ label: "Environmental samples", detail: $("env-notes").value.trim() }] : [];
+  const d = new Date();
+  const assayNames = assays.map(id => s.assays[id].label).join(" and ");
+  return {
+    id: `Q-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`,
+    date: d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
+    service: s.label, rate: r === "academic" ? "Academic or nonprofit" : "Commercial",
+    foot: `Sequencing: ${assayNames}. Samples: ${env ? "environmental" : "single specimens"}.${assays.includes("mt") ? " Metatranscriptomes require specimens preserved for RNA." : ""}`,
+    msg: [`Sequencing: ${assayNames}`, `Samples: ${n.toLocaleString()} ${unitText}`],
+    lines, triggers, total: lines.reduce((a, l) => a + l.amt, 0),
+    hasTbc: false, consult: triggers.length > 0, requested: false
+  };
+}
+
+function buildQuote() {
+  if (svcId() === "meta") return buildMetaQuote();
+  if (svcId() === "qpcr") return buildQpcrQuote();
+  const s = svc(), sid = svcId(), r = rate(), targets = selectedTargets(), n = totalCount(), t = n ? tierFor(s, n) : null;
+  const st = sampleOf($("sample-type").value);
+  const markers = selectedMarkers();
+  const markerNames = markers.map(id => id === "other" ? `Other (${$("marker-other").value.trim()})` : markerById(id).label);
+  const lines = [], triggers = [];
+  const bc = sid === "barcoding", per = parseInt($("per-sample").value, 10), samples = bc ? barcodeSamples() : n;
+  const unique = bc && $("unique-chk").checked, uniqueNotes = unique ? $("unique-notes").value.trim() : "";
+  const qtyText = bc
+    ? `Up to ${per.toLocaleString()} per sample × ${samples.toLocaleString()} ${samples === 1 ? "sample" : "samples"} (up to ${n.toLocaleString()} specimens)`
+    : `${n.toLocaleString()} ${n === 1 ? s.unit : s.units}`;
+  const idOnly = sid === "barcoding" && handling() === "idOnly";
+  const baseLabel = idOnly ? "Specimen barcoding, identification only, no voucher" : s.label;
+  if (t) lines.push({ name: `${baseLabel} (${markerNames[0]})`, desc: `${qtyText} × ${money(t[r])} (${tierName(t)})`, amt: n * t[r] });
+  else lines.push({ name: `${baseLabel} (${markerNames[0]})`, desc: "Number of specimens confirmed in consultation", tbc: true });
+
+  const extra = markers.length - 1;
+  if (extra > 0 && !t) lines.push({ name: `Additional markers: ${markerNames.slice(1).join(", ")}`, desc: "Priced once the number of specimens is confirmed", tbc: true });
+  if (extra > 0 && t) {
+    const per = sid === "barcoding" ? t[r] * s.extraMarkerFraction : s.extraMarkerPerSample[r];
+    const perText = sid === "barcoding" ? `${money(per)} (75% of ${money(t[r])})` : money(per);
+    lines.push({ name: `Additional markers: ${markerNames.slice(1).join(", ")}`, desc: `${extra} × ${n.toLocaleString()} ${s.units} × ${perText}`, amt: extra * n * per });
+  }
+
+  const pres = sid === "barcoding" && $("pres").checked;
+  if (pres) {
+    const k = parseInt($("kit-count").value, 10), e = CONFIG.services.edna, et = tierFor(e, k);
+    const kText = `${k.toLocaleString()} ${k === 1 ? "sample" : "samples"}`;
+    lines.push({ name: `Bulk eDNA from preservative (${markerNames[0]})`, desc: `${kText} × ${money(et[r])} (eDNA ${tierName(et)})`, amt: k * et[r] });
+    if (extra > 0) lines.push({ name: `Preservative eDNA, additional markers: ${markerNames.slice(1).join(", ")}`, desc: `${extra} × ${kText} × ${money(e.extraMarkerPerSample[r])}`, amt: extra * k * e.extraMarkerPerSample[r] });
+  }
+
+  if (unique && !t) triggers.push({ label: "Specimen selection: focus on unique organisms", detail: uniqueNotes });
+  if (targets.includes("other")) triggers.push({ label: "Target organism: Other", detail: $("target-other").value.trim() });
+  if (markers.includes("other")) triggers.push({ label: "Marker: Other", detail: $("marker-other").value.trim() });
+  if (st.consult) triggers.push({ label: `Sample type: ${st.label}`, detail: $("sample-other").value.trim() });
+
+  if ($("kit").checked) {
+    const k = s.kitsMatchQuantity ? n : parseInt($("kit-count").value, 10);
+    if (st.consult) lines.push({ name: `Sampling kits (${k})`, desc: "Kit contents and price confirmed in consultation", tbc: true });
+    else lines.push({ name: st.kit, desc: `${k.toLocaleString()} × ${money(CONFIG.kitPrice)}`, amt: k * CONFIG.kitPrice });
+  }
+
+  const d = new Date();
+  return {
+    id: `Q-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${Math.floor(1000 + Math.random() * 9000)}`,
+    date: d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
+    service: baseLabel, handling: sid === "barcoding" ? s.handling[handling()].label : null, pres, rate: r === "academic" ? "Academic or nonprofit" : "Commercial",
+    selection: bc ? [$("max-chk").checked ? `up to ${per.toLocaleString()} organisms per sample` : "", unique ? `focus on unique organisms (${uniqueNotes})` : ""].filter(Boolean).join("; ") : "",
+    targets: targets.map(targetSummary),
+    materials: materialShown() ? selectedMaterials() : [], materialNotes: materialShown() ? $("material-notes").value.trim() : "", markers: markerNames, sample: st.label, kits: $("kit").checked,
+    lines, triggers, total: lines.reduce((a, l) => a + (l.amt || 0), 0),
+    hasTbc: lines.some(l => l.tbc), consult: triggers.length > 0, requested: false
+  };
+}
+
+function renderQuote(q) {
+  const rows = q.lines.map(l => l.tbc
+    ? `<tr class="tbc"><td>${esc(l.name)}<span class="line-desc">${esc(l.desc)}</span></td><td class="amt">To be confirmed</td></tr>`
+    : `<tr><td>${esc(l.name)}<span class="line-desc">${esc(l.desc)}</span></td><td class="amt">${money(l.amt)}</td></tr>`).join("");
+  const status = q.consult
+    ? `<span class="status status-consult">${q.requested ? "Consultation requested" : "Consultation needed before payment"}</span>`
+    : `<span class="status status-ok">Ready for checkout</span>`;
+  const actions = q.consult
+    ? `<button type="button" class="btn btn-primary" id="open-consult">${q.requested ? "View consultation request" : "Request consultation"}</button>
+       <button type="button" class="btn btn-secondary" id="edit">Edit options</button>
+       <button type="button" class="btn" disabled>Pay now</button>
+       <span class="pay-note">Payment opens once we’ve confirmed the details with you. We’ll send a final quote with a payment link.</span>`
+    : `<button type="button" class="btn btn-primary" id="checkout">Proceed to checkout</button>
+       <button type="button" class="btn btn-secondary" id="edit">Edit options</button>
+       <span class="pay-note" id="checkout-note" hidden>In production, this adds the configured items to the cart.</span>`;
+  $("quote").innerHTML = `
+    <div class="q-head"><h2>Draft quote ${q.id}</h2></div>
+    <p class="q-meta">${q.date} · ${esc(q.rate)} pricing</p>
+    ${status}
+    <table>
+      <thead><tr><th scope="col">Item</th><th scope="col" class="amt">Amount</th></tr></thead>
+      <tbody>${rows}
+        ${q.custom
+          ? '<tr class="total"><td>Total<span class="total-note">Custom quote after consultation</span></td><td class="amt">To be quoted</td></tr>'
+          : `<tr class="total"><td>Estimated total${q.hasTbc ? '<span class="total-note">Plus items to be confirmed</span>' : ""}</td><td class="amt">${money(q.total)}</td></tr>`}
+      </tbody>
+    </table>
+    <p class="q-foot">${q.foot ? `${esc(q.foot)} Final quotes may vary based on sample condition and project timeline.` : `${q.handling ? `Specimen handling: ${esc(q.handling)}. ` : ""}${q.selection ? `Specimen selection: ${esc(q.selection)}. ` : ""}Target organisms: ${esc(q.targets.join("; "))}. Sample type: ${esc(q.sample)}.${q.materials.length ? ` Material from animals: ${esc(q.materials.join(", "))}${q.materialNotes ? ` (${esc(q.materialNotes)})` : ""}.` : ""} Final quotes may vary based on sample condition, marker selection, and project timeline.`}</p>
+    <div class="actions">${actions}</div>`;
+  $("quote").hidden = false;
+  $("edit").addEventListener("click", () => { $("quote").hidden = true; $("cfg").querySelector("input[name=service]:checked").focus(); });
+  if (q.consult) $("open-consult").addEventListener("click", () => openConsult(q));
+  else $("checkout").addEventListener("click", () => { $("checkout-note").hidden = false; });
+}
+
+function consultMessage(q) {
+  if (q.msg) return [
+    `Draft quote: ${q.id}`,
+    `Service: ${q.service}`,
+    ...q.msg,
+    "",
+    "Details I entered:",
+    ...q.triggers.map(t => `- ${t.label}: ${t.detail}`),
+    "",
+    "Anything else you’d like us to know:"
+  ].join("\n");
+  return [
+    `Draft quote: ${q.id}`,
+    `Service: ${q.service}`,
+    `Target organisms: ${q.targets.join("; ")}`,
+    `Markers: ${q.markers.join(", ")}`,
+    `Sample type: ${q.sample}`,
+    ...(q.selection ? [`Specimen selection: ${q.selection}`] : []),
+    ...(q.materials.length ? [`Material from animals: ${q.materials.join(", ")}${q.materialNotes ? ` (${q.materialNotes})` : ""}`] : []),
+    `Sampling kits requested: ${q.kits ? "Yes" : "No"}`,
+    ...(q.handling ? [`Bulk eDNA from preservative: ${q.pres ? "Yes" : "No"}`] : []),
+    "",
+    "Details I entered:",
+    ...q.triggers.map(t => `- ${t.label}: ${t.detail}`),
+    "",
+    "Anything else you’d like us to know:"
+  ].join("\n");
+}
+
+function openConsult(q) {
+  const dlg = $("consult");
+  if (q.requested) {
+    $("consult-body").innerHTML = `<div class="sent"><h2 id="consult-title">Consultation requested</h2>
+      <p>We’ve received your request for quote ${q.id}. We’ll be in touch to schedule a call, then send a final quote with a payment link.</p>
+      <div class="dlg-actions"><button type="button" class="btn btn-primary" id="dlg-close">Close</button></div></div>`;
+  } else {
+    $("consult-body").innerHTML = `
+      <h2 id="consult-title">Let’s talk through your project</h2>
+      <p>${q.custom ? `Targeted eDNA projects are quoted individually. Your request ${q.id} is saved; send us a few contact details and we’ll follow up with a custom quote.` : `Your draft quote ${q.id} is saved. A few of your choices need a quick conversation before we can finalize pricing:`}</p>
+      <ul class="triggers">${q.triggers.map(t => `<li><b>${esc(t.label)}</b>${esc(t.detail)}</li>`).join("")}</ul>
+      <form id="consult-form" novalidate>
+        <div class="grid2">
+          <div class="field"><label for="c-name">Name</label><input type="text" id="c-name" autocomplete="name" aria-describedby="c-name-err"><p class="err" id="c-name-err"></p></div>
+          <div class="field"><label for="c-email">Email</label><input type="email" id="c-email" autocomplete="email" aria-describedby="c-email-err"><p class="err" id="c-email-err"></p></div>
+        </div>
+        <div class="field"><label for="c-org">Organization <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input type="text" id="c-org" autocomplete="organization"></div>
+        <div class="field"><label for="c-msg">Message</label><textarea id="c-msg" rows="9">${esc(consultMessage(q))}</textarea></div>
+        <div class="dlg-actions">
+          <button type="button" class="btn btn-secondary" id="dlg-close">Not now</button>
+          <button type="submit" class="btn btn-primary">Send request</button>
+        </div>
+      </form>`;
+    $("consult-form").addEventListener("submit", e => {
+      e.preventDefault();
+      const name = $("c-name"), email = $("c-email");
+      const okName = setErr("c-name-err", name, name.value.trim() ? "" : "Enter your name.");
+      const okEmail = setErr("c-email-err", email, /^\S+@\S+\.\S+$/.test(email.value.trim()) ? "" : "Enter a valid email address.");
+      if (!okName) { name.focus(); return; }
+      if (!okEmail) { email.focus(); return; }
+      q.requested = true;
+      renderQuote(q);
+      openConsult(q);
+    });
+    ["c-name", "c-email"].forEach(id => $(id).addEventListener("input", () => setErr(id + "-err", $(id), "")));
+  }
+  $("dlg-close").addEventListener("click", () => dlg.close());
+  if (!dlg.open) dlg.showModal();
+  const f = dlg.querySelector("input, button.btn-primary");
+  if (f) f.focus();
+}
+
+/* Events */
+$("cfg").addEventListener("change", e => {
+  if (e.target.name === "service") { buildTargets(); markersTouched = false; $("target-err").textContent = ""; }
+  if (e.target.name === "marker") { markersTouched = true; setErr("marker-err", null, ""); }
+  refresh();
+});
+$("cfg").addEventListener("input", e => {
+  if (e.target.name === "marker") markersTouched = true;
+  if (e.target.id === "per-sample" && e.target.value) $("max-chk").checked = true;
+  if (["max-chk", "unique-chk", "per-sample"].includes(e.target.id)) setErr("sel-err", null, "");
+  refresh();
+  const map = { "target-other": "target-other-err", "marker-other": "marker-other-err", "sample-other": "sample-other-err", qty: "qty-err", "kit-count": "kit-err", "q-species": "q-species-err", "q-sample": "q-sample-err", "q-n": "q-n-err", "meta-qty": "meta-qty-err", "env-notes": "env-notes-err", "per-sample": "per-sample-err", "unique-notes": "unique-notes-err", "sample-type": "sample-err", "target-single": "target-err" };
+  if (map[e.target.id]) setErr(map[e.target.id], e.target, "");
+  if (e.target.name === "target-multi") setErr("target-err", null, "");
+  if (e.target.name === "material") setErr("material-err", null, "");
+  if (e.target.name === "assay") setErr("assay-err", null, "");
+  if (e.target.id === "material-notes") setErr("material-notes-err", e.target, "");
+});
+$("cfg").addEventListener("submit", e => {
+  e.preventDefault();
+  if (!validate()) return;
+  const q = buildQuote();
+  renderQuote(q);
+  $("quote").focus();
+  $("quote").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  if (q.consult) openConsult(q);
+});
+buildTargets();
+refresh();
+</script>
+</body>
+</html>
