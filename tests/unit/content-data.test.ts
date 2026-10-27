@@ -7,7 +7,19 @@ import { homepageStats, labStats } from '@/data/stats';
 import { programs, personalCredentials, credentialsFor } from '@/data/credentials';
 import { projects } from '@/data/projects';
 import { worksProducts, worksReserved } from '@/data/works';
-import { pricedServices } from '@/data/pricing';
+import {
+  pricedServices,
+  identificationOnlyBarcoding,
+  barcodingExtraMarkerFraction,
+  confidenceRatings,
+  metagenomics,
+  targetedEdna,
+  samplingKitPrice,
+  comparisonRows,
+  pricingSections,
+  priceRange,
+} from '@/data/pricing';
+import { usd } from '@/lib/pricing/format';
 
 describe('team data', () => {
   it('has three core team members and two advisors', () => {
@@ -321,5 +333,106 @@ describe('pricing data — unambiguous tiers', () => {
     expect(b.conversationThreshold).toBe(3001);
     const e = pricedServices.find((s) => s.slug === 'metabarcoding')!;
     expect(e.conversationThreshold).toBeUndefined();
+  });
+});
+
+describe('pricing data — catalog additions (spec 2026-10-26)', () => {
+  it('identification-only barcoding is a flat $5', () => {
+    expect(identificationOnlyBarcoding.slug).toBe('barcoding-id-only');
+    expect(identificationOnlyBarcoding.price).toBe(5);
+    expect(identificationOnlyBarcoding.description.length).toBeGreaterThan(40);
+  });
+
+  it('extra barcoding markers cost 75% of the per-specimen rate', () => {
+    expect(barcodingExtraMarkerFraction).toBe(0.75);
+  });
+
+  it('three confidence ratings, High / Moderate / Unresolved, each with a meaning', () => {
+    expect(confidenceRatings.map((r) => r.level)).toEqual(['High', 'Moderate', 'Unresolved']);
+    for (const r of confidenceRatings) expect(r.meaning.length).toBeGreaterThan(10);
+  });
+
+  it('metagenomics has two assays priced per specimen, commercial above academic', () => {
+    expect(metagenomics.slug).toBe('metagenomics');
+    expect(metagenomics.unitLabel).toBe('specimen');
+    expect(metagenomics.assays.map((a) => a.id)).toEqual(['mg', 'mt']);
+    const mg = metagenomics.assays[0];
+    const mt = metagenomics.assays[1];
+    expect([mg.academicPrice, mg.commercialPrice]).toEqual([2400, 3000]);
+    expect([mt.academicPrice, mt.commercialPrice]).toEqual([3350, 4200]);
+    for (const a of metagenomics.assays) expect(a.commercialPrice).toBeGreaterThan(a.academicPrice);
+    expect(metagenomics.included.length).toBeGreaterThanOrEqual(4);
+    expect(metagenomics.notes.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('targeted eDNA is a custom quote with no prices', () => {
+    expect(targetedEdna.slug).toBe('targeted-edna');
+    expect(targetedEdna.customQuote).toBe(true);
+    expect(JSON.stringify(targetedEdna)).not.toMatch(/price/i);
+  });
+
+  it('sampling kits are $20', () => {
+    expect(samplingKitPrice).toBe(20);
+  });
+
+  it('comparison rows fill every column', () => {
+    expect(comparisonRows.length).toBeGreaterThanOrEqual(4);
+    for (const row of comparisonRows) {
+      for (const key of [
+        'label',
+        'barcoding',
+        'metabarcoding',
+        'metagenomics',
+        'targetedEdna',
+      ] as const) {
+        expect(row[key].trim().length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('pricing sections are the four anchors in display order', () => {
+    expect(pricingSections.map((s) => s.id)).toEqual([
+      'barcoding',
+      'metabarcoding',
+      'metagenomics',
+      'targeted-edna',
+    ]);
+    for (const s of pricingSections) expect(s.label.length).toBeGreaterThan(0);
+  });
+
+  it('priceRange spans every tier and both audiences, and is computed from the data', () => {
+    expect(priceRange('barcoding')).toEqual({ min: 6, max: 20, unit: 'specimen' });
+    expect(priceRange('metabarcoding')).toEqual({ min: 115, max: 205, unit: 'sample' });
+    expect(priceRange('metagenomics')).toEqual({ min: 2400, max: 4200, unit: 'specimen' });
+    // Cross-check against the data rather than trusting the literals above.
+    const b = pricedServices.find((s) => s.slug === 'barcoding')!;
+    const all = b.tiers.flatMap((t) => [t.academicPrice, t.commercialPrice]);
+    expect(priceRange('barcoding')).toEqual({
+      min: Math.min(...all),
+      max: Math.max(...all),
+      unit: b.unitLabel,
+    });
+  });
+
+  it('priceRange is null for custom-quote and unknown slugs', () => {
+    expect(priceRange('targeted-edna')).toBeNull();
+    expect(priceRange('no-such-service')).toBeNull();
+  });
+
+  it('barcoding and eDNA have structured add-ons instead of a free-text note', () => {
+    for (const s of pricedServices) {
+      expect(Array.isArray(s.addons)).toBe(true);
+      expect(s.addons.length).toBeGreaterThanOrEqual(1);
+      for (const a of s.addons) {
+        expect(a.title.length).toBeGreaterThan(0);
+        expect(a.body.length).toBeGreaterThan(0);
+      }
+      expect((s as unknown as { addonNote?: string }).addonNote).toBeUndefined();
+    }
+  });
+
+  it('usd formats whole dollars with thousands separators', () => {
+    expect(usd(5)).toBe('$5');
+    expect(usd(2400)).toBe('$2,400');
   });
 });

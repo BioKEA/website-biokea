@@ -170,7 +170,7 @@ const jsonLdServices = pricedServices.map((s) => ({
             </p>
             <PriceLadder tiers={service.tiers} unitLabel={service.unitLabel} />
             <div class="mt-4 text-[13.5px] text-slate-500 bg-[var(--color-cream)] border border-dashed border-slate-900/15 rounded-md px-4 py-3 leading-relaxed">
-              {service.addonNote}
+              {service.addons.map((a) => `${a.title}: ${a.body}`).join(' ')}
             </div>
           </div>
         </div>
