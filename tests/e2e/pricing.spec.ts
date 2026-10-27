@@ -164,7 +164,7 @@ test('pricing hero CTAs: store, quote, contact, and the services catalog link', 
   await expect(
     page.getByRole('link', { name: /Configure and pay online/i }).first(),
   ).toHaveAttribute('href', 'https://store.biokea.ai/products/specimen-barcoding');
-  await expect(page.getByRole('link', { name: 'or build a quote' }).first()).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Build a quote' }).first()).toHaveAttribute(
     'href',
     '/quote',
   );
