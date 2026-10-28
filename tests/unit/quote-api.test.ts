@@ -43,8 +43,37 @@ function emailTextTo(recipient: string): string {
   return body.text as string;
 }
 
+function labEmailSubject(): string {
+  const call = calls().find((c) => {
+    if (!String(c[0]).includes('api.resend.com/emails')) return false;
+    const body = JSON.parse((c[1] as RequestInit).body as string);
+    return body.to === env.CONTACT_TO_EMAIL;
+  })!;
+  const body = JSON.parse((call[1] as RequestInit).body as string);
+  return body.subject as string;
+}
+
+// Copied from tests/unit/order.test.ts: a payable 60-sample eDNA order.
+const edna = (over = {}) =>
+  ({
+    service: 'metabarcoding',
+    targets: ['vertebrates'],
+    markers: ['12S', 'COI'],
+    sampleType: 'water',
+    samples: 60,
+    kits: false,
+    ...over,
+  }) as const;
+
+// The customer is whoever the request named, so read the one Resend call
+// not addressed to the lab rather than assuming validBody's email.
 function customerEmailText(): string {
-  return emailTextTo(validBody.email);
+  const call = calls().find((c) => {
+    if (!String(c[0]).includes('api.resend.com/emails')) return false;
+    const body = JSON.parse((c[1] as RequestInit).body as string);
+    return body.to !== env.CONTACT_TO_EMAIL;
+  })!;
+  return JSON.parse((call[1] as RequestInit).body as string).text as string;
 }
 
 beforeEach(() => {
@@ -334,5 +363,67 @@ describe('quote endpoint', () => {
     expect(lab).toContain('academic/nonprofit: $7,200');
     expect(lab).toContain('commercial: $9,000');
     expect(lab).toContain('Rate: academic');
+  });
+});
+
+describe('config requests', () => {
+  const base = { name: 'Ada', email: 'ada@example.org', audience: 'commercial', source: 'store' };
+  it('legacy lines-only bodies still insert a quoted row with empty config fields', async () => {
+    const res = await handleQuote(
+      makeRequest({ ...base, lines: [{ serviceSlug: 'metabarcoding', count: 60, markers: 2 }] }),
+      env,
+    );
+    expect(res.status).toBe(200);
+    expect(insertedRow()).toMatchObject({ config: null, directions: null, consult_triggers: [] });
+    expect(insertedRow()).not.toHaveProperty('status');
+  });
+  it('a payable config inserts status quoted with the config and directions', async () => {
+    const res = await handleQuote(
+      makeRequest({ ...base, config: edna(), directions: 'Filter on site.' }),
+      env,
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ ok: true, consult: false });
+    expect(insertedRow()).toMatchObject({
+      status: 'quoted',
+      directions: 'Filter on site.',
+      total_commercial: 10500,
+      config: expect.objectContaining({ service: 'metabarcoding' }),
+    });
+    expect(customerEmailText()).toContain('Markers: 12S, COI');
+  });
+  it('a consult config inserts status consult, lists triggers in both emails, and offers no payment', async () => {
+    const res = await handleQuote(
+      makeRequest({
+        ...base,
+        config: {
+          service: 'targeted-edna',
+          species: 'Dreissena',
+          measure: 'both',
+          assayExists: 'no',
+          sampleType: 'water',
+        },
+      }),
+      env,
+      undefined,
+      { paymentsEnabled: true },
+    );
+    expect(await res.json()).toMatchObject({ ok: true, consult: true });
+    expect(insertedRow()).toMatchObject({
+      status: 'consult',
+      needs_conversation: true,
+      consult_triggers: [expect.objectContaining({ key: 'qpcr' })],
+    });
+    expect(customerEmailText()).not.toContain('#pay');
+    expect(customerEmailText()).toContain('custom quote after consultation');
+    expect(emailTextTo(env.CONTACT_TO_EMAIL)).toContain('Dreissena');
+    expect(labEmailSubject()).toMatch(/^\[consult\]/);
+  });
+  it('an invalid config is a 400', async () => {
+    const res = await handleQuote(makeRequest({ ...base, config: edna({ markers: [] }) }), env);
+    expect(res.status).toBe(400);
+  });
+  it('a body with neither lines nor config is a 400', async () => {
+    expect((await handleQuote(makeRequest(base), env)).status).toBe(400);
   });
 });

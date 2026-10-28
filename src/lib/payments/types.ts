@@ -2,9 +2,12 @@
 // Row shapes for quotes + payments as read from Supabase, and the one
 // invoice-line shape shared by the deposit and balance paths.
 import type { Audience, QuoteLine, QuoteLineInput } from '@/lib/pricing/quote';
+import type { ConsultTrigger, ProjectConfig } from '@/lib/pricing/order';
 
 export type QuoteStatus =
   | 'quoted'
+  // Configurator request the lab must review before it is payable.
+  | 'consult'
   | 'deposit_invoiced'
   | 'deposit_paid'
   | 'balance_invoiced'
@@ -32,6 +35,10 @@ export interface QuoteRecord {
   academic_attested_at: string | null;
   po_number: string | null;
   external_customer_id: string | null;
+  /** Configurator choices; null for legacy line-only quotes. */
+  config: ProjectConfig | null;
+  directions: string | null;
+  consult_triggers: ConsultTrigger[];
 }
 
 export interface PaymentRecord {
