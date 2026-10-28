@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildQuote, nextTierUpsell } from '@/lib/pricing/quote';
+import { buildQuote, lineKey, nextTierUpsell } from '@/lib/pricing/quote';
 
 const bc = (count: number) => buildQuote([{ serviceSlug: 'barcoding', count }]);
 const ed = (count: number, markers = 1) =>
@@ -202,8 +202,70 @@ describe('pricing engine — input validation', () => {
   });
 
   it('throws when markers are requested for a service that has none', () => {
-    expect(() => buildQuote([{ serviceSlug: 'barcoding', count: 10, markers: 2 }])).toThrow(
-      /marker/i,
+    // Barcoding gained a marker rule (75% per added marker); assays have none.
+    expect(() =>
+      buildQuote([
+        { serviceSlug: 'metagenomics', count: 10, kind: 'assay', assay: 'mg', markers: 2 },
+      ]),
+    ).toThrow(/marker/i);
+  });
+});
+
+describe('line kinds', () => {
+  it('prices barcoding extra markers at 75% of the tier rate on the priced count', () => {
+    const q = buildQuote([{ serviceSlug: 'barcoding', count: 150, markers: 2 }]);
+    expect(q.lines[0].academic.total).toBe(150 * 16 + 150 * 12); // 4200
+    expect(q.lines[0].academic.effectiveRate).toBe(28);
+  });
+  it('still refuses markers on a service with no marker rule', () => {
+    expect(() =>
+      buildQuote([
+        { serviceSlug: 'metagenomics', count: 1, kind: 'assay', assay: 'mg', markers: 2 },
+      ]),
+    ).toThrow();
+  });
+  it('prices id-only barcoding flat at $5 for both audiences and rounds fractions', () => {
+    const q = buildQuote([{ serviceSlug: 'barcoding', count: 400, kind: 'id-only' }]);
+    expect(q.lines[0].academic.total).toBe(2000);
+    expect(q.lines[0].commercial.total).toBe(2000);
+    expect(q.lines[0].serviceTitle).toBe('Specimen barcoding, identification only');
+    const two = buildQuote([{ serviceSlug: 'barcoding', count: 3, kind: 'id-only', markers: 2 }]);
+    expect(two.lines[0].academic.total).toBe(Math.round(3 * (5 + 3.75))); // 26
+  });
+  it('prices preservative eDNA at the eDNA tiers with eDNA marker pricing', () => {
+    const q = buildQuote([
+      { serviceSlug: 'metabarcoding', count: 60, markers: 2, kind: 'preservative-edna' },
+    ]);
+    expect(q.lines[0].commercial.total).toBe(60 * (160 + 15));
+    expect(q.lines[0].serviceTitle).toBe('Bulk eDNA from preservative');
+  });
+  it('prices metagenome and metatranscriptome assays per specimen', () => {
+    const q = buildQuote([
+      { serviceSlug: 'metagenomics', count: 2, kind: 'assay', assay: 'mg' },
+      { serviceSlug: 'metagenomics', count: 2, kind: 'assay', assay: 'mt' },
+    ]);
+    expect(q.total.commercial).toBe(2 * 3000 + 2 * 4200); // 14400
+    expect(q.lines[1].serviceTitle).toBe('Metatranscriptome sequencing');
+    expect(q.needsConversation).toBe(false);
+  });
+  it('rejects a kind on the wrong service and a missing assay', () => {
+    expect(() =>
+      buildQuote([{ serviceSlug: 'metabarcoding', count: 1, kind: 'id-only' }]),
+    ).toThrow();
+    expect(() => buildQuote([{ serviceSlug: 'metagenomics', count: 1, kind: 'assay' }])).toThrow();
+  });
+  it('legacy inputs produce kind service and the same totals as before', () => {
+    const q = buildQuote([{ serviceSlug: 'metabarcoding', count: 60, markers: 2 }]);
+    expect(q.lines[0].kind).toBe('service');
+    expect(q.lines[0].commercial.total).toBe(60 * 175);
+  });
+  it('lineKey distinguishes kinds and assays', () => {
+    expect(lineKey({ kind: 'assay', serviceSlug: 'metagenomics', assay: 'mt' })).toBe(
+      'assay:metagenomics:mt',
     );
+    expect(lineKey({ kind: 'service', serviceSlug: 'barcoding' })).toBe('service:barcoding:');
+  });
+  it('offers no tier upsell for flat lines', () => {
+    expect(nextTierUpsell('barcoding', 10, 1, 'academic', 'id-only')).toBeNull();
   });
 });
