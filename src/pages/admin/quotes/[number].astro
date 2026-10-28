@@ -13,6 +13,7 @@ import {
   usdCents,
 } from '@/lib/payments/terms';
 import { parseBalanceForm } from '@/lib/payments/balance-form';
+import { lineKey } from '@/lib/pricing/quote';
 import { numericId } from '@/lib/payments/shopify-ids';
 import { statusLabel } from '@/lib/payments/labels';
 import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
@@ -306,20 +307,20 @@ if (quote.status === 'deposit_paid' && deposit) {
                     </td>
                     <td class="py-1 pr-3">
                       <input
-                        name={`counts[${l.serviceSlug}]`}
+                        name={`counts[${lineKey(l)}]`}
                         inputmode="numeric"
                         pattern="[0-9]*"
-                        value={val(`counts[${l.serviceSlug}]`) || String(l.count)}
+                        value={val(`counts[${lineKey(l)}]`) || String(l.count)}
                         class="w-28 border border-slate-300 rounded px-2 py-1 font-mono"
                       />
                     </td>
                     <td class="py-1">
-                      {l.serviceSlug === 'metabarcoding' ? (
+                      {l.serviceSlug === 'metabarcoding' || l.serviceSlug === 'barcoding' ? (
                         <input
-                          name={`markers[${l.serviceSlug}]`}
+                          name={`markers[${lineKey(l)}]`}
                           inputmode="numeric"
                           pattern="[0-9]*"
-                          value={val(`markers[${l.serviceSlug}]`) || String(l.markers)}
+                          value={val(`markers[${lineKey(l)}]`) || String(l.markers)}
                           class="w-16 border border-slate-300 rounded px-2 py-1 font-mono"
                         />
                       ) : (

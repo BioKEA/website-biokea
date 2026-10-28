@@ -17,6 +17,7 @@ import {
   paymentTotalCents,
 } from '@/lib/payments/terms';
 import type { QuoteRecord } from '@/lib/payments/types';
+import { summarizeConfig } from '@/lib/pricing/order';
 
 const FormSchema = z.object({
   // Optional: the widget now records the audience on the quote at creation
@@ -146,7 +147,14 @@ export async function handlePayment(
         `Payment in full for BioKEA quote ${quote.quote_number} (valid to ${quote.expires_at.slice(0, 10)}).` +
         ` Your quoted per-sample rate is held for this project: ship fewer samples than quoted and the` +
         ` unused amount stays as credit toward another project for 12 months; ship more and we invoice` +
-        ` the difference at the same rate. Questions: contact@biokea.ai.`,
+        ` the difference at the same rate. Questions: contact@biokea.ai.` +
+        // The configuration travels on the draft order so the lab sees what
+        // was ordered without opening the admin page. Legacy line-only quotes
+        // have no config and keep exactly the sentence above.
+        (quote.config ? '\n\n' + summarizeConfig(quote.config).join('\n') : ''),
+      ...(quote.directions
+        ? { attributes: [{ key: 'directions', value: quote.directions.slice(0, 255) }] }
+        : {}),
       daysUntilDue: INVOICE_DAYS_UNTIL_DUE,
     });
   } catch (err) {

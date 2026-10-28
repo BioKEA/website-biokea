@@ -25,6 +25,9 @@ export interface CreateInvoiceSpec {
   credit?: { title: string; amountCents: number }; // deposit credit on the balance invoice
   footer: string;
   daysUntilDue: number;
+  /** Extra draft-order custom attributes, appended after the built-in ones
+   * (e.g. the customer's directions). Shopify caps each value at 255 chars. */
+  attributes?: { key: string; value: string }[];
 }
 
 export interface CreatedInvoice {
@@ -207,6 +210,7 @@ export function shopifyGateway(
           { key: 'payment_id', value: spec.paymentId },
         ];
         if (spec.poNumber) attrs.push({ key: 'po_number', value: spec.poNumber });
+        if (spec.attributes) attrs.push(...spec.attributes);
         const input: Record<string, unknown> = {
           email: spec.customer.email,
           note: spec.footer,

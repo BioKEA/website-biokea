@@ -22,12 +22,22 @@ function lineSummary(q: QuoteRecord): string {
 }
 
 function actualCountsSummary(
-  actual_lines: { serviceSlug: string; count: number; markers?: number }[],
+  actual_lines: {
+    serviceSlug: string;
+    count: number;
+    markers?: number;
+    kind?: string;
+    assay?: string;
+  }[],
 ): string {
   return actual_lines
     .map((l) => {
       const markers = (l.markers ?? 1) > 1 ? ` × ${l.markers} markers` : '';
-      return `  · ${l.serviceSlug}: ${l.count.toLocaleString('en-US')}${markers}`;
+      // A kinded line shares its parent's slug (an mg vs an mt assay), so name
+      // the kind too; plain service lines print exactly as before.
+      const kind =
+        l.kind && l.kind !== 'service' ? ` (${[l.kind, l.assay].filter(Boolean).join(' ')})` : '';
+      return `  · ${l.serviceSlug}${kind}: ${l.count.toLocaleString('en-US')}${markers}`;
     })
     .join('\n');
 }
