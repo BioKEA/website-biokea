@@ -1,9 +1,30 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type APIRequestContext } from '@playwright/test';
 
 // The success/hand-off paths below need an API, so it is stubbed: the
 // point under test is what the widget does with a created quote and its
 // hand-off form, not what the endpoint returns.
 const QUOTE_TOKEN = '11111111-1111-1111-1111-111111111111';
+
+// Quote pages need a persisted quote, which needs Supabase env (.dev.vars).
+// Probe once; skip (not fail) where the API reports it is not configured.
+async function createQuote(
+  request: APIRequestContext,
+  data: Record<string, unknown>,
+): Promise<{ token: string } | null> {
+  const res = await request.post('/api/quote', {
+    data: {
+      name: 'Ada',
+      email: 'ada@example.org',
+      audience: 'commercial',
+      source: 'site',
+      ...data,
+    },
+  });
+  const body = await res.json();
+  if (!res.ok() && /not configured/i.test(String(body.error))) return null;
+  expect(res.ok(), JSON.stringify(body)).toBe(true);
+  return { token: body.token };
+}
 
 test('quote page renders with a default configuration and a live total', async ({ page }) => {
   await page.goto('/quote');
@@ -523,23 +544,18 @@ test('a consult quote page shows the request, the triggers, the directions, and 
   page,
   request,
 }) => {
-  const res = await request.post('/api/quote', {
-    data: {
-      name: 'Ada',
-      email: 'ada@example.org',
-      audience: 'commercial',
-      source: 'site',
-      directions: 'Filter on site.',
-      config: {
-        service: 'targeted-edna',
-        species: 'Dreissena',
-        measure: 'both',
-        assayExists: 'no',
-        sampleType: 'water',
-      },
+  const created = await createQuote(request, {
+    directions: 'Filter on site.',
+    config: {
+      service: 'targeted-edna',
+      species: 'Dreissena',
+      measure: 'both',
+      assayExists: 'no',
+      sampleType: 'water',
     },
   });
-  const { token } = await res.json();
+  test.skip(!created, 'quote API not configured in this environment (no .dev.vars)');
+  const { token } = created!;
   await page.goto(`/quote/${token}`);
   await expect(page.locator('[data-consult-notice]')).toContainText('Consultation requested');
   await expect(page.locator('[data-consult-notice]')).toContainText('Dreissena');
@@ -550,23 +566,18 @@ test('a priced config quote page lists the configuration beside the lines', asyn
   page,
   request,
 }) => {
-  const res = await request.post('/api/quote', {
-    data: {
-      name: 'Ada',
-      email: 'ada@example.org',
-      audience: 'commercial',
-      source: 'site',
-      config: {
-        service: 'metabarcoding',
-        targets: ['vertebrates'],
-        markers: ['12S', 'COI'],
-        sampleType: 'water',
-        samples: 60,
-        kits: false,
-      },
+  const created = await createQuote(request, {
+    config: {
+      service: 'metabarcoding',
+      targets: ['vertebrates'],
+      markers: ['12S', 'COI'],
+      sampleType: 'water',
+      samples: 60,
+      kits: false,
     },
   });
-  const { token } = await res.json();
+  test.skip(!created, 'quote API not configured in this environment (no .dev.vars)');
+  const { token } = created!;
   await page.goto(`/quote/${token}`);
   await expect(page.locator('[data-config-summary]')).toContainText('Markers: 12S, COI');
   await expect(page.getByText('$10,500').first()).toBeVisible();
