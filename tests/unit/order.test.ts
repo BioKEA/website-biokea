@@ -1,30 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildOrder, validateConfig, summarizeConfig, barcodingCount } from '@/lib/pricing/order';
 import { ConfigSchema } from '@/lib/pricing/config-schema';
-
-const bc = (over = {}) =>
-  ({
-    service: 'barcoding',
-    handling: 'voucher',
-    target: 'invertebrates',
-    markers: ['COI'],
-    sampleType: 'water',
-    samples: 3,
-    perSample: 50,
-    preservativeEdna: false,
-    kits: false,
-    ...over,
-  }) as const;
-const edna = (over = {}) =>
-  ({
-    service: 'metabarcoding',
-    targets: ['vertebrates'],
-    markers: ['12S', 'COI'],
-    sampleType: 'water',
-    samples: 60,
-    kits: false,
-    ...over,
-  }) as const;
+import { bc, edna } from './fixtures/configs';
 
 describe('buildOrder', () => {
   it('barcoding: samples × per-sample, COI+12S academic = $4,200, no triggers', () => {
