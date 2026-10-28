@@ -264,6 +264,8 @@ describe('line kinds', () => {
       'assay:metagenomics:mt',
     );
     expect(lineKey({ kind: 'service', serviceSlug: 'barcoding' })).toBe('service:barcoding:');
+    // Rows stored before kinds existed have no kind; they are service lines.
+    expect(lineKey({ serviceSlug: 'barcoding' })).toBe('service:barcoding:');
   });
   it('offers no tier upsell for flat lines', () => {
     expect(nextTierUpsell('barcoding', 10, 1, 'academic', 'id-only')).toBeNull();

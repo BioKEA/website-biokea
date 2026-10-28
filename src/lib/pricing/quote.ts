@@ -5,7 +5,6 @@
 // before persisting). A client-supplied total is never trusted.
 import {
   barcodingExtraMarkerFraction,
-  ednaAdditionalMarkerPrice,
   identificationOnlyBarcoding,
   metagenomics,
   pricedServices,
@@ -62,7 +61,8 @@ export interface QuoteLine {
   academic: PriceResult;
   commercial: PriceResult;
   needsConversation: boolean;
-  kind: LineKind;
+  /** Always written on new lines; absent on rows stored before kinds existed. */
+  kind?: LineKind;
   assay?: 'mg' | 'mt';
 }
 
@@ -80,7 +80,7 @@ function serviceFor(slug: string): PricedService {
 
 /** Stable identity of a line, e.g. for de-duplicating cart entries. */
 export function lineKey(l: Pick<QuoteLine, 'kind' | 'serviceSlug' | 'assay'>): string {
-  return `${l.kind}:${l.serviceSlug}:${l.assay ?? ''}`;
+  return `${l.kind ?? 'service'}:${l.serviceSlug}:${l.assay ?? ''}`;
 }
 
 /**
@@ -151,7 +151,7 @@ function priceSource(input: QuoteLineInput): PriceSource {
         tiers: svc.tiers,
         title: 'Bulk eDNA from preservative',
         unitLabel: svc.unitLabel,
-        markerRule: { type: 'flat', price: ednaAdditionalMarkerPrice },
+        markerRule: markerRuleFor(svc),
       };
     }
     case 'assay': {
