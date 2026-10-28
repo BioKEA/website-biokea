@@ -20,6 +20,13 @@ import {
   priceRange,
   ednaAdditionalMarkerPrice,
 } from '@/data/pricing';
+import {
+  serviceChoices,
+  targets,
+  markers,
+  sampleTypes,
+  suggestedMarkers,
+} from '@/data/configurator';
 import { usd } from '@/lib/pricing/format';
 import { serviceOfferings } from '@/data/services';
 
@@ -494,5 +501,36 @@ describe('pricing data — add-on copy is derived from the constants it quotes',
     expect(body).toContain(
       `${Math.round(barcodingExtraMarkerFraction * 100)}% of your per-specimen rate`,
     );
+  });
+});
+
+describe('configurator catalog', () => {
+  it('lists the four services in menu order with a price line each', () => {
+    expect(serviceChoices.map((s) => s.slug)).toEqual([
+      'barcoding',
+      'metabarcoding',
+      'metagenomics',
+      'targeted-edna',
+    ]);
+    expect(serviceChoices[0].priceLine).toBe('$6–$20 per specimen');
+    expect(serviceChoices[3].priceLine).toBe('Custom quote');
+  });
+  it('marks the consult-only options', () => {
+    expect(targets.find((t) => t.id === 'other')?.consult).toBe(true);
+    expect(markers.find((m) => m.id === 'other')?.consult).toBe(true);
+    expect(sampleTypes.filter((s) => s.consult).map((s) => s.id)).toEqual(['other', 'unknown']);
+  });
+  it('suggests markers per service from the selected targets', () => {
+    expect(suggestedMarkers('metabarcoding', ['bacteria', 'vertebrates'])).toEqual(['16S', '12S']);
+    expect(suggestedMarkers('barcoding', ['fungi'])).toEqual(['ITS']);
+    expect(suggestedMarkers('barcoding', [])).toEqual(['COI']);
+    expect(suggestedMarkers('metabarcoding', [])).toEqual([]);
+  });
+  it('offers bacteria and phytoplankton only for eDNA', () => {
+    expect(targets.find((t) => t.id === 'bacteria')?.services).toEqual(['metabarcoding']);
+    expect(targets.find((t) => t.id === 'invertebrates')?.services).toEqual([
+      'barcoding',
+      'metabarcoding',
+    ]);
   });
 });
