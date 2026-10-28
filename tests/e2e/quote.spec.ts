@@ -518,3 +518,56 @@ test('begin_checkout fires with the full amount before the hand-off navigates', 
   // not a deposit (deposit_continue is dead; customers pay 100% now).
   expect(checkout[0][2]).toEqual({ source: 'site', currency: 'USD', value: 12000 });
 });
+
+test('a consult quote page shows the request, the triggers, the directions, and no pay panel', async ({
+  page,
+  request,
+}) => {
+  const res = await request.post('/api/quote', {
+    data: {
+      name: 'Ada',
+      email: 'ada@example.org',
+      audience: 'commercial',
+      source: 'site',
+      directions: 'Filter on site.',
+      config: {
+        service: 'targeted-edna',
+        species: 'Dreissena',
+        measure: 'both',
+        assayExists: 'no',
+        sampleType: 'water',
+      },
+    },
+  });
+  const { token } = await res.json();
+  await page.goto(`/quote/${token}`);
+  await expect(page.locator('[data-consult-notice]')).toContainText('Consultation requested');
+  await expect(page.locator('[data-consult-notice]')).toContainText('Dreissena');
+  await expect(page.locator('[data-directions]')).toContainText('Filter on site.');
+  await expect(page.locator('#pay')).toHaveCount(0);
+});
+test('a priced config quote page lists the configuration beside the lines', async ({
+  page,
+  request,
+}) => {
+  const res = await request.post('/api/quote', {
+    data: {
+      name: 'Ada',
+      email: 'ada@example.org',
+      audience: 'commercial',
+      source: 'site',
+      config: {
+        service: 'metabarcoding',
+        targets: ['vertebrates'],
+        markers: ['12S', 'COI'],
+        sampleType: 'water',
+        samples: 60,
+        kits: false,
+      },
+    },
+  });
+  const { token } = await res.json();
+  await page.goto(`/quote/${token}`);
+  await expect(page.locator('[data-config-summary]')).toContainText('Markers: 12S, COI');
+  await expect(page.getByText('$10,500').first()).toBeVisible();
+});

@@ -76,7 +76,12 @@ const total = (q: QuoteRecord) =>
               <td class="px-3 py-2">
                 {q.organization ?? q.name} <span class="text-slate-500">· {q.email}</span>
               </td>
-              <td class="px-3 py-2 font-mono text-xs">
+              <td
+                class:list={[
+                  'px-3 py-2 font-mono text-xs',
+                  q.status === 'consult' && 'bg-[rgba(146,64,14,0.12)]',
+                ]}
+              >
                 {statusLabel(q.status)}
                 {q.needs_conversation ? ' · conversation' : ''}
                 {q.source ? <span class="text-slate-400"> · {q.source}</span> : null}
