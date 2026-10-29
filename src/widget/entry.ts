@@ -6,6 +6,7 @@
 //   <div id="quote-widget" data-source="store"></div>
 //   <script src="https://biokea.ai/widget/quote.js" defer></script>
 import './quote.css';
+import { isServiceSlug } from './config-reader';
 import { mountQuoteWidget, type QuoteWidget, type WidgetOptions } from './quote-widget';
 
 // Replaced at build time from PUBLIC_TURNSTILE_SITE_KEY; '' means no
@@ -32,7 +33,13 @@ function autoMount(): void {
   const el = document.getElementById('quote-widget');
   if (!el || el.dataset.bkMounted === '1') return;
   el.dataset.bkMounted = '1';
-  mount(el, { source: el.dataset.source || 'site' });
+  // `data-service` on the mount element (store product pages) wins over
+  // `?service=` (pricing-page links); anything else selects nothing.
+  const service = el.dataset.service ?? new URLSearchParams(location.search).get('service');
+  mount(el, {
+    source: el.dataset.source || 'site',
+    service: isServiceSlug(service) ? service : undefined,
+  });
 }
 
 if (document.readyState === 'loading') {

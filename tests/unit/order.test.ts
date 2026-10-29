@@ -117,6 +117,17 @@ describe('validateConfig', () => {
       expect.objectContaining({ species: expect.any(String), sampleType: expect.any(String) }),
     );
   });
+  it('requires a target and a sample type (empty selects arrive as "")', () => {
+    const none = '' as never;
+    expect(validateConfig(bc({ target: none, sampleType: none }))).toEqual({
+      target: 'Choose a target organism.',
+      sampleType: 'Choose a sample type.',
+    });
+    expect(validateConfig(edna({ targets: [], sampleType: none }))).toEqual({
+      targets: 'Choose a target organism.',
+      sampleType: 'Choose a sample type.',
+    });
+  });
 });
 
 describe('summarizeConfig', () => {

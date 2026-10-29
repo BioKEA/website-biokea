@@ -265,6 +265,11 @@ function validateChoices(
   targetIds: TargetId[],
   errs: Record<string, string>,
 ): void {
+  // An unchosen select reads as '' in the widget; the schema would reject
+  // it server-side, so say so next to the field instead.
+  if (targetIds.filter(Boolean).length === 0) {
+    errs[c.service === 'barcoding' ? 'target' : 'targets'] = 'Choose a target organism.';
+  }
   if (targetIds.includes('other') && blank(c.targetOther)) {
     errs.targetOther = 'Describe the organisms you’re targeting.';
   }
@@ -272,6 +277,7 @@ function validateChoices(
   if (c.markers.includes('other') && blank(c.markerOther)) {
     errs.markerOther = 'Tell us which marker you need.';
   }
+  if (!c.sampleType) errs.sampleType = 'Choose a sample type.';
   if (sampleTypeOf(c.sampleType)?.consult && blank(c.sampleOther)) {
     errs.sampleOther = 'Tell us a little about your samples.';
   }

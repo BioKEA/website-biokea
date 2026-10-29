@@ -192,7 +192,7 @@ function tierText(l: QuoteLine, price: PriceResult): string {
 
 /** The service-line `<li>`s, priced for one audience. Extra markers are a
  * per-unit surcharge inside the line, so they show as a sub-line. */
-export function renderLineItems(quote: Quote, audience: Audience): string {
+function renderLineItems(quote: Quote, audience: Audience): string {
   return quote.lines
     .map((l) => {
       const price = l[audience];

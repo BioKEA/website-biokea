@@ -1,29 +1,35 @@
 import { describe, it, expect } from 'vitest';
+import type { ProjectConfig } from '@/lib/pricing/order';
 import { configSignature } from '@/widget/state';
 
 describe('configSignature', () => {
-  const base = [{ serviceSlug: 'barcoding', count: 100 }];
-
-  it('is stable for the same configuration', () => {
-    expect(configSignature(base)).toBe(configSignature([{ serviceSlug: 'barcoding', count: 100 }]));
+  it('configSignature is stable across key order and empty for no config', () => {
+    expect(
+      configSignature({ service: 'metagenomics', assays: ['mg'], source: 'specimens', count: 2 }),
+    ).toBe(
+      configSignature({
+        count: 2,
+        source: 'specimens',
+        assays: ['mg'],
+        service: 'metagenomics',
+      } as ProjectConfig),
+    );
+    expect(configSignature(null)).toBe('');
   });
 
-  it('treats an omitted marker count as one marker', () => {
-    expect(configSignature(base)).toBe(
-      configSignature([{ serviceSlug: 'barcoding', count: 100, markers: 1 }]),
-    );
-  });
-
-  it('changes when the count, the markers, or the services change', () => {
-    expect(configSignature([{ serviceSlug: 'barcoding', count: 101 }])).not.toBe(
-      configSignature(base),
-    );
-    expect(configSignature([{ serviceSlug: 'metabarcoding', count: 100, markers: 2 }])).not.toBe(
-      configSignature([{ serviceSlug: 'metabarcoding', count: 100 }]),
-    );
-    expect(configSignature([...base, { serviceSlug: 'metabarcoding', count: 10 }])).not.toBe(
-      configSignature(base),
-    );
-    expect(configSignature([])).not.toBe(configSignature(base));
+  it('sorts nested keys too, and changes when any value changes', () => {
+    const a: ProjectConfig = {
+      service: 'metabarcoding',
+      targets: ['vertebrates', 'fungi'],
+      subs: { vertebrates: ['Fish'], fungi: ['Decomposers'] },
+      markers: ['12S'],
+      sampleType: 'water',
+      samples: 60,
+      kits: false,
+    };
+    const b = { ...a, subs: { fungi: ['Decomposers'], vertebrates: ['Fish'] } };
+    expect(configSignature(a)).toBe(configSignature(b));
+    expect(configSignature({ ...a, samples: 61 })).not.toBe(configSignature(a));
+    expect(configSignature({ ...a, markers: ['12S', 'COI'] })).not.toBe(configSignature(a));
   });
 });
