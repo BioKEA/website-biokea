@@ -1,5 +1,28 @@
 # Order page rollout (one-off; delete after rollout)
 
+## When
+
+The whole order-configurator rollout runs in this order:
+
+1. **Sean applies `migrations/0009_quote_config.sql`** in the Supabase SQL
+   Editor. Then confirm the status check took:
+
+   ```sql
+   select conname, pg_get_constraintdef(oid) from pg_constraint where conrelid='public.quotes'::regclass and contype='c';
+   ```
+
+   One check constraint should list `'consult'` among the statuses. If none
+   does, the live constraint had a different name and the old check is still
+   in force: drop it by the name the query shows and re-run the migration's
+   `add constraint`. Without this, every consult quote insert fails with a 502.
+
+2. **This document**: the Order page, product descriptions, theme push and
+   menu (sections 1 to 4 below).
+3. **Merge to `main` and deploy the site**, then run section 5 and the
+   end-to-end store check.
+
+Why the theme goes first: The Worker serves `/widget/*` regardless of `?v=`, so a theme pushed before the site deploy works at once (it loads the current widget until the deploy swaps in 1.3.0); a site deploy before the Order page exists leaves the pricing page's "Configure and pay online" links pointing at a live 404.
+
 The store owner confirms first. Then run these in order: page, product
 descriptions, push, menu, verify. `$THEME` is the pulled-and-edited theme directory (see
 [README.md](./README.md)). Push from that directory, not from this repo folder.
@@ -168,4 +191,5 @@ Each line should print its match. The last one should show two: the menu item
 and the hero button.
 
 Afterwards, copy the pushed files from `$THEME` back into `docs/shopify/theme/`
-if they changed, and delete this file.
+if they changed. Delete this file once the site deploy (step 3 of "When") is
+live and verified.
