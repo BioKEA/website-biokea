@@ -146,6 +146,45 @@ describe('quote endpoint', () => {
     expect(inserted.total_commercial).toBe(9000);
   });
 
+  it('NEVER lets a customer price a custom line: kind and custom are stripped', async () => {
+    const res = await handleQuote(
+      makeRequest({
+        ...validBody,
+        lines: [
+          {
+            serviceSlug: 'custom-1',
+            kind: 'custom',
+            count: 600,
+            custom: { title: 'Cheap', unitLabel: 'specimen', academic: 0.01, commercial: 0.01 },
+          },
+        ],
+      }),
+      env,
+    );
+    // The slug is not a rate-card service once `kind` is dropped.
+    expect(res.status).toBe(400);
+    expect(calls().some((c) => String(c[0]).includes('/rest/v1/quotes'))).toBe(false);
+  });
+
+  it('strips a custom price from a rate-card line too', async () => {
+    const res = await handleQuote(
+      makeRequest({
+        ...validBody,
+        lines: [
+          {
+            serviceSlug: 'barcoding',
+            count: 600,
+            kind: 'custom',
+            custom: { title: 'Cheap', unitLabel: 'specimen', academic: 0.01, commercial: 0.01 },
+          },
+        ],
+      }),
+      env,
+    );
+    expect(res.status).toBe(200);
+    expect(insertedRow().total_academic).toBe(7200);
+  });
+
   it('returns the quote number and retrieval url on success', async () => {
     const res = await handleQuote(makeRequest(validBody), env);
     expect(res.status).toBe(200);

@@ -28,6 +28,12 @@ export type QuotePatch = Partial<
     'status' | 'audience' | 'academic_attested_at' | 'po_number' | 'external_customer_id'
   >
 >;
+/** What firming up a quote writes (spec 3). */
+export type FinalisePatch = Pick<
+  QuoteRecord,
+  'lines' | 'total_academic' | 'total_commercial' | 'needs_conversation' | 'status' | 'expires_at'
+> &
+  Required<Pick<QuoteRecord, 'finalised_at' | 'finalised_by' | 'lab_note'>>;
 export type PaymentPatch = Partial<
   Pick<
     PaymentRecord,
@@ -59,6 +65,10 @@ export interface PaymentsDb {
   // already moved on while a gateway call was in flight (spec's I1 fix).
   // Returns whether the update happened.
   updateQuoteStatusIf(id: string, from: QuoteStatus, to: QuoteStatus): Promise<boolean>;
+  // Writes a firm quote only while the quote is still in `from` — the same
+  // guard as updateQuoteStatusIf, so a concurrent payment or second admin
+  // submit can't be overwritten. Returns whether the update happened.
+  finaliseQuoteIf(id: string, from: QuoteStatus, patch: FinalisePatch): Promise<boolean>;
   recordWebhookEvent(id: string, type: string): Promise<boolean>;
   deleteWebhookEvent(id: string): Promise<void>;
 }
@@ -161,6 +171,20 @@ export class SupabaseDb implements PaymentsDb {
       },
     );
     if (!res.ok) throw new Error(`quotes conditional update failed: ${res.status}`);
+    const rows = (await res.json()) as unknown[];
+    return rows.length > 0;
+  }
+
+  async finaliseQuoteIf(id: string, from: QuoteStatus, patch: FinalisePatch): Promise<boolean> {
+    const res = await fetch(
+      `${this.url}/rest/v1/quotes?id=eq.${encodeURIComponent(id)}&status=eq.${encodeURIComponent(from)}`,
+      {
+        method: 'PATCH',
+        headers: this.headers({ Prefer: 'return=representation' }),
+        body: JSON.stringify(patch),
+      },
+    );
+    if (!res.ok) throw new Error(`quotes finalise failed: ${res.status}`);
     const rows = (await res.json()) as unknown[];
     return rows.length > 0;
   }
@@ -274,6 +298,12 @@ export class MemoryDb implements PaymentsDb {
     const q = this.quotes.find((x) => x.id === id);
     if (!q || q.status !== from) return false;
     q.status = to;
+    return true;
+  }
+  async finaliseQuoteIf(id: string, from: QuoteStatus, patch: FinalisePatch): Promise<boolean> {
+    const q = this.quotes.find((x) => x.id === id);
+    if (!q || q.status !== from) return false;
+    Object.assign(q, patch);
     return true;
   }
   async recordWebhookEvent(id: string) {

@@ -114,7 +114,7 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
                 <td class="px-4 py-4 text-sm font-mono text-right whitespace-nowrap align-top">
                   {usd(l.academic.total)}
                   <div class="mt-1 font-sans text-[11px] font-normal text-slate-500 whitespace-normal">
-                    {l.academic.tierRange} tier
+                    {l.kind === 'custom' ? 'agreed rate' : `${l.academic.tierRange} tier`}
                     {l.academic.freeHeadroom > 0 &&
                       ` · ships up to ${l.academic.pricedCount.toLocaleString()}`}
                   </div>
@@ -124,7 +124,7 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
                 <td class="px-4 py-4 text-sm font-mono text-right whitespace-nowrap align-top">
                   {usd(l.commercial.total)}
                   <div class="mt-1 font-sans text-[11px] font-normal text-slate-500 whitespace-normal">
-                    {l.commercial.tierRange} tier
+                    {l.kind === 'custom' ? 'agreed rate' : `${l.commercial.tierRange} tier`}
                     {l.commercial.freeHeadroom > 0 &&
                       ` · ships up to ${l.commercial.pricedCount.toLocaleString()}`}
                   </div>
@@ -170,6 +170,17 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
       directions={quote.directions}
       consult={quote.status === 'consult'}
     />
+
+    {
+      quote.lab_note && (
+        <div data-lab-note class="mt-5 bg-white border border-slate-900/10 rounded-md px-4 py-3">
+          <h2 class="font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">
+            Note from the lab
+          </h2>
+          <p class="mt-2 text-sm text-[var(--color-ink)] whitespace-pre-line">{quote.lab_note}</p>
+        </div>
+      )
+    }
 
     {
       // Legacy volume quotes; a consult quote has its own notice above.

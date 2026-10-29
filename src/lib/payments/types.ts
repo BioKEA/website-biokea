@@ -39,6 +39,11 @@ export interface QuoteRecord {
   config: ProjectConfig | null;
   directions: string | null;
   consult_triggers: ConsultTrigger[];
+  /** Spec 3: when and by whom the lab firmed up a consult quote; null otherwise. */
+  finalised_at?: string | null;
+  finalised_by?: string | null;
+  /** The lab's note to the customer, shown on the quote page and in the email. */
+  lab_note?: string | null;
 }
 
 export interface PaymentRecord {

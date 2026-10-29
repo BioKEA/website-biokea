@@ -10,10 +10,19 @@ export interface EmailMessage {
 }
 export type EmailSender = (msg: EmailMessage) => Promise<void>;
 
-export function resendSender(env: {
-  RESEND_API_KEY: string;
-  CONTACT_FROM_EMAIL: string;
-}): EmailSender {
+/**
+ * Sends through Resend. By default a failure is logged and swallowed, so a
+ * notification can never fail the request that triggered it. `strict`
+ * rethrows instead, for callers that must tell staff the email did not go
+ * out (the admin finalise endpoint).
+ */
+export function resendSender(
+  env: {
+    RESEND_API_KEY: string;
+    CONTACT_FROM_EMAIL: string;
+  },
+  opts: { strict?: boolean } = {},
+): EmailSender {
   return async (msg) => {
     try {
       const res = await fetch('https://api.resend.com/emails', {
@@ -42,12 +51,14 @@ export function resendSender(env: {
             ': ' +
             body,
         );
+        if (opts.strict) throw new Error(`Resend ${res.status}`);
       }
     } catch (err) {
       console.error(
         '[email] Resend request failed sending "' + msg.subject + '" to ' + msg.to + ':',
         err,
       );
+      if (opts.strict) throw err;
     }
   };
 }

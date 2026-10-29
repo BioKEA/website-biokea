@@ -16,7 +16,7 @@ const LINE_KEY = '([a-z-]+:[a-z0-9-]{1,64}:(?:mg|mt)?)';
 const LEGACY_KEY = '([a-z0-9-]{1,64})';
 const COUNT_KEY = new RegExp(`^counts\\[(?:${LINE_KEY}|${LEGACY_KEY})\\]$`);
 const MARKER_KEY = new RegExp(`^markers\\[(?:${LINE_KEY}|${LEGACY_KEY})\\]$`);
-const KINDS: readonly LineKind[] = ['service', 'id-only', 'preservative-edna', 'assay'];
+const KINDS: readonly LineKind[] = ['service', 'id-only', 'preservative-edna', 'assay', 'custom'];
 const isPosInt = (s: string) => /^\d{1,7}$/.test(s) && Number(s) > 0;
 const keyOf = (m: RegExpMatchArray) => m[1] ?? `service:${m[2]}:`;
 

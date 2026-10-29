@@ -11,6 +11,11 @@ test('/admin is forbidden without a Cloudflare Access JWT', async ({ request }) 
       await request.post('/api/admin/quotes/BK-2026-0001/balance', { form: { confirm: 'true' } })
     ).status(),
   ).toBe(403);
+  expect(
+    (
+      await request.post('/api/admin/quotes/BK-2026-0001/finalise', { form: { confirm: 'true' } })
+    ).status(),
+  ).toBe(403);
 });
 
 test('a forged Access header is refused', async ({ request }) => {

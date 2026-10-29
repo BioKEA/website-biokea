@@ -14,6 +14,18 @@ import {
   usdCents,
 } from '@/lib/payments/terms';
 import { parseBalanceForm } from '@/lib/payments/balance-form';
+import {
+  DEFAULT_DAYS,
+  FIRM_ROW_TYPES,
+  MAX_DAYS,
+  finaliseFrom,
+  formRows,
+  parseFinaliseForm,
+  priceFirm,
+  submittedRows,
+  type FormRow,
+} from '@/lib/payments/finalise';
+import type { Quote } from '@/lib/pricing/quote';
 import { lineKey } from '@/lib/pricing/quote';
 import { numericId } from '@/lib/payments/shopify-ids';
 import { statusLabel } from '@/lib/payments/labels';
@@ -60,6 +72,7 @@ const deposit = payments.find((p) => p.kind === 'deposit' && p.status === 'paid'
 const url = Astro.url;
 const flash = {
   error: url.searchParams.get('error'),
+  finalised: url.searchParams.get('finalised'),
   balance: url.searchParams.get('balance'),
   // A settlement comes back as exactly one of these. `credit` means the
   // quote paid in full and bought under the credit terms; `refund` means a
@@ -107,6 +120,29 @@ if (url.searchParams.get('preview') === '1' && deposit && quote.audience) {
 const canBalance = quote.status === 'deposit_paid' && deposit !== null && quote.audience !== null;
 const val = (k: string) => previewInputs.get(k) ?? '';
 
+// Firm quote (spec 3): shown for consult quotes, legacy volume quotes, and
+// quotes the lab firmed up and may still revise — never once paid.
+const firmFrom = finaliseFrom(quote, payments);
+const firmPreviewing = url.searchParams.get('preview') === 'finalise';
+let firmRows: [number, FormRow][] = formRows(quote.lines).map((r, i) => [i, r]);
+let firmErrors: Record<string, string> = {};
+let firmPreview: Quote | null = null;
+let firmDays = String(DEFAULT_DAYS);
+let firmNote = quote.lab_note ?? '';
+if (firmFrom && firmPreviewing) {
+  firmRows = [...submittedRows(url.searchParams).entries()];
+  firmDays = url.searchParams.get('days') ?? firmDays;
+  firmNote = url.searchParams.get('note') ?? '';
+  const parsed = parseFinaliseForm(url.searchParams);
+  if (!parsed.ok) firmErrors = parsed.errors;
+  else {
+    const priced = priceFirm(parsed.inputs);
+    if (priced.ok) firmPreview = priced.quote;
+    else firmErrors = { rows: priced.error };
+  }
+}
+const rowType = (v: string) => FIRM_ROW_TYPES.find((t) => t.value === v);
+
 // 'deposit_paid' covers both a new pay-in-full quote and a legacy 50%
 // deposit still awaiting a balance invoice — both write kind:'deposit'
 // (frozen ledger name), so the amount alone can't tell them apart. Same
@@ -145,6 +181,15 @@ if (quote.status === 'deposit_paid' && deposit) {
       {quote.expires_at.slice(0, 10)}
       · <a class="underline" href={`/quote/${quote.access_token}`}>customer view</a>
     </p>
+    {
+      quote.finalised_at && (
+        <p data-admin-finalised class="mt-1 text-xs text-slate-600">
+          Firm quote by {quote.finalised_by ?? '—'} on {quote.finalised_at.slice(0, 10)}
+          {quote.consult_triggers.length > 0 &&
+            ` · consult reasons: ${quote.consult_triggers.map((t) => t.label).join(', ')}`}
+        </p>
+      )
+    }
 
     {
       quote.config && (
@@ -168,6 +213,32 @@ if (quote.status === 'deposit_paid' && deposit) {
           {flash.error === 'input' && 'Those counts could not be priced — check the numbers.'}
           {flash.error === 'gateway' &&
             'Shopify rejected the invoice. Nothing was recorded; try again.'}
+        </p>
+      )
+    }
+    {
+      flash.error?.startsWith('finalise-') && (
+        <p class="mt-6 text-sm text-red-700 border-l-2 border-red-700 pl-3">
+          {flash.error === 'finalise-state' &&
+            'This quote can no longer be firmed up here — it changed, or a payment exists on it. Nothing was saved.'}
+          {flash.error === 'finalise-db' &&
+            'The firm quote could not be saved. Check that migration 0010 is applied, then try again.'}
+          {flash.error === 'finalise-input' && 'The form could not be read. Try again.'}
+        </p>
+      )
+    }
+    {
+      flash.finalised === 'sent' && (
+        <p class="mt-6 text-sm text-green-800 border-l-2 border-green-700 pl-3">
+          Firm quote saved and emailed to {quote.email}. The customer can pay from the quote page.
+        </p>
+      )
+    }
+    {
+      flash.finalised === 'email-failed' && (
+        <p class="mt-6 text-sm text-amber-800 border-l-2 border-amber-600 pl-3">
+          Firm quote saved, but <strong>the email to {quote.email} did not go out</strong>. Send
+          them the customer view link yourself.
         </p>
       )
     }
@@ -288,6 +359,258 @@ if (quote.status === 'deposit_paid' && deposit) {
       )
     }
 
+    {
+      firmFrom && (
+        <section
+          id="firm"
+          data-admin-firm
+          class="mt-10 p-5 bg-[var(--color-cream)] border border-slate-900/10 rounded-md"
+        >
+          <h2 class="text-lg font-semibold">
+            {quote.finalised_at ? 'Revise the firm quote' : 'Firm quote'}
+          </h2>
+          <p class="mt-1 text-sm text-slate-600">
+            Set the lines the customer will pay for. Rate-card lines are priced by the engine at
+            both rates; a custom line takes the price you agree (academic blank = same as
+            commercial). Confirming saves the quote as payable and emails {quote.email} a link.
+          </p>
+          <form
+            method="post"
+            action={`/api/admin/quotes/${quote.quote_number}/finalise`}
+            class="mt-4"
+          >
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-left text-xs text-slate-500">
+                    <>
+                      <th class="py-1 pr-2">Line</th>
+                      <th class="py-1 pr-2">Count</th>
+                      <th class="py-1 pr-2">Markers</th>
+                      <th class="py-1 pr-2">Custom title</th>
+                      <th class="py-1 pr-2">Unit</th>
+                      <th class="py-1 pr-2">Academic $/unit</th>
+                      <th class="py-1">Commercial $/unit</th>
+                    </>
+                  </tr>
+                </thead>
+                <tbody>
+                  {firmRows.map(([i, r]) => {
+                    const name = (f: string) => `rows[${i}][${f}]`;
+                    const err = (f: string) => firmErrors[name(f)];
+                    const rowErrors = [
+                      'type',
+                      'count',
+                      'markers',
+                      'title',
+                      'unit',
+                      'academic',
+                      'commercial',
+                    ]
+                      .map(err)
+                      .filter(Boolean);
+                    const input =
+                      'border border-slate-300 rounded px-2 py-1 font-mono bg-white aria-[invalid=true]:border-red-600';
+                    return (
+                      <>
+                        <tr>
+                          <td class="py-1 pr-2">
+                            <select
+                              name={name('type')}
+                              aria-label={`Line ${i + 1} type`}
+                              aria-invalid={err('type') ? 'true' : undefined}
+                              class="max-w-[14rem] border border-slate-300 rounded px-2 py-1 bg-white"
+                            >
+                              <option value="">—</option>
+                              {FIRM_ROW_TYPES.map((t) => (
+                                <option value={t.value} selected={t.value === r.type}>
+                                  {t.label}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td class="py-1 pr-2">
+                            <input
+                              name={name('count')}
+                              aria-label={`Line ${i + 1} count`}
+                              aria-invalid={err('count') ? 'true' : undefined}
+                              inputmode="numeric"
+                              value={r.count}
+                              class={`w-20 ${input}`}
+                            />
+                          </td>
+                          <td class="py-1 pr-2">
+                            <input
+                              name={name('markers')}
+                              aria-label={`Line ${i + 1} markers`}
+                              aria-invalid={err('markers') ? 'true' : undefined}
+                              inputmode="numeric"
+                              value={r.markers}
+                              placeholder={rowType(r.type)?.markers === false ? '—' : '1'}
+                              class={`w-14 ${input}`}
+                            />
+                          </td>
+                          <td class="py-1 pr-2">
+                            <input
+                              name={name('title')}
+                              aria-label={`Line ${i + 1} custom title`}
+                              aria-invalid={err('title') ? 'true' : undefined}
+                              maxlength="120"
+                              value={r.title}
+                              class={`w-40 ${input} font-sans`}
+                            />
+                          </td>
+                          <td class="py-1 pr-2">
+                            <input
+                              name={name('unit')}
+                              aria-label={`Line ${i + 1} unit`}
+                              aria-invalid={err('unit') ? 'true' : undefined}
+                              maxlength="24"
+                              value={r.unit}
+                              placeholder="kit"
+                              class={`w-20 ${input} font-sans`}
+                            />
+                          </td>
+                          <td class="py-1 pr-2">
+                            <input
+                              name={name('academic')}
+                              aria-label={`Line ${i + 1} academic price per unit`}
+                              aria-invalid={err('academic') ? 'true' : undefined}
+                              inputmode="decimal"
+                              value={r.academic}
+                              class={`w-20 ${input}`}
+                            />
+                          </td>
+                          <td class="py-1">
+                            <input
+                              name={name('commercial')}
+                              aria-label={`Line ${i + 1} commercial price per unit`}
+                              aria-invalid={err('commercial') ? 'true' : undefined}
+                              inputmode="decimal"
+                              value={r.commercial}
+                              class={`w-20 ${input}`}
+                            />
+                          </td>
+                        </tr>
+                        {rowErrors.length > 0 && (
+                          <tr>
+                            <td colspan="7" class="pb-2 text-xs text-red-700" role="alert">
+                              Line {i + 1}: {rowErrors.join(' ')}
+                            </td>
+                          </tr>
+                        )}
+                      </>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="mt-4 grid gap-4 sm:grid-cols-[10rem_1fr]">
+              <label class="text-sm">
+                Days valid
+                <input
+                  name="days"
+                  inputmode="numeric"
+                  value={firmDays}
+                  aria-invalid={firmErrors.days ? 'true' : undefined}
+                  aria-describedby="firm-days-help"
+                  class="mt-1 block w-24 border border-slate-300 rounded px-2 py-1 font-mono bg-white"
+                />
+                <span id="firm-days-help" class="block mt-1 text-xs text-slate-500">
+                  From today, up to {MAX_DAYS}.
+                </span>
+              </label>
+              <label class="text-sm">
+                Note to the customer (optional; shown on their quote page and in the email)
+                <textarea
+                  name="note"
+                  rows="3"
+                  maxlength="2000"
+                  aria-invalid={firmErrors.note ? 'true' : undefined}
+                  class="mt-1 block w-full border border-slate-300 rounded px-2 py-1 bg-white"
+                  set:text={firmNote}
+                />
+              </label>
+            </div>
+
+            {(firmErrors.rows || firmErrors.days || firmErrors.note) && (
+              <p class="mt-3 text-sm text-red-700" role="alert">
+                {[firmErrors.rows, firmErrors.days, firmErrors.note].filter(Boolean).join(' ')}
+              </p>
+            )}
+            {firmPreview && (
+              <div class="mt-4 text-sm">
+                <table class="w-full border-collapse bg-white border border-slate-900/10">
+                  <thead>
+                    <tr class="bg-slate-100 text-left">
+                      <>
+                        <th class="px-3 py-1">Line</th>
+                        <th class="px-3 py-1 text-right">Academic</th>
+                        <th class="px-3 py-1 text-right">Commercial</th>
+                      </>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {firmPreview.lines.map((l) => (
+                      <tr class="border-t border-slate-900/10">
+                        <td class="px-3 py-1">
+                          {l.serviceTitle} — {l.count.toLocaleString('en-US')} {l.unitLabel}s
+                          {l.markers > 1 ? ` × ${l.markers} markers` : ''}
+                          <span class="text-xs text-slate-500">
+                            {` (${l.commercial.tierRange}${l.commercial.freeHeadroom > 0 ? `, priced as ${l.commercial.pricedCount.toLocaleString('en-US')}` : ''})`}
+                          </span>
+                        </td>
+                        <td class="px-3 py-1 text-right font-mono">
+                          {usdCents(l.academic.total * 100)}
+                        </td>
+                        <td class="px-3 py-1 text-right font-mono">
+                          {usdCents(l.commercial.total * 100)}
+                        </td>
+                      </tr>
+                    ))}
+                    <tr class="border-t-2 border-slate-900/20 font-semibold">
+                      <td class="px-3 py-2">Total</td>
+                      <td class="px-3 py-2 text-right font-mono">
+                        {usdCents(firmPreview.total.academic * 100)}
+                      </td>
+                      <td class="px-3 py-2 text-right font-mono">
+                        {usdCents(firmPreview.total.commercial * 100)}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p class="mt-2 text-slate-600">
+                  Confirming saves this as {quote.audience ? `a ${quote.audience}-rate` : 'a'}{' '}
+                  payable quote and emails {quote.email}.
+                </p>
+              </div>
+            )}
+
+            <div class="mt-4 flex gap-3">
+              <button
+                type="submit"
+                name="confirm"
+                value=""
+                class="px-4 py-2 rounded-sm text-sm font-medium border border-slate-900/20 bg-white"
+              >
+                Preview
+              </button>
+              {firmPreview && (
+                <button
+                  type="submit"
+                  name="confirm"
+                  value="true"
+                  class="px-4 py-2 rounded-sm text-sm font-medium bg-[var(--color-ink)] text-[var(--color-cream)]"
+                >
+                  Confirm &amp; email customer
+                </button>
+              )}
+            </div>
+          </form>
+        </section>
+      )
+    }
     {
       canBalance && (
         <section class="mt-10 p-5 bg-[var(--color-cream)] border border-slate-900/10 rounded-md">
