@@ -36,6 +36,9 @@ export const BLANK_ROWS = 3;
 export const DEFAULT_DAYS = 30;
 export const MAX_DAYS = 180;
 export const MAX_NOTE = 2000;
+const MAX_NOTE_BYTES = 4000;
+/** A firm quote above this is almost certainly a typo in a count or price. */
+export const MAX_FIRM_TOTAL = 5_000_000;
 const MAX_ROWS = 20;
 
 /**
@@ -99,7 +102,7 @@ export function formRows(lines: QuoteLine[]): FormRow[] {
   return [...rows, ...Array.from({ length: BLANK_ROWS }, blankRow)];
 }
 
-const ROW_FIELD = /^rows\[(\d{1,2})\]\[(type|count|markers|title|unit|academic|commercial)\]$/;
+const ROW_FIELD = /^rows\[(0|[1-9]\d?)\]\[(type|count|markers|title|unit|academic|commercial)\]$/;
 
 /**
  * Rows as submitted (or bounced back for preview), keyed by the row's own
@@ -228,7 +231,13 @@ export function parseFinaliseForm(fd: FormData | URLSearchParams): FinaliseForm 
   }
 
   const noteRaw = (fd.get('note') ?? '').toString().trim();
-  if (Array.from(noteRaw).length > MAX_NOTE)
+  // The preview round-trips the form through a redirect URL, so the note is
+  // also capped in UTF-8 bytes: 2,000 non-Latin characters percent-encode
+  // past the edge's URL limit.
+  if (
+    Array.from(noteRaw).length > MAX_NOTE ||
+    new TextEncoder().encode(noteRaw).length > MAX_NOTE_BYTES
+  )
     errors.note = `Keep the note under ${MAX_NOTE} characters.`;
 
   if (Object.keys(errors).length > 0) return { ok: false, errors };
@@ -270,6 +279,12 @@ export function priceFirm(
     return {
       ok: false,
       error: err instanceof Error ? err.message : 'These lines cannot be priced.',
+    };
+  }
+  if (quote.total.academic > MAX_FIRM_TOTAL || quote.total.commercial > MAX_FIRM_TOTAL) {
+    return {
+      ok: false,
+      error: `The quote totals over $${MAX_FIRM_TOTAL.toLocaleString('en-US')} — check the counts and prices for a typo.`,
     };
   }
   if (quote.total.academic < 1 || quote.total.commercial < 1) {

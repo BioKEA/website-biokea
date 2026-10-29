@@ -32,7 +32,13 @@ export async function handleFinalise(
 ): Promise<Response> {
   const now = deps.now ?? (() => new Date());
   const admin = `/admin/quotes/${quoteNumber}`;
-  const quote = await deps.db.getQuoteByNumber(quoteNumber);
+  let quote: Awaited<ReturnType<PaymentsDb['getQuoteByNumber']>>;
+  try {
+    quote = await deps.db.getQuoteByNumber(quoteNumber);
+  } catch (err) {
+    console.error('[finalise] quote read failed for', quoteNumber, err);
+    return seeOther(`${admin}?error=finalise-unavailable#firm`);
+  }
   if (!quote) return new Response('Quote not found', { status: 404 });
 
   let fd: FormData;
@@ -52,7 +58,13 @@ export async function handleFinalise(
     return seeOther(`${admin}?${qs.toString()}#firm`);
   }
 
-  const from = finaliseFrom(quote, await deps.db.listPayments(quote.id));
+  let from: ReturnType<typeof finaliseFrom>;
+  try {
+    from = finaliseFrom(quote, await deps.db.listPayments(quote.id));
+  } catch (err) {
+    console.error('[finalise] payments read failed for', quote.quote_number, err);
+    return seeOther(`${admin}?error=finalise-unavailable#firm`);
+  }
   if (!from) return seeOther(`${admin}?error=finalise-state#firm`);
 
   // Read before the update: the quote object may be the stored row itself.

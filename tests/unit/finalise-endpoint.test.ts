@@ -207,6 +207,18 @@ describe('POST /api/admin/quotes/<n>/finalise', () => {
     expect(db.quotes[0].status).toBe('quoted');
   });
 
+  it('a database outage redirects with a flash instead of a bare 500', async () => {
+    const down = new MemoryDb();
+    down.getQuoteByNumber = async () => {
+      throw new Error('paused');
+    };
+    const res = await handleFinalise(post({ ...firm, confirm: 'true' }), N, {
+      ...deps(),
+      db: down,
+    });
+    expect(location(res)).toBe(`/admin/quotes/${N}?error=finalise-unavailable#firm`);
+  });
+
   it('404s an unknown quote', async () => {
     const res = await handleFinalise(post(firm), 'BK-2026-9999', deps());
     expect(res.status).toBe(404);

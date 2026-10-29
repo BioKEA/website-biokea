@@ -224,6 +224,8 @@ if (quote.status === 'deposit_paid' && deposit) {
           {flash.error === 'finalise-db' &&
             'The firm quote could not be saved. Check that migration 0010 is applied, then try again.'}
           {flash.error === 'finalise-input' && 'The form could not be read. Try again.'}
+          {flash.error === 'finalise-unavailable' &&
+            'The quote service did not answer. Nothing was saved; try again shortly.'}
         </p>
       )
     }

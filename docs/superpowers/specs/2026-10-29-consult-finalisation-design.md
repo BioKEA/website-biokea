@@ -110,6 +110,12 @@ The flat tier's range label is "agreed rate"; the quote page drops its
 - Conditional update `status = <from>` and no live payment: a quote that a
   concurrent request already changed comes back as `error=state`.
 - Validation errors come back on the preview with the field named.
+- Revising races a checkout: the pay endpoint now claims the quote
+  (`quoted` → `deposit_invoiced`) right after recording the payment row and
+  before the Shopify call, then re-reads it and aborts if the lines or
+  totals changed. A revision's conditional write therefore can't land on a
+  quote mid-checkout, and a checkout can't bill lines a revision replaced.
+  On a gateway failure the claim is released. (Found in code review.)
 - Duplicate engine lines (same kind, service and assay) are refused: the
   balance form keys its inputs by that identity.
 
@@ -155,3 +161,17 @@ keep-alive (hits the REST endpoint, logs on failure, no-ops without env).
 - The consult triggers stay stored after finalising, as history.
 - A daily keep-alive cron rather than weekly: Supabase's inactivity
   window is seven days, and daily leaves room for failed runs.
+
+## Rollout
+
+1. Sean applies `migrations/0010_quote_finalisation.sql` in the Supabase
+   SQL editor and runs the check in its header (expect three rows).
+2. Merge `feat/consult-finalisation` into `main` and push over HTTPS; CI
+   deploys. The deploy adds the cron trigger, visible under the Worker's
+   Settings → Triggers in the Cloudflare dashboard.
+3. Verify: open a consult quote in `/admin`, Preview a firm quote, Confirm;
+   the customer email arrives and `/quote/<token>` shows the pay panel.
+   The next day, Workers Logs should show no `[keep-alive]` errors.
+
+If step 2 happens before step 1, only the finalise action fails, with the
+flash "Check that migration 0010 is applied".

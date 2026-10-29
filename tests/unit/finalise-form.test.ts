@@ -6,6 +6,7 @@ import {
   firmQuote,
   formRows,
   parseFinaliseForm,
+  priceFirm,
 } from '@/lib/payments/finalise';
 import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
 
@@ -235,5 +236,41 @@ describe('firmQuote', () => {
     expect(q.total.commercial).toBe(
       buildQuote([{ serviceSlug: 'barcoding', count: 5000 }]).total.commercial,
     );
+  });
+});
+
+describe('review fixes', () => {
+  it('a long non-Latin note is refused by byte size so the preview URL stays short', () => {
+    const r = parseFinaliseForm(
+      new URLSearchParams({
+        'rows[0][type]': 'service:barcoding:',
+        'rows[0][count]': '1',
+        note: '標'.repeat(1500),
+      }),
+    );
+    expect(r.ok).toBe(false);
+  });
+
+  it('a zero-padded row index is not a second name for the same row', () => {
+    const r = parseFinaliseForm(
+      new URLSearchParams({
+        'rows[5][type]': 'service:barcoding:',
+        'rows[5][count]': '3',
+        'rows[05][count]': '999',
+      }),
+    );
+    expect(r.ok && r.inputs).toEqual([{ serviceSlug: 'barcoding', count: 3 }]);
+  });
+
+  it('refuses an implausible total as a likely typo', () => {
+    const r = priceFirm([
+      {
+        serviceSlug: 'custom-1',
+        kind: 'custom',
+        count: 1_000_000,
+        custom: { title: 'x', unitLabel: 'kit', academic: 100, commercial: 100 },
+      },
+    ]);
+    expect(r.ok).toBe(false);
   });
 });

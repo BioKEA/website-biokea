@@ -121,6 +121,24 @@ export async function handlePayment(
     return url ? seeOther(url) : back(token, 'failed', { audience });
   }
 
+  // Claim the quote BEFORE the slow gateway call. The lab can revise a firm
+  // quote while it is still 'quoted' (spec 3, finalise endpoint), and its
+  // write is conditional on that status — so moving it now is what stops a
+  // revision landing mid-checkout. Then re-read: a revision that landed
+  // after our first read would make the lines we priced stale.
+  const claimed = await deps.db.updateQuoteStatusIf(quote.id, 'quoted', 'deposit_invoiced');
+  const fresh = claimed ? await deps.db.getQuoteById(quote.id) : null;
+  const unchanged =
+    fresh !== null &&
+    fresh.total_academic === quote.total_academic &&
+    fresh.total_commercial === quote.total_commercial &&
+    JSON.stringify(fresh.lines) === JSON.stringify(quote.lines);
+  if (!unchanged) {
+    if (claimed) await deps.db.updateQuoteStatusIf(quote.id, 'deposit_invoiced', 'quoted');
+    await deps.db.deletePayment(inserted.id);
+    return back(token, 'unavailable');
+  }
+
   const poNumber = form.po_number && form.po_number.length > 0 ? form.po_number : null;
 
   let created;
@@ -170,6 +188,8 @@ export async function handlePayment(
       err instanceof Error ? err.message : err,
     );
     await deps.db.deletePayment(inserted.id);
+    // Release the claim so the customer can try again.
+    await deps.db.updateQuoteStatusIf(quote.id, 'deposit_invoiced', 'quoted');
     return back(token, 'failed', { audience, po: poNumber ?? undefined });
   }
 
@@ -198,9 +218,8 @@ export async function handlePayment(
     po_number: poNumber,
     external_customer_id: created.customerId,
   });
-  // conditional step — never clobber a status the payment webhook may
-  // already have advanced
-  await deps.db.updateQuoteStatusIf(quote.id, 'quoted', 'deposit_invoiced');
+  // The status already moved to 'deposit_invoiced' when the quote was
+  // claimed above; the webhook may have advanced it further since.
 
   return form.intent === 'invoice'
     ? seeOther(`/quote/${token}?pay=invoiced#pay`)
