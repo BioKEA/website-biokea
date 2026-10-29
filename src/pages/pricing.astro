@@ -22,8 +22,8 @@ const barcoding = pricedServices.find((s) => s.slug === 'barcoding')!;
 const edna = pricedServices.find((s) => s.slug === 'metabarcoding')!;
 
 const storeUrl: Record<string, string> = {
-  barcoding: 'https://store.biokea.ai/products/specimen-barcoding',
-  metabarcoding: 'https://store.biokea.ai/products/edna-metabarcoding',
+  barcoding: 'https://store.biokea.ai/pages/order?service=barcoding',
+  metabarcoding: 'https://store.biokea.ai/pages/order?service=metabarcoding',
 };
 
 const contactHref = '/contact?topic=sequencing';
