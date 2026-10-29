@@ -263,18 +263,45 @@ export function syncHints(branch: ParentNode, config: ProjectConfig): void {
   }
 }
 
-/** Fill each `[data-error-for]` slot in the branch from `errors`, clear the
- * rest, and mark the matching text/number/select controls aria-invalid. */
-export function showErrors(branch: ParentNode, errors: Record<string, string>): void {
+/** The validateConfig key a control reports under (qPCR's select is the
+ * one control whose field name differs from its error key). */
+const errorKey = (field: string): string => (field === 'qSampleType' ? 'sampleType' : field);
+
+/** The error keys a customer has touched by interacting with `el`: its own
+ * field, plus every field and error slot inside the same `data-show-when`
+ * wrapper (ticking "Other" there is what makes "which one?" required). */
+export function touchedKeys(el: Element): string[] {
+  const keys = new Set<string>();
+  const own = (el as HTMLElement).dataset?.field;
+  if (own) keys.add(errorKey(own));
+  const wrap = el.closest('[data-show-when]');
+  wrap?.querySelectorAll<HTMLElement>('[data-field]').forEach((c) => {
+    keys.add(errorKey(c.dataset.field ?? ''));
+  });
+  wrap?.querySelectorAll<HTMLElement>('[data-error-for]').forEach((slot) => {
+    keys.add(slot.dataset.errorFor ?? '');
+  });
+  keys.delete('');
+  return [...keys];
+}
+
+/** Fill each `[data-error-for]` slot in the branch from `errors` when
+ * `show(key)` allows it, clear the rest, and mark the matching
+ * text/number/select controls aria-invalid on the same rule. */
+export function showErrors(
+  branch: ParentNode,
+  errors: Record<string, string>,
+  show: (key: string) => boolean,
+): void {
+  const visible = (key: string) => (errors[key] && show(key) ? errors[key] : '');
   branch.querySelectorAll<HTMLElement>('[data-error-for]').forEach((slot) => {
-    const msg = errors[slot.dataset.errorFor ?? ''] ?? '';
+    const msg = visible(slot.dataset.errorFor ?? '');
     slot.textContent = msg;
     slot.hidden = !msg;
   });
   branch.querySelectorAll<Control>('[data-field]').forEach((el) => {
     if (isToggle(el)) return;
-    const key = el.dataset.field === 'qSampleType' ? 'sampleType' : (el.dataset.field ?? '');
-    if (errors[key]) el.setAttribute('aria-invalid', 'true');
+    if (visible(errorKey(el.dataset.field ?? ''))) el.setAttribute('aria-invalid', 'true');
     else el.removeAttribute('aria-invalid');
   });
 }

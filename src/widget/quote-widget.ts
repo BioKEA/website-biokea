@@ -21,6 +21,7 @@ import {
   showErrors,
   syncHints,
   syncShowWhen,
+  touchedKeys,
 } from './config-reader';
 import { configSignature } from './state';
 import { esc, renderQuotePanel, renderWidgetHtml, STATUS_PILLS } from './template';
@@ -177,6 +178,10 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
   let requestedSignature: string | null = null;
   // What the panel currently holds, so an unchanged render is a no-op.
   let panelHtml = '';
+  // Inline errors wait until the customer has touched that field (or tried
+  // to go ahead), so a freshly opened branch isn't painted red.
+  const touched = new Set<string>();
+  let attempted = false;
 
   const activeBranch = (): HTMLElement | null =>
     service ? (branches.find((b) => b.dataset.branch === service) ?? null) : null;
@@ -244,7 +249,7 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
     syncShowWhen(branch);
     syncHints(branch, config);
     const errors = validateConfig(config);
-    showErrors(branch, errors);
+    showErrors(branch, errors, (key) => attempted || touched.has(key));
     if (Object.keys(errors).length > 0) {
       formStatus.textContent = FINISH_FIELDS;
       formStatus.hidden = false;
@@ -278,6 +283,8 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
   function selectService(next: ServiceSlug): void {
     service = next;
     markersTouched = false;
+    touched.clear();
+    attempted = false;
     applySuggestion();
   }
 
@@ -291,6 +298,7 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
       if (el.checked) audience = el.value === 'academic' ? 'academic' : 'commercial';
     } else {
       const field = el.dataset.field;
+      for (const key of touchedKeys(el)) touched.add(key);
       if (field === 'markers') markersTouched = true;
       if (ev.type === 'change') clampCount(el);
       // Branch-local so the suggestion follows the visible picker only.
@@ -300,6 +308,15 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
   }
   on(root, 'input', onConfigEvent);
   on(root, 'change', onConfigEvent);
+  // Leaving a field counts as touching it (blur doesn't bubble; focusout does).
+  on(root, 'focusout', (ev) => {
+    const el = ev.target as Element;
+    if (!(el instanceof Element) || !el.closest('[data-branch]')) return;
+    const keys = touchedKeys(el).filter((k) => !touched.has(k));
+    if (!keys.length) return;
+    for (const key of keys) touched.add(key);
+    render();
+  });
 
   // "Use suggested markers" lives in the branch; the CTAs live in the panel,
   // which is re-rendered whole — one delegated listener each, bound once.
@@ -314,7 +331,10 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
   on(panel, 'click', (ev) => {
     const target = ev.target as Element;
     for (const [sel, next] of CTA_INTENTS) {
-      if (target.closest?.(sel)) return openDetails(next);
+      if (target.closest?.(sel)) {
+        attempted = true;
+        return openDetails(next);
+      }
     }
   });
 
@@ -326,8 +346,10 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
     const attested = fd.get('attest') === 'true';
     const po = String(fd.get('po_number') ?? '');
     const submitIntent = intent;
+    attempted = true;
 
     if (!config || !order) {
+      render();
       status.textContent = FINISH_FIELDS;
       status.style.color = PINK;
       return;

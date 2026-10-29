@@ -218,11 +218,17 @@ test('ticking "Other" marker then unticking it leaves no trigger and restores th
   await ednaPath(page);
   const other = field(page, 'metabarcoding', 'markers', 'other');
   await other.check();
-  // "Which marker?" is required once Other is ticked.
+  // "Which marker?" is required once Other is ticked: the panel goes, and
+  // the inline error appears once that field has been touched.
   await expect(page.locator('[data-quote-panel]')).toBeHidden();
-  await expect(branch(page, 'metabarcoding').locator('[data-error-for="markerOther"]')).toHaveText(
-    'Tell us which marker you need.',
+  await expect(page.locator('[data-form-status]')).toHaveText(
+    'Finish the highlighted fields to see your quote.',
   );
+  const markerOtherErr = branch(page, 'metabarcoding').locator('[data-error-for="markerOther"]');
+  await expect(markerOtherErr).toBeHidden();
+  await field(page, 'metabarcoding', 'markerOther').focus();
+  await field(page, 'metabarcoding', 'markerOther').blur();
+  await expect(markerOtherErr).toHaveText('Tell us which marker you need.');
   await field(page, 'metabarcoding', 'markerOther').fill('rbcL');
   await expect(page.locator('[data-trigger-list]')).toContainText('Marker: Other');
   await expect(page.locator('[data-cta-pay]')).toHaveCount(0);
@@ -249,7 +255,14 @@ test('metagenomics: MG+MT on 2 specimens = $14,400; environmental source adds a 
   await expect(branch(page, 'metagenomics').locator('[data-count-label]')).toHaveText(
     'Number of environmental samples',
   );
-  await expect(branch(page, 'metagenomics').locator('[data-error-for="envNotes"]')).toBeVisible();
+  // The description is now required: no quote until it's filled, and its
+  // inline error waits until the field is touched.
+  await expect(page.locator('[data-quote-panel]')).toBeHidden();
+  const envErr = branch(page, 'metagenomics').locator('[data-error-for="envNotes"]');
+  await expect(envErr).toBeHidden();
+  await field(page, 'metagenomics', 'envNotes').focus();
+  await field(page, 'metagenomics', 'envNotes').blur();
+  await expect(envErr).toBeVisible();
   await field(page, 'metagenomics', 'envNotes').fill('Pond water, frozen');
   await expect(page.locator('[data-trigger-list]')).toContainText('Environmental samples');
   await expect(page.locator('[data-total]')).toHaveText('$14,400');
@@ -270,6 +283,30 @@ test('qPCR shows the custom intake and "Custom quote after consultation" with on
   await expect(page.locator('[data-total]')).toHaveCount(0);
   await expect(page.locator('[data-cta-consult]')).toBeVisible();
   await expect(page.locator('[data-cta-pay], [data-cta-invoice], [data-cta-email]')).toHaveCount(0);
+});
+
+test('a freshly opened branch shows no inline errors until a field is touched', async ({
+  page,
+}) => {
+  await page.goto('/quote');
+  await page.locator('[data-service-choice="barcoding"]').check();
+  const errs = branch(page, 'barcoding').locator('[data-error-for]');
+  expect(await errs.count()).toBeGreaterThan(0);
+  for (const err of await errs.all()) await expect(err).toBeHidden();
+  await expect(page.locator('[aria-invalid="true"]')).toHaveCount(0);
+  // Untouched but incomplete: still no quote, and the status line says why.
+  await expect(page.locator('[data-quote-panel]')).toBeHidden();
+  await expect(page.locator('[data-form-status]')).toHaveText(
+    'Finish the highlighted fields to see your quote.',
+  );
+
+  await field(page, 'barcoding', 'samples').fill('0');
+  await expect(branch(page, 'barcoding').locator('[data-error-for]:visible')).toHaveCount(1);
+  await expect(branch(page, 'barcoding').locator('[data-error-for="samples"]')).toHaveText(
+    'Enter how many samples you’ll send.',
+  );
+  await expect(page.locator('[aria-invalid="true"]')).toHaveCount(1);
+  await expect(field(page, 'barcoding', 'samples')).toHaveAttribute('aria-invalid', 'true');
 });
 
 test('a missing required field hides the panel and shows the inline error', async ({ page }) => {
@@ -425,7 +462,11 @@ test('changing the configuration while the request is in flight does not chain a
   await expect(page.locator('[data-quote-status]')).toContainText('BK-2026-0001', {
     timeout: 3000,
   });
+  // Give a (regressed) hand-off time to navigate before asserting it didn't.
+  await page.waitForTimeout(500);
   expect(pays).toHaveLength(0);
+  await expect(page.locator('[data-handoff-form]')).not.toHaveAttribute('action');
+  expect(new URL(page.url()).pathname).toMatch(/\/quote$/);
 });
 
 /** Presses Tab until `selector` has focus (or gives up). */

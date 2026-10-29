@@ -423,6 +423,10 @@ describe('config requests', () => {
     const res = await handleQuote(makeRequest({ ...base, config: edna({ markers: [] }) }), env);
     expect(res.status).toBe(400);
   });
+  it('an eDNA config with no targets is a 400', async () => {
+    const res = await handleQuote(makeRequest({ ...base, config: edna({ targets: [] }) }), env);
+    expect(res.status).toBe(400);
+  });
   it('a body with neither lines nor config is a 400', async () => {
     expect((await handleQuote(makeRequest(base), env)).status).toBe(400);
   });
