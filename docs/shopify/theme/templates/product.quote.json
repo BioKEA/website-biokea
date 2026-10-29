@@ -16,7 +16,7 @@
           "type": "custom-liquid",
           "name": "t:names.custom_liquid",
           "settings": {
-            "custom_liquid": "{%- assign svc = 'barcoding' -%}\n{%- if product.handle == 'edna-metabarcoding' -%}{%- assign svc = 'metabarcoding' -%}{%- endif -%}\n<div class=\"rte\">{{ product.description }}</div>\n<a class=\"button\" href=\"/pages/order?service={{ svc }}\">Configure this service →</a>"
+            "custom_liquid": "{%- assign svc = 'barcoding' -%}\n{%- if product.handle == 'edna-metabarcoding' -%}{%- assign svc = 'metabarcoding' -%}{%- endif -%}\n<a class=\"button\" href=\"/pages/order?service={{ svc }}\">Configure this service →</a>"
           },
           "blocks": {}
         },

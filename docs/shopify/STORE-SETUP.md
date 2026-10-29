@@ -108,10 +108,10 @@ visibility (Active once the Order page is live — step 8), and
 assigned the `product.quote` template (step 8) so the buy button is hidden
 and a **Configure this service →** button to the Order page shows instead.
 
-| Handle               | Title                                  | Description                                                                                                                                                                             | Display price    |
-| -------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| `specimen-barcoding` | Voucher-Linked Specimen Barcoding      | Species-level DNA barcode ID for individual specimens — non-destructive extraction, Nanopore sequencing, voucher + image per specimen. Configure your count below for an instant quote. | from $6/specimen |
-| `edna-metabarcoding` | Environmental DNA (eDNA) Metabarcoding | Whole-assemblage species detection from a water, soil, sediment, or air sample — no specimens required. Configure your sample count below for an instant quote.                         | from $115/sample |
+| Handle               | Title                                  | Description                                                                                                                                                                                           | Display price    |
+| -------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| `specimen-barcoding` | Voucher-Linked Specimen Barcoding      | Species-level DNA barcode ID for individual specimens — non-destructive extraction, Nanopore sequencing, voucher + image per specimen. Configure your project on our Order page for an instant quote. | from $6/specimen |
+| `edna-metabarcoding` | Environmental DNA (eDNA) Metabarcoding | Whole-assemblage species detection from a water, soil, sediment, or air sample — no specimens required. Configure your project on our Order page for an instant quote.                                | from $115/sample |
 
 The "from" price is the lowest per-unit academic rate at the top volume
 tier (`src/data/pricing.ts`) — shown as a **display price** only; Shopify
@@ -158,8 +158,8 @@ version>` cache-buster (the Worker ignores `?v=`). Bump it in
   `?service=barcoding|metabarcoding` from the page URL itself.
 - **Service products.** The `product.quote` template (assigned to the two
   service products in step 7, buy buttons disabled) no longer embeds the
-  widget. Its Custom Liquid block shows the product description and a
-  **Configure this service →** button to `/pages/order?service=barcoding`
+  widget. The editor's description block shows the product description,
+  and our Custom Liquid block adds a **Configure this service →** button to `/pages/order?service=barcoding`
   (or `metabarcoding` for `edna-metabarcoding`).
 - **Main menu.** Online Store → Navigation → Main menu: **Order** →
   `/pages/order` as the **first** item, then Services, Kits, Consumables,
