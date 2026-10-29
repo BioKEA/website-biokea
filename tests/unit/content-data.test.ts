@@ -526,6 +526,44 @@ describe('configurator catalog', () => {
     expect(suggestedMarkers('barcoding', [])).toEqual(['COI']);
     expect(suggestedMarkers('metabarcoding', [])).toEqual([]);
   });
+  it('barcoding vertebrates: the suggestion depends on the subgroup', () => {
+    // No subgroup chosen: the target's own marker.
+    expect(suggestedMarkers('barcoding', ['vertebrates'])).toEqual(['COI']);
+    expect(suggestedMarkers('barcoding', ['vertebrates'], { vertebrates: ['Fish'] })).toEqual([
+      '12S',
+    ]);
+    expect(
+      suggestedMarkers('barcoding', ['vertebrates'], { vertebrates: ['Sharks and rays'] }),
+    ).toEqual(['12S']);
+    expect(suggestedMarkers('barcoding', ['vertebrates'], { vertebrates: ['Birds'] })).toEqual([
+      'COI',
+    ]);
+    expect(
+      suggestedMarkers('barcoding', ['vertebrates'], { vertebrates: ['Fish', 'Mammals'] }),
+    ).toEqual(['12S', 'COI']);
+    // Invertebrates keep COI whatever the subgroup.
+    expect(
+      suggestedMarkers('barcoding', ['invertebrates'], {
+        invertebrates: ['Insects (beetles, flies)'],
+      }),
+    ).toEqual(['COI']);
+    // eDNA vertebrates are unchanged: 12S for every subgroup.
+    expect(suggestedMarkers('metabarcoding', ['vertebrates'], { vertebrates: ['Birds'] })).toEqual([
+      '12S',
+    ]);
+  });
+  it('every subgroup marker names a real subgroup and a real marker', () => {
+    for (const t of targets) {
+      for (const [svc, map] of Object.entries(t.subMarkers ?? {})) {
+        const subs =
+          (svc === 'metabarcoding' ? (t.subs?.metabarcoding ?? t.subs?.all) : t.subs?.all) ?? [];
+        for (const [sub, m] of Object.entries(map ?? {})) {
+          expect(subs).toContain(sub);
+          expect(markers.map((x) => x.id)).toContain(m);
+        }
+      }
+    }
+  });
   it('offers bacteria and phytoplankton only for eDNA', () => {
     expect(targets.find((t) => t.id === 'bacteria')?.services).toEqual(['metabarcoding']);
     expect(targets.find((t) => t.id === 'invertebrates')?.services).toEqual([

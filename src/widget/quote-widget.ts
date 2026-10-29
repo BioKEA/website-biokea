@@ -302,7 +302,14 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
       if (field === 'markers') markersTouched = true;
       if (ev.type === 'change') clampCount(el);
       // Branch-local so the suggestion follows the visible picker only.
-      if (field === 'target' || field === 'targets' || field === 'markers') applySuggestion();
+      if (
+        field === 'target' ||
+        field === 'targets' ||
+        field === 'markers' ||
+        field === 'subs' ||
+        field?.startsWith('subs-')
+      )
+        applySuggestion();
     }
     render();
   }
