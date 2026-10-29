@@ -18,14 +18,15 @@ const ASSETS = 'http://assets.biokea.test';
 const read = (name: string) =>
   readFileSync(fileURLToPath(new URL(`../../public/widget/${name}`, import.meta.url)), 'utf8');
 
-async function embed(page: Page, source?: string): Promise<void> {
+async function embed(page: Page, source?: string, service?: string): Promise<void> {
   await page.route(`${ASSETS}/widget/quote.css`, (route) =>
     route.fulfill({ contentType: 'text/css', body: read('quote.css') }),
   );
   await page.route(`${ASSETS}/widget/quote.js`, (route) =>
     route.fulfill({ contentType: 'text/javascript', body: read('quote.js') }),
   );
-  const attr = source ? ` data-source="${source}"` : '';
+  const attr =
+    (source ? ` data-source="${source}"` : '') + (service ? ` data-service="${service}"` : '');
   await page.route(`${STORE}/**`, (route) =>
     route.fulfill({
       contentType: 'text/html',
@@ -39,15 +40,27 @@ async function embed(page: Page, source?: string): Promise<void> {
   await page.goto(`${STORE}/products/sequencing`);
 }
 
-test('the widget bundle mounts and prices itself off-site', async ({ page }) => {
-  await embed(page, 'store');
+/** The eDNA example from the spec: 60 water samples, vertebrates (12S
+ * suggested) plus COI — $10,500 at the commercial rate. */
+async function ednaPath(page: Page): Promise<void> {
+  const b = page.locator('[data-branch="metabarcoding"]');
+  await b.locator('[data-field="targets"][value="vertebrates"]').check();
+  await b.locator('[data-field="markers"][value="COI"]').check();
+  await b.locator('[data-field="sampleType"]').selectOption('water');
+  await b.locator('[data-field="samples"]').fill('60');
+}
 
-  // Default configuration: 100 specimens of barcoding at the default
-  // commercial rate ($20); the academic rate is available on the toggle.
-  await expect(page.locator('[data-total]')).toHaveText('$2,000');
+test('the widget bundle mounts and prices itself off-site', async ({ page }) => {
+  // `data-service` on the mount element is how a store product page
+  // pre-selects its service.
+  await embed(page, 'store', 'metabarcoding');
+
+  await expect(page.locator('[data-service-choice="metabarcoding"]')).toBeChecked();
+  await ednaPath(page);
+  await expect(page.locator('[data-total]')).toHaveText('$10,500');
   await page.check('[data-audience-toggle="academic"]');
-  await expect(page.locator('[data-total]')).toHaveText('$1,600');
-  await expect(page.locator('[data-summary-panel]')).toBeVisible();
+  await expect(page.locator('[data-total]')).toHaveText('$8,520');
+  await expect(page.locator('[data-quote-panel]')).toBeVisible();
   await expect(page.locator('[data-cta-pay]')).toBeVisible();
   expect(
     await page.evaluate(
@@ -59,9 +72,14 @@ test('the widget bundle mounts and prices itself off-site', async ({ page }) => 
 test('the widget recalculates from its own controls off-site', async ({ page }) => {
   await embed(page);
 
-  await page.locator('[data-count-input="barcoding"]').fill('600');
-  await page.locator('[data-count-input="barcoding"]').blur();
-  await expect(page.locator('[data-total]')).toHaveText('$9,000');
+  // Nothing is pre-selected without data-service or ?service=.
+  await expect(page.locator('[data-quote-panel]')).toBeHidden();
+  await page.locator('[data-service-choice="metagenomics"]').check();
+  const b = page.locator('[data-branch="metagenomics"]');
+  await b.locator('[data-field="assays"][value="mg"]').check();
+  await b.locator('[data-field="assays"][value="mt"]').check();
+  await b.locator('[data-field="count"]').fill('2');
+  await expect(page.locator('[data-total]')).toHaveText('$14,400');
 });
 
 // The pay CTA's hidden hand-off form is a native <form method="post"> with
@@ -94,6 +112,8 @@ test('the pay hand-off is a native cross-origin form submit, not a fetch', async
   );
 
   await expect(page.locator('[data-handoff-form]')).toBeHidden();
+  await page.locator('[data-service-choice="metabarcoding"]').check();
+  await ednaPath(page);
   await page.click('[data-cta-pay]');
   await page.fill('#quote-name', 'Alice');
   await page.fill('#quote-email', 'alice@state.edu');
