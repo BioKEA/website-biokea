@@ -97,6 +97,14 @@ describe('buildOrder', () => {
     expect(o.triggers.map((t) => t.key)).toEqual(['volume']);
     expect(o.consult).toBe(true);
   });
+  it('identification-only barcoding also consults at 3,001 specimens', () => {
+    const at = buildOrder(bc({ handling: 'idOnly', samples: 3001, perSample: 1 }));
+    expect(at.triggers.map((t) => t.key)).toEqual(['volume']);
+    expect(at.consult).toBe(true);
+    const below = buildOrder(bc({ handling: 'idOnly', samples: 3000, perSample: 1 }));
+    expect(below.triggers).toEqual([]);
+    expect(below.consult).toBe(false);
+  });
 });
 
 describe('validateConfig', () => {
@@ -137,6 +145,11 @@ describe('summarizeConfig', () => {
     expect(lines).toContain('Markers: COI, 12S');
     expect(lines).toContain('Samples: 3, up to 50 organisms each');
     expect(lines[lines.length - 1]).toBe('Directions: Keep legs.');
+  });
+  it('does not call identification-only barcoding voucher-linked', () => {
+    const lines = summarizeConfig(bc({ handling: 'idOnly' }));
+    expect(lines[0]).toBe('Service: Specimen barcoding (identification only)');
+    expect(lines.join('\n')).not.toMatch(/voucher-linked/i);
   });
 });
 

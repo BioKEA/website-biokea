@@ -17,7 +17,7 @@ import {
   type ServiceSlug,
   type TargetId,
 } from '@/data/configurator';
-import { metagenomics, samplingKitPrice } from '@/data/pricing';
+import { metagenomics, pricedServices, samplingKitPrice } from '@/data/pricing';
 import { buildQuote, type Quote, type QuoteLineInput } from './quote';
 
 export interface BarcodingConfig {
@@ -117,6 +117,16 @@ const targetName = (id: TargetId) =>
 /** Samples × organisms per sample; null when no per-sample maximum is set. */
 export function barcodingCount(c: BarcodingConfig): number | null {
   return c.perSample === undefined ? null : c.samples * c.perSample;
+}
+
+const barcodingThreshold = pricedServices.find(
+  (s) => s.slug === 'barcoding',
+)?.conversationThreshold;
+
+/** True when a barcoding project is large enough to need a conversation. */
+function overVolume(c: BarcodingConfig): boolean {
+  const count = barcodingCount(c);
+  return count !== null && barcodingThreshold !== undefined && count >= barcodingThreshold;
 }
 
 /** Target, marker and sample-type triggers shared by barcoding and eDNA. */
@@ -249,7 +259,10 @@ function partsFor(config: ProjectConfig): Parts {
 export function buildOrder(config: ProjectConfig): Order {
   const { inputs, triggers, tbc } = partsFor(config);
   const quote = buildQuote(inputs);
-  if (quote.needsConversation && config.service === 'barcoding') {
+  // The engine flags the voucher-linked line, but the identification-only
+  // line has no threshold of its own: the volume consult applies to the
+  // barcoding project whichever handling the customer chose.
+  if (config.service === 'barcoding' && (quote.needsConversation || overVolume(config))) {
     triggers.push({
       key: 'volume',
       label: 'Volume',
@@ -443,7 +456,13 @@ function serviceSummary(config: ProjectConfig): string[] {
 
 /** Plain-text lines for emails and the draft-order note. */
 export function summarizeConfig(config: ProjectConfig): string[] {
-  const lines = [`Service: ${serviceTitle(config.service)}`, ...serviceSummary(config)];
+  // The barcoding title says "voucher-linked"; an identification-only order
+  // must not tell the lab to keep vouchers.
+  const title =
+    config.service === 'barcoding' && config.handling === 'idOnly'
+      ? 'Specimen barcoding (identification only)'
+      : serviceTitle(config.service);
+  const lines = [`Service: ${title}`, ...serviceSummary(config)];
   if (!blank(config.directions)) lines.push(`Directions: ${text(config.directions)}`);
   return lines;
 }
