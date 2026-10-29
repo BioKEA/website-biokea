@@ -3,6 +3,7 @@
 // and the balance form (preview → confirm). Spec §5.3.
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
+import ConfigSummary from '@/components/ui/ConfigSummary.astro';
 import { env } from 'cloudflare:workers';
 import { SupabaseDb } from '@/lib/payments/db';
 import {
@@ -13,6 +14,7 @@ import {
   usdCents,
 } from '@/lib/payments/terms';
 import { parseBalanceForm } from '@/lib/payments/balance-form';
+import { lineKey } from '@/lib/pricing/quote';
 import { numericId } from '@/lib/payments/shopify-ids';
 import { statusLabel } from '@/lib/payments/labels';
 import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
@@ -143,6 +145,20 @@ if (quote.status === 'deposit_paid' && deposit) {
       {quote.expires_at.slice(0, 10)}
       · <a class="underline" href={`/quote/${quote.access_token}`}>customer view</a>
     </p>
+
+    {
+      quote.config && (
+        <section data-admin-config>
+          <ConfigSummary
+            config={quote.config}
+            triggers={quote.consult_triggers}
+            directions={quote.directions}
+            consult={quote.status === 'consult'}
+            staff
+          />
+        </section>
+      )
+    }
 
     {
       flash.error && (
@@ -306,20 +322,20 @@ if (quote.status === 'deposit_paid' && deposit) {
                     </td>
                     <td class="py-1 pr-3">
                       <input
-                        name={`counts[${l.serviceSlug}]`}
+                        name={`counts[${lineKey(l)}]`}
                         inputmode="numeric"
                         pattern="[0-9]*"
-                        value={val(`counts[${l.serviceSlug}]`) || String(l.count)}
+                        value={val(`counts[${lineKey(l)}]`) || String(l.count)}
                         class="w-28 border border-slate-300 rounded px-2 py-1 font-mono"
                       />
                     </td>
                     <td class="py-1">
-                      {l.serviceSlug === 'metabarcoding' ? (
+                      {l.serviceSlug === 'metabarcoding' || l.serviceSlug === 'barcoding' ? (
                         <input
-                          name={`markers[${l.serviceSlug}]`}
+                          name={`markers[${lineKey(l)}]`}
                           inputmode="numeric"
                           pattern="[0-9]*"
-                          value={val(`markers[${l.serviceSlug}]`) || String(l.markers)}
+                          value={val(`markers[${lineKey(l)}]`) || String(l.markers)}
                           class="w-16 border border-slate-300 rounded px-2 py-1 font-mono"
                         />
                       ) : (

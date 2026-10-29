@@ -168,7 +168,7 @@ const serviceJsonLd = serviceOfferings.map((s) => ({
                   See pricing →
                 </a>
                 {s.configurable ? (
-                  <a href="/quote" class="text-[var(--color-teal)]">
+                  <a href={`/quote?service=${s.pricingAnchor}`} class="text-[var(--color-teal)]">
                     Configure →
                   </a>
                 ) : (

@@ -1,0 +1,87 @@
+---
+// The customer's project configuration, consult triggers, and free-text
+// directions — shared by the customer quote page and the admin detail page.
+// `Directions:` is dropped from the summary because `directions` renders
+// on its own, with the customer's line breaks kept.
+import { summarizeConfig } from '@/lib/pricing/order';
+import type { ConsultTrigger, ProjectConfig } from '@/lib/pricing/order';
+
+interface Props {
+  config: ProjectConfig | null;
+  triggers: ConsultTrigger[];
+  directions: string | null;
+  consult: boolean;
+  /** Staff view: drops the customer-facing "we'll reply" sentence. */
+  staff?: boolean;
+}
+const { config, triggers, directions, consult, staff = false } = Astro.props;
+
+const rows = config
+  ? summarizeConfig(config)
+      .filter((l) => !l.startsWith('Directions: '))
+      .map((l) => {
+        const i = l.indexOf(': ');
+        return i === -1 ? { term: l, value: '' } : { term: l.slice(0, i), value: l.slice(i + 2) };
+      })
+  : [];
+---
+
+{
+  config && (
+    <section
+      data-config-summary
+      class="mt-5 bg-white border border-slate-900/10 rounded-md px-4 py-3"
+    >
+      <p class="font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">
+        Project configuration
+      </p>
+      <dl class="mt-2 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-sm">
+        {rows.map((r) => (
+          <>
+            {/* Hidden colon + space keep the text "Term: value" for copy and screen readers. */}
+            <dt class="text-slate-500">
+              {r.term}
+              <span class="sr-only">:</span>
+            </dt>{' '}
+            <dd class="text-[var(--color-ink)]">{r.value}</dd>
+          </>
+        ))}
+      </dl>
+    </section>
+  )
+}
+{
+  consult && (
+    <div
+      data-consult-notice
+      class="mt-5 text-sm text-[var(--color-ink)] bg-[rgba(146,64,14,0.1)] border-l-2 border-[var(--color-ochre)] rounded-r-sm px-4 py-3 leading-relaxed"
+    >
+      <h2 class="font-semibold">Consultation requested</h2>
+      {!staff && (
+        <p class="mt-1">
+          We'll review the points below and reply with a firm quote and a payment link.
+        </p>
+      )}
+      {triggers.length > 0 && (
+        <ul class="mt-2 list-disc pl-5 space-y-1">
+          {triggers.map((t) => (
+            <li>
+              <strong>{t.label}</strong>
+              {t.detail ? ` — ${t.detail}` : ''}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+{
+  directions && (
+    <div class="mt-5">
+      <p class="font-mono text-[11px] tracking-[0.1em] uppercase text-slate-500">Directions</p>
+      <p data-directions class="mt-1 text-sm text-[var(--color-ink)] whitespace-pre-line">
+        {directions}
+      </p>
+    </div>
+  )
+}

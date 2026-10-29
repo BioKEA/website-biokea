@@ -165,6 +165,9 @@ details step as today.
   (priced at the specimen rate as an estimate; required description;
   consult trigger).
 - Number of specimens/samples → integer ≥ 1. One line per assay.
+- Volume above 50 specimens (per assay) → consult with a Volume trigger
+  (Sean's call, 2026-10-29: one dedicated flow cell per specimen;
+  `metagenomicsConversationThreshold = 51` in `src/data/pricing.ts`).
 
 **Targeted eDNA (qPCR)** — custom intake, always consult, no prices:
 species of interest (required), what to measure (presence/absence,
@@ -329,12 +332,17 @@ badge for `status = 'consult'`.
 
 ## Rollout
 
-1. Migration 0009 applied in Supabase (Sean).
-2. Site deploy (widget 1.3.0 + API + pages) via push to main.
-3. Theme push: `page.order.json`, `product.quote.json`, header menu;
-   create the Order page; set the home hero CTA.
+1. Migration 0009 applied in Supabase (Sean), then the constraint check
+   in its header run: one check must list `'consult'`.
+2. Store first (`docs/shopify/theme/ORDER-PAGE-ROLLOUT.md`): create the
+   Order page, update product descriptions, push `page.order.json`,
+   `product.quote.json` and the header, add the menu item; set the home
+   hero CTA.
+3. Site deploy (widget 1.3.0 + API + pages) via push to main.
 4. Verify on both hosts; run the §6 money-path check from
    `docs/shopify/PAY-IN-FULL-VERIFICATION.md` on a real eDNA order.
+
+The store goes before the site: The Worker serves `/widget/*` regardless of `?v=`, so a theme pushed before the site deploy works at once (it loads the current widget until the deploy swaps in 1.3.0); a site deploy before the Order page exists leaves the pricing page's "Configure and pay online" links pointing at a live 404.
 
 ## Left to the builder
 

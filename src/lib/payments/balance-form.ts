@@ -4,11 +4,21 @@
 // page's preview round-trip). Split out of the API route module: the route
 // imports the payments gateway, and dragging that into the admin page's
 // module graph broke Vite's dev SSR resolution.
-import type { QuoteLineInput } from '@/lib/pricing/quote';
+import type { LineKind, QuoteLineInput } from '@/lib/pricing/quote';
 
-const COUNT_KEY = /^counts\[([a-z0-9-]{1,64})\]$/;
-const MARKER_KEY = /^markers\[([a-z0-9-]{1,64})\]$/;
+// Keys are `counts[<lineKey>]` / `markers[<lineKey>]`, lineKey being
+// `<kind>:<slug>:<assay?>` (see lineKey in quote.ts), so two lines that share
+// a slug (an mg and an mt assay; barcoding and its id-only run) stay apart.
+const LINE_KEY = '([a-z-]+:[a-z0-9-]{1,64}:(?:mg|mt)?)';
+// The bare-slug keys the admin form sent before line kinds. Still accepted
+// for one release so a preview link built by the old form round-trips; a
+// bare slug is always a plain service line.
+const LEGACY_KEY = '([a-z0-9-]{1,64})';
+const COUNT_KEY = new RegExp(`^counts\\[(?:${LINE_KEY}|${LEGACY_KEY})\\]$`);
+const MARKER_KEY = new RegExp(`^markers\\[(?:${LINE_KEY}|${LEGACY_KEY})\\]$`);
+const KINDS: readonly LineKind[] = ['service', 'id-only', 'preservative-edna', 'assay'];
 const isPosInt = (s: string) => /^\d{1,7}$/.test(s) && Number(s) > 0;
+const keyOf = (m: RegExpMatchArray) => m[1] ?? `service:${m[2]}:`;
 
 export function parseBalanceForm(
   fd: FormData | URLSearchParams,
@@ -21,23 +31,30 @@ export function parseBalanceForm(
     if (c) {
       if (val === '') continue;
       if (!isPosInt(val)) return null;
-      counts.set(c[1], Number(val));
+      counts.set(keyOf(c), Number(val));
       continue;
     }
     const m = k.match(MARKER_KEY);
     if (m) {
       if (val === '') continue;
       if (!isPosInt(val)) return null;
-      markers.set(m[1], Number(val));
+      markers.set(keyOf(m), Number(val));
     }
   }
   if (counts.size === 0) return null;
   const inputs: QuoteLineInput[] = [];
-  for (const [slug, count] of counts) {
-    const mk = markers.get(slug);
-    inputs.push(
-      mk && mk > 1 ? { serviceSlug: slug, count, markers: mk } : { serviceSlug: slug, count },
-    );
+  for (const [key, count] of counts) {
+    const [kind, serviceSlug, assay] = key.split(':') as [LineKind, string, '' | 'mg' | 'mt'];
+    if (!KINDS.includes(kind)) return null;
+    // Built field by field so a plain service line comes out exactly as it
+    // did before kinds — { serviceSlug, count, markers? } — and stored
+    // actual_lines for legacy quotes keep their shape.
+    const input: QuoteLineInput = { serviceSlug, count };
+    const mk = markers.get(key);
+    if (mk && mk > 1) input.markers = mk;
+    if (kind !== 'service') input.kind = kind;
+    if (assay) input.assay = assay;
+    inputs.push(input);
   }
   return { inputs, confirm: fd.get('confirm') === 'true' };
 }

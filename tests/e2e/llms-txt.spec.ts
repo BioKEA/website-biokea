@@ -15,6 +15,7 @@ test('llms.txt is served as markdown with agent-first sections', async ({ page }
   expect(body).toContain('## Services');
   expect(body).toContain('molecular sequencing');
   expect(body).toContain('eDNA');
+  expect(body).toContain('or on the store at https://store.biokea.ai/pages/order');
   expect(body).toContain('## Team');
   expect(body).toContain('Sean Jungbluth');
   expect(body).toContain('## Partners');

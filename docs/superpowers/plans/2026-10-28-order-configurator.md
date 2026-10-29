@@ -1215,7 +1215,15 @@ Expected: all PASS.
 
 - [ ] **Step 2: Sean applies `migrations/0009_quote_config.sql` in Supabase** (blocking; the API inserts `config`, `directions`, `consult_triggers` and `status='consult'`).
 
-- [ ] **Step 3: Merge to `main`, push over HTTPS, watch CI**
+Then run the constraint check from the migration header and expect one check listing `'consult'`:
+
+```sql
+select conname, pg_get_constraintdef(oid) from pg_constraint where conrelid='public.quotes'::regclass and contype='c';
+```
+
+- [ ] **Step 3: Store Order page rollout BEFORE the site deploy.** Follow `docs/shopify/theme/ORDER-PAGE-ROLLOUT.md` sections 1–4 (page, product descriptions, theme push, menu). The Worker serves `/widget/*` regardless of `?v=`, so a theme pushed before the site deploy works at once (it loads the current widget until the deploy swaps in 1.3.0); a site deploy before the Order page exists leaves the pricing page's "Configure and pay online" links pointing at a live 404.
+
+- [ ] **Step 4: Merge to `main`, push over HTTPS, watch CI**
 
 ```bash
 git checkout main && git merge --no-ff <branch>
@@ -1223,13 +1231,11 @@ git -c credential.helper='!gh auth git-credential' push https://github.com/BioKE
 gh run watch
 ```
 
-- [ ] **Step 4: Verify live site**
+- [ ] **Step 5: Verify live site and store end to end**
 
 ```bash
 curl -s https://biokea.ai/widget/quote.js?v=1.3.0 | grep -c 'data-service-choice'
 curl -sL https://biokea.ai/quote | grep -o 'quote.js?v=1.3.0'
 ```
 
-Then in a browser: `/quote?service=metagenomics` pre-selects; a qPCR submission lands in `/admin` as "Consultation requested" and both emails arrive.
-
-- [ ] **Step 5: Store order page end to end** (Task 10 pushed after the site deploy so the `?v=1.3.0` bundle exists): eDNA 60 samples → "Pay $10,500 and start" → Shopify checkout opens with the configuration in the order note. Record the result in `docs/shopify/PAY-IN-FULL-VERIFICATION.md`.
+Then run section 5 of `ORDER-PAGE-ROLLOUT.md`. In a browser: `/quote?service=metagenomics` pre-selects; a qPCR submission lands in `/admin` as "Consultation requested" and both emails arrive. On the store Order page: eDNA 60 samples → "Pay $10,500 and start" → Shopify checkout opens with the configuration in the order note. Record the result in `docs/shopify/PAY-IN-FULL-VERIFICATION.md`.

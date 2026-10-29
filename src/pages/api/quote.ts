@@ -2,7 +2,10 @@
 import type { APIContext, APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { z } from 'zod';
-import { buildQuote } from '@/lib/pricing/quote';
+import { buildQuote, type Quote } from '@/lib/pricing/quote';
+import { buildOrder, validateConfig, type Order, type ProjectConfig } from '@/lib/pricing/order';
+import { ConfigSchema } from '@/lib/pricing/config-schema';
+import { configLines, consultBullets, whatHappensNext } from '@/lib/email/quote-config';
 import { preflight, withCors } from '@/lib/cors';
 import { shopifyConfigured, type ShopifyEnv } from '@/lib/payments/shopify-env';
 
@@ -10,33 +13,75 @@ export const prerender = false;
 
 const NoLineBreaks = /^[^\r\n]+$/;
 
-const QuoteSchema = z.object({
-  name: z.string().trim().min(1).max(200).regex(NoLineBreaks),
-  email: z.string().trim().email().max(254).regex(NoLineBreaks),
-  organization: z.string().trim().max(200).regex(NoLineBreaks).optional().or(z.literal('')),
-  note: z.string().trim().max(2000).optional().or(z.literal('')),
-  lines: z
-    .array(
-      z.object({
-        serviceSlug: z.string().regex(/^[a-z0-9-]{1,64}$/),
-        count: z.number().int().positive().max(1_000_000),
-        markers: z.number().int().positive().max(20).optional(),
-      }),
-    )
-    .min(1)
-    .max(4),
-  // Optional so a cached widget bundle on the store keeps working; absent
-  // means the pay endpoint collects them instead.
-  audience: z.enum(['academic', 'commercial']).optional(),
-  // 'site' | 'store' today; pattern kept loose for future placements.
-  source: z
-    .string()
-    .regex(/^[a-z0-9-]{1,32}$/)
-    .optional(),
-  attest: z.boolean().optional(),
-  website: z.string().optional(),
-  'cf-turnstile-response': z.string().optional(),
-});
+const QuoteSchema = z
+  .object({
+    name: z.string().trim().min(1).max(200).regex(NoLineBreaks),
+    email: z.string().trim().email().max(254).regex(NoLineBreaks),
+    organization: z.string().trim().max(200).regex(NoLineBreaks).optional().or(z.literal('')),
+    note: z.string().trim().max(2000).optional().or(z.literal('')),
+    lines: z
+      .array(
+        z.object({
+          serviceSlug: z.string().regex(/^[a-z0-9-]{1,64}$/),
+          count: z.number().int().positive().max(1_000_000),
+          markers: z.number().int().positive().max(20).optional(),
+        }),
+      )
+      .min(1)
+      .max(4)
+      .optional(),
+    // The configurator sends its choices instead of lines; the server derives
+    // the lines (and any consult triggers) from them. Bare `lines` stay
+    // accepted for cached widget bundles.
+    config: ConfigSchema.optional(),
+    directions: z.string().trim().max(2000).optional().or(z.literal('')),
+    // Optional so a cached widget bundle on the store keeps working; absent
+    // means the pay endpoint collects them instead.
+    audience: z.enum(['academic', 'commercial']).optional(),
+    // 'site' | 'store' today; pattern kept loose for future placements.
+    source: z
+      .string()
+      .regex(/^[a-z0-9-]{1,32}$/)
+      .optional(),
+    attest: z.boolean().optional(),
+    website: z.string().optional(),
+    'cf-turnstile-response': z.string().optional(),
+  })
+  .refine((d) => d.lines || d.config);
+
+const uniq = <T>(xs: T[]): T[] => [...new Set(xs)];
+
+// buildOrder assumes no repeated ids (a doubled marker would double the
+// price), and the schema only bounds array length, so collapse repeats
+// before validating or pricing.
+function dedupeConfig(c: ProjectConfig): ProjectConfig {
+  switch (c.service) {
+    case 'barcoding':
+      return {
+        ...c,
+        markers: uniq(c.markers),
+        ...(c.subs ? { subs: uniq(c.subs) } : {}),
+        ...(c.material ? { material: uniq(c.material) } : {}),
+      };
+    case 'metabarcoding':
+      return {
+        ...c,
+        targets: uniq(c.targets),
+        markers: uniq(c.markers),
+        ...(c.subs
+          ? {
+              subs: Object.fromEntries(
+                Object.entries(c.subs).map(([k, v]) => [k, uniq(v ?? [])]),
+              ) as typeof c.subs,
+            }
+          : {}),
+      };
+    case 'metagenomics':
+      return { ...c, assays: uniq(c.assays) };
+    case 'targeted-edna':
+      return c;
+  }
+}
 
 interface Env extends ShopifyEnv {
   SUPABASE_URL: string;
@@ -113,14 +158,27 @@ async function handleQuoteInner(
   }
 
   // Authoritative recompute. Anything the client sent about price is discarded.
-  let quote;
+  const invalid = () => json({ ok: false, error: 'That configuration is not valid.' }, 400);
+  const config = parsed.data.config ? dedupeConfig(parsed.data.config) : null;
+  let quote: Quote;
+  let order: Order | null = null;
   try {
-    quote = buildQuote(parsed.data.lines);
+    if (config) {
+      if (Object.keys(validateConfig(config)).length > 0) return invalid();
+      order = buildOrder(config);
+      quote = order.quote;
+    } else if (parsed.data.lines) {
+      quote = buildQuote(parsed.data.lines);
+    } else {
+      return invalid(); // unreachable: the schema's refine requires one of them
+    }
   } catch {
-    return json({ ok: false, error: 'That configuration is not valid.' }, 400);
+    return invalid();
   }
+  const consult = order?.consult ?? false;
 
   const { name, email, organization, note } = parsed.data;
+  const directions = order && parsed.data.directions ? parsed.data.directions : null;
   const row = {
     email,
     name,
@@ -129,7 +187,12 @@ async function handleQuoteInner(
     lines: quote.lines,
     total_academic: quote.total.academic,
     total_commercial: quote.total.commercial,
-    needs_conversation: quote.needsConversation,
+    needs_conversation: order ? order.consult : quote.needsConversation,
+    config,
+    directions,
+    consult_triggers: order?.triggers ?? [],
+    // Legacy line bodies leave status to the column default ('quoted').
+    ...(order ? { status: consult ? 'consult' : 'quoted' } : {}),
     audience: parsed.data.audience ?? null,
     source: parsed.data.source ?? null,
     // Only meaningful for the academic rate, and only the pay endpoint may
@@ -212,45 +275,54 @@ async function handleQuoteInner(
   const summary = renderSummary(null);
 
   const { audience } = parsed.data;
-  const totalLine = audience
-    ? `Total: ${usd(quote.total[audience])} (${audience === 'academic' ? 'academic/nonprofit' : 'commercial'} rate)`
-    : `Total: ${usd(quote.total.academic)} academic/nonprofit · ${usd(quote.total.commercial)} commercial`;
+  // A qPCR-only request has no priced lines at all.
+  const unpriced = quote.lines.length === 0;
+  const totalLine = unpriced
+    ? `Total: custom quote after consultation`
+    : audience
+      ? `Total: ${usd(quote.total[audience])} (${audience === 'academic' ? 'academic/nonprofit' : 'commercial'} rate)`
+      : `Total: ${usd(quote.total.academic)} academic/nonprofit · ${usd(quote.total.commercial)} commercial`;
   // The rate they did not pick, named once. A commercial reader still
   // learns the academic discount exists, and an academic who toggled the
   // wrong way can see it — without putting two prices on every line.
-  const altRateLine = audience
-    ? `${audience === 'academic' ? 'Commercial' : 'Academic/nonprofit'} rate for this configuration: ${usd(
-        quote.total[audience === 'academic' ? 'commercial' : 'academic'],
-      )}`
-    : null;
+  const altRateLine =
+    audience && !unpriced
+      ? `${audience === 'academic' ? 'Commercial' : 'Academic/nonprofit'} rate for this configuration: ${usd(
+          quote.total[audience === 'academic' ? 'commercial' : 'academic'],
+        )}`
+      : null;
 
-  const closing = quote.needsConversation
-    ? `Because of the volume involved, we'll follow up to confirm scheduling and final pricing before anything is committed.`
-    : opts?.paymentsEnabled
-      ? [
-          `Pay in full and start your project:`,
-          `${url}#pay`,
-          ``,
-          `Card, Shop Pay, and PayPal are accepted. Paying by purchase order?`,
-          `The same page will email you a Net-30 invoice to forward to purchasing.`,
-          ``,
-          `Paying in full locks your rate and reserves lab capacity. Your quoted`,
-          `per-sample rate is held for this project — send fewer samples than quoted`,
-          `and the unused amount stays as credit toward another project for 12 months;`,
-          `send more and we invoice the difference at the same rate.`,
-          ``,
-          `Quote valid for 30 days. Full terms: https://biokea.ai/terms`,
-        ].join('\n')
-      : `Quote valid for 30 days. Reply to this email to start a project.`;
+  const configBlock = config ? [`Your configuration`, ...configLines(config), ``] : [];
+
+  const closing = order?.consult
+    ? whatHappensNext(order)
+    : quote.needsConversation
+      ? `Because of the volume involved, we'll follow up to confirm scheduling and final pricing before anything is committed.`
+      : opts?.paymentsEnabled
+        ? [
+            `Pay in full and start your project:`,
+            `${url}#pay`,
+            ``,
+            `Card, Shop Pay, and PayPal are accepted. Paying by purchase order?`,
+            `The same page will email you a Net-30 invoice to forward to purchasing.`,
+            ``,
+            `Paying in full locks your rate and reserves lab capacity. Your quoted`,
+            `per-sample rate is held for this project — send fewer samples than quoted`,
+            `and the unused amount stays as credit toward another project for 12 months;`,
+            `send more and we invoice the difference at the same rate.`,
+            ``,
+            `Quote valid for 30 days. Full terms: https://biokea.ai/terms`,
+          ].join('\n')
+        : `Quote valid for 30 days. Reply to this email to start a project.`;
 
   const text = [
     `Your BioKEA quote — ${quoteNumber}`,
     ``,
-    renderSummary(audience ?? null),
-    ``,
+    ...(unpriced ? [] : [renderSummary(audience ?? null), ``]),
     totalLine,
     ...(altRateLine ? [altRateLine] : []),
     ``,
+    ...configBlock,
     `View or print this quote: ${url}`,
     ``,
     closing,
@@ -294,7 +366,7 @@ async function handleQuoteInner(
         from: `BioKEA <${e.CONTACT_FROM_EMAIL}>`,
         to: e.CONTACT_TO_EMAIL,
         reply_to: email,
-        subject: `[quote] ${quoteNumber} — ${name}${organization ? ` (${organization})` : ''}`,
+        subject: `[${consult ? 'consult' : 'quote'}] ${quoteNumber} — ${name}${organization ? ` (${organization})` : ''}`,
         text: [
           `New quote request — ${quoteNumber}`,
           ``,
@@ -304,11 +376,25 @@ async function handleQuoteInner(
           `Rate: ${audience ?? '—'}`,
           `Source: ${parsed.data.source ?? '—'}`,
           ``,
-          summary,
-          ``,
-          `Total: ${usd(quote.total.academic)} academic/nonprofit · ${usd(quote.total.commercial)} commercial`,
+          ...(unpriced ? [] : [summary, ``]),
+          unpriced
+            ? `Total: custom quote after consultation`
+            : `Total: ${usd(quote.total.academic)} academic/nonprofit · ${usd(quote.total.commercial)} commercial`,
           quote.needsConversation ? `\nFLAGGED: volume requires a capacity conversation.` : '',
           ``,
+          ...(config && order
+            ? [
+                `Configuration:`,
+                ...configLines(config),
+                ``,
+                `Consult triggers:`,
+                ...(consultBullets(order).length > 0 ? consultBullets(order) : ['(none)']),
+                ``,
+                `Directions:`,
+                directions ?? '(none)',
+                ``,
+              ]
+            : []),
           `Note from customer:`,
           note && note.length > 0 ? note : '(none)',
           ``,
@@ -321,7 +407,14 @@ async function handleQuoteInner(
   }
 
   return json(
-    { ok: true, quoteNumber, url, token: accessToken, paymentsEnabled: !!opts?.paymentsEnabled },
+    {
+      ok: true,
+      quoteNumber,
+      url,
+      token: accessToken,
+      paymentsEnabled: !!opts?.paymentsEnabled,
+      consult,
+    },
     200,
   );
 }

@@ -58,7 +58,7 @@ test('barcoding section shows all 4 tier prices, best rate on 5,000+, and the $5
   await expect(panel.getByText('75% of your per-specimen rate')).toBeVisible();
   await expect(panel.getByRole('link', { name: /Configure and pay online/ })).toHaveAttribute(
     'href',
-    'https://store.biokea.ai/products/specimen-barcoding',
+    'https://store.biokea.ai/pages/order?service=barcoding',
   );
 });
 
@@ -75,7 +75,7 @@ test('eDNA section shows all 3 tier prices, best rate on 200+, and the marker ad
   await expect(panel.getByText(/\$12 per sample, per added marker/)).toBeVisible();
   await expect(panel.getByRole('link', { name: /Configure and pay online/ })).toHaveAttribute(
     'href',
-    'https://store.biokea.ai/products/edna-metabarcoding',
+    'https://store.biokea.ai/pages/order?service=metabarcoding',
   );
 });
 
@@ -91,6 +91,10 @@ test('metagenomics section prices both assays and routes to a conversation', asy
     '/contact?topic=sequencing',
   );
   await expect(panel.getByRole('link', { name: /build a quote/i })).toHaveCount(0);
+  await expect(panel.getByRole('link', { name: /Configure and pay online/i })).toHaveAttribute(
+    'href',
+    'https://store.biokea.ai/pages/order?service=metagenomics',
+  );
 });
 
 test('targeted eDNA section has no prices and a custom-quote button', async ({ page }) => {
@@ -163,7 +167,7 @@ test('pricing hero CTAs: store, quote, contact, and the services catalog link', 
   await page.goto('/pricing');
   await expect(
     page.getByRole('link', { name: /Configure and pay online/i }).first(),
-  ).toHaveAttribute('href', 'https://store.biokea.ai/products/specimen-barcoding');
+  ).toHaveAttribute('href', 'https://store.biokea.ai/pages/order');
   await expect(page.getByRole('link', { name: 'Build a quote' }).first()).toHaveAttribute(
     'href',
     '/quote',

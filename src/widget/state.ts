@@ -5,13 +5,25 @@
 // of the configuration a quote was created for, so that changing a count, a
 // marker, or a service afterwards can retire the stale hand-off rather than
 // let the hidden form post the old token at the old amount.
-import type { QuoteLineInput } from '@/lib/pricing/quote';
+import type { ProjectConfig } from '@/lib/pricing/order';
 
-/**
- * A stable, order-sensitive fingerprint of a configuration. `markers` is
- * normalized because an omitted marker count and an explicit 1 describe the
- * same project — the pricing engine treats them identically.
- */
-export function configSignature(lines: QuoteLineInput[]): string {
-  return JSON.stringify(lines.map((l) => [l.serviceSlug, l.count, l.markers ?? 1]));
+/** A copy of `v` with every object's keys in sorted order (arrays keep
+ * their order: marker and target order is part of the configuration). */
+function sortKeys(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(sortKeys);
+  if (v && typeof v === 'object') {
+    const src = v as Record<string, unknown>;
+    return Object.fromEntries(
+      Object.keys(src)
+        .sort()
+        .map((k) => [k, sortKeys(src[k])]),
+    );
+  }
+  return v;
+}
+
+/** A stable fingerprint of a configuration, independent of key order;
+ * `''` when there is no configuration (no service chosen). */
+export function configSignature(config: ProjectConfig | null): string {
+  return config ? JSON.stringify(sortKeys(config)) : '';
 }

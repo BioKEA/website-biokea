@@ -47,6 +47,9 @@ const HANDLED = new Set([
 ]);
 const RANK: Record<QuoteStatus, number> = {
   quoted: 0,
+  // Pre-payment like 'quoted'; a consult quote is never offered a pay link,
+  // so a webhook reaching one should still be allowed to advance it.
+  consult: 0,
   deposit_invoiced: 1,
   deposit_paid: 2,
   balance_invoiced: 3,

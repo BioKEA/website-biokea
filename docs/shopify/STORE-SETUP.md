@@ -104,14 +104,14 @@ ordinary taxable products.
 ### Service products (quote-configured, not add-to-cart)
 
 Create as two products, each: no variants, **Draft** or **Active**
-visibility (Active once the quote widget is embedded — step 8), and
-assigned the `product.quote` template (created in step 8) so the buy
-button is hidden and the widget shows instead.
+visibility (Active once the Order page is live — step 8), and
+assigned the `product.quote` template (step 8) so the buy button is hidden
+and a **Configure this service →** button to the Order page shows instead.
 
-| Handle               | Title                                  | Description                                                                                                                                                                             | Display price    |
-| -------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| `specimen-barcoding` | Voucher-Linked Specimen Barcoding      | Species-level DNA barcode ID for individual specimens — non-destructive extraction, Nanopore sequencing, voucher + image per specimen. Configure your count below for an instant quote. | from $6/specimen |
-| `edna-metabarcoding` | Environmental DNA (eDNA) Metabarcoding | Whole-assemblage species detection from a water, soil, sediment, or air sample — no specimens required. Configure your sample count below for an instant quote.                         | from $115/sample |
+| Handle               | Title                                  | Description                                                                                                                                                                                           | Display price    |
+| -------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| `specimen-barcoding` | Voucher-Linked Specimen Barcoding      | Species-level DNA barcode ID for individual specimens — non-destructive extraction, Nanopore sequencing, voucher + image per specimen. Configure your project on our Order page for an instant quote. | from $6/specimen |
+| `edna-metabarcoding` | Environmental DNA (eDNA) Metabarcoding | Whole-assemblage species detection from a water, soil, sediment, or air sample — no specimens required. Configure your project on our Order page for an instant quote.                                | from $115/sample |
 
 The "from" price is the lowest per-unit academic rate at the top volume
 tier (`src/data/pricing.ts`) — shown as a **display price** only; Shopify
@@ -142,26 +142,42 @@ Merch:
 - BioKEA Cap — $22
 - Sticker Pack — $8
 
-## 8. Theme — quote widget + nav
+## 8. Theme: Order page, entry points, nav
 
-- Online Store → Themes → Customize → on the **product.quote** template
-  (create it if it doesn't exist yet: duplicate the default product
-  template, rename to `quote`, assign it to the two service products above)
-  → Add section → **Custom Liquid** → paste the contents of
-  [`product-quote-section.liquid`](./product-quote-section.liquid).
-- Hide the buy button / price block on that template (theme setting or a
-  template-level override) — the widget replaces it.
-- Do **not** add `crossorigin="anonymous"` to the widget `<script>` tag — it
-  makes the browser require a CORS header on the script and blocks it if
-  the header is missing (the Worker now serves `/widget/*` with one anyway).
-- The snippet's cache-buster (`?v=` on the CSS/JS URLs) only changes once a
-  day (UTC), so a widget change deployed the same day it's tested on the
-  store needs a manual `?v=` bump in the Custom Liquid section, or a wait
-  until the next UTC day, to see it live.
+The theme is Horizon. The files we changed by hand are copied, with what in
+each is ours, under [`theme/`](./theme/README.md). Its README has the pull →
+check → push procedure. Push from a fresh pull, never from the repo copies.
+
+- **Order page.** Online Store → Pages → a page titled **Order**, handle
+  `order`, content empty, theme template **`order`**
+  (`templates/page.order.json`). That template's only content block is a
+  Custom Liquid block that mounts the quote widget from
+  `https://biokea.ai/widget/quote.css` / `quote.js` with a `?v=<widget
+version>` cache-buster (the Worker ignores `?v=`). Bump it in
+  `page.order.json` when the widget version changes. The widget reads
+  `?service=barcoding|metabarcoding` from the page URL itself.
+- **Service products.** The `product.quote` template (assigned to the two
+  service products in step 7, buy buttons disabled) no longer embeds the
+  widget. The editor's description block shows the product description,
+  and our Custom Liquid block adds a **Configure this service →** button to `/pages/order?service=barcoding`
+  (or `metabarcoding` for `edna-metabarcoding`).
+- **Main menu.** Online Store → Navigation → Main menu: **Order** →
+  `/pages/order` as the **first** item, then Services, Kits, Consumables,
+  Merch, and a trailing **"About BioKEA →"** link back to
+  `https://biokea.ai`.
+- **Home hero.** The hero button (`button_H9gpTf` in
+  `templates/index.json`) reads **Configure a sequencing order** and links
+  to `/pages/order`. The theme editor rewrites `index.json`, so redo this
+  edit on a fresh pull if the hero is ever pushed from the CLI.
+- **Header logo.** It links to `https://biokea.ai/` (the `logo_link`
+  setting we added to `blocks/_header-logo.liquid`, set in
+  `sections/header-group.json`).
+- Do **not** add `crossorigin="anonymous"` to the widget `<script>` tag. It
+  makes the browser require a CORS header on the script and blocks the
+  script if the header is missing (the Worker serves `/widget/*` with one
+  anyway).
 - Theme colours: pull from the site's design tokens (`src/styles/tokens.css`)
   so the store doesn't look like a different company.
-- Main nav: Services, Kits, Consumables, Merch, and a trailing
-  **"About BioKEA →"** link back to `https://biokea.ai`.
 
 ## 9. Turnstile
 
@@ -181,10 +197,12 @@ payment row; it is safe to delete.
 
 ## Verify
 
-- `https://store.biokea.ai/products/specimen-barcoding` loads over HTTPS
-  with a valid cert, and the quote widget renders and returns a live total.
-- `https://store.biokea.ai/products/edna-metabarcoding` — same.
-- Submitting a quote from either product page reaches
+- `https://store.biokea.ai/pages/order` loads over HTTPS with a valid
+  cert, and the quote widget renders and returns a live total.
+- `https://store.biokea.ai/products/specimen-barcoding` and
+  `/products/edna-metabarcoding` show the **Configure this service →**
+  button, and it opens the Order page with that service preselected.
+- Submitting a quote from the Order page reaches
   `POST https://biokea.ai/api/quote` (browser devtools → Network) and gets
   a 200 with a token.
 - Paying in full lands on Shopify checkout (Bogus Gateway in test mode);

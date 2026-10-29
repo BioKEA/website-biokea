@@ -16,6 +16,7 @@ import type { QuoteStatus } from './types';
 
 const LABELS: Record<QuoteStatus, string> = {
   quoted: 'Quoted',
+  consult: 'Consultation requested',
   deposit_invoiced: 'Invoiced — awaiting payment',
   deposit_paid: 'Payment received — awaiting samples',
   balance_invoiced: 'Additional samples invoiced',

@@ -113,23 +113,23 @@ test('home shows a four-card services strip with honest price ranges', async ({ 
 
   const barcoding = cards.filter({ hasText: 'Specimen barcoding' });
   await expect(barcoding).toContainText('$6–$20 per specimen');
-  await expect(barcoding.getByRole('link', { name: 'See pricing →' })).toHaveAttribute(
+  await expect(barcoding.getByRole('link', { name: 'Configure →' })).toHaveAttribute(
     'href',
-    '/pricing#barcoding',
+    '/quote?service=barcoding',
   );
 
   const edna = cards.filter({ hasText: 'eDNA metabarcoding' });
   await expect(edna).toContainText('$115–$205 per sample');
-  await expect(edna.getByRole('link', { name: 'See pricing →' })).toHaveAttribute(
+  await expect(edna.getByRole('link', { name: 'Configure →' })).toHaveAttribute(
     'href',
-    '/pricing#metabarcoding',
+    '/quote?service=metabarcoding',
   );
 
   const meta = cards.filter({ hasText: 'Metagenomics' });
   await expect(meta).toContainText('$2,400–$4,200 per specimen');
-  await expect(meta.getByRole('link', { name: 'See pricing →' })).toHaveAttribute(
+  await expect(meta.getByRole('link', { name: 'Configure →' })).toHaveAttribute(
     'href',
-    '/pricing#metagenomics',
+    '/quote?service=metagenomics',
   );
 
   const qpcr = cards.filter({ hasText: 'Targeted eDNA (qPCR)' });

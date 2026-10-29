@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildQuote } from '@/lib/pricing/quote';
 import { panelView } from '@/lib/payments/panel';
+import { statusLabel } from '@/lib/payments/labels';
 import type { PaymentRecord, QuoteRecord, QuoteStatus } from '@/lib/payments/types';
 
 const q = buildQuote([{ serviceSlug: 'barcoding', count: 800 }]);
@@ -339,5 +340,12 @@ describe('panelView', () => {
       now,
     );
     expect(v.kind === 'invoiced' && v.hostedUrl).toBe('https://new');
+  });
+});
+
+describe('panelView consult', () => {
+  it('consult quotes have no payment panel and a human label', () => {
+    expect(panelView({ ...quote(), status: 'consult' }, [], new Date()).kind).toBe('none');
+    expect(statusLabel('consult')).toBe('Consultation requested');
   });
 });

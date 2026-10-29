@@ -65,6 +65,9 @@ export function panelView(quote: QuoteRecord, payments: PaymentRecord[], now: Da
         amountCommercialCents: paymentTotalCents(paymentLines(quote.lines, 'commercial')),
       };
     }
+    case 'consult':
+      // Not payable until the lab replies with a firm quote.
+      return { kind: 'none' };
     case 'deposit_invoiced':
       if (!deposit) return { kind: 'none' };
       return {

@@ -99,9 +99,9 @@ Rollout order:
    Net 30 payment terms are available, mark the service products non-taxable.
 4. `wrangler secret put SHOPIFY_ADMIN_TOKEN` / `SHOPIFY_WEBHOOK_SECRET`, confirm the vars above, deploy.
 5. `STORE-SETUP.md` steps 7–8: create the two service products (`specimen-barcoding`,
-   `edna-metabarcoding`) and the eight placeholder goods; on the `product.quote` template, add a
-   Custom Liquid section pasting in `docs/shopify/product-quote-section.liquid` — it mounts the same
-   widget bundle served from `biokea.ai/widget/quote.js` and `.css`.
+   `edna-metabarcoding`) and the eight placeholder goods; create the **Order** page (template
+   `page.order`, which mounts the widget bundle served from `biokea.ai/widget/quote.js` and `.css`) and
+   push the theme files in `docs/shopify/theme/` per its README.
 6. Add `store.biokea.ai` to the Turnstile widget's allowed hostnames (Cloudflare dashboard).
 7. Walk the test-mode checklist with Shopify's Bogus Gateway (deposit → balance → paid, draft delete,
    net-30 invoice, refund, goods checkout, domain + TLS), then switch on Shopify Payments live.

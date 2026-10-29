@@ -52,7 +52,7 @@ test('priced rows link to their pricing anchors and the right next step', async 
   );
   await expect(barcoding.getByRole('link', { name: 'Configure →' })).toHaveAttribute(
     'href',
-    '/quote',
+    '/quote?service=barcoding',
   );
 
   const edna = priced.filter({ hasText: 'Environmental DNA (eDNA) metabarcoding' });
@@ -60,17 +60,21 @@ test('priced rows link to their pricing anchors and the right next step', async 
     'href',
     '/pricing#metabarcoding',
   );
-  await expect(edna.getByRole('link', { name: 'Configure →' })).toHaveAttribute('href', '/quote');
+  await expect(edna.getByRole('link', { name: 'Configure →' })).toHaveAttribute(
+    'href',
+    '/quote?service=metabarcoding',
+  );
 
   const meta = priced.filter({ hasText: 'Metagenome and metatranscriptome sequencing' });
   await expect(meta.getByRole('link', { name: 'See pricing →' })).toHaveAttribute(
     'href',
     '/pricing#metagenomics',
   );
-  await expect(meta.getByRole('link', { name: 'Talk to us →' })).toHaveAttribute(
+  await expect(meta.getByRole('link', { name: 'Configure →' })).toHaveAttribute(
     'href',
-    '/contact?topic=sequencing',
+    '/quote?service=metagenomics',
   );
+  await expect(meta.getByRole('link', { name: 'Talk to us →' })).toHaveCount(0);
 
   const qpcr = priced.filter({ hasText: 'Targeted eDNA (qPCR)' });
   await expect(qpcr.getByRole('link', { name: 'See pricing →' })).toHaveAttribute(

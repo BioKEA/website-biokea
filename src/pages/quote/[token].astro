@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Eyebrow from '@/components/ui/Eyebrow.astro';
+import ConfigSummary from '@/components/ui/ConfigSummary.astro';
 import { env } from 'cloudflare:workers';
 import { SupabaseDb } from '@/lib/payments/db';
 import { shopifyConfigured } from '@/lib/payments/shopify-env';
@@ -135,14 +136,25 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
         <tr class="border-t-2 border-slate-900/20 bg-[var(--color-cream)]">
           <td class="px-4 py-4 text-sm font-semibold text-[var(--color-ink)]">Total</td>
           {
-            quote.audience !== 'commercial' && (
+            // No priced lines (a qPCR custom quote): there is no total to show.
+            quote.lines.length === 0 && (
+              <td
+                colspan={quote.audience ? 1 : 2}
+                class="px-4 py-4 text-sm font-semibold text-right text-[var(--color-ink)]"
+              >
+                Custom quote after consultation
+              </td>
+            )
+          }
+          {
+            quote.lines.length > 0 && quote.audience !== 'commercial' && (
               <td class="px-4 py-4 font-mono font-semibold text-right">
                 {usd(quote.total_academic)}
               </td>
             )
           }
           {
-            quote.audience !== 'academic' && (
+            quote.lines.length > 0 && quote.audience !== 'academic' && (
               <td class="px-4 py-4 font-mono font-semibold text-right">
                 {usd(quote.total_commercial)}
               </td>
@@ -152,8 +164,16 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
       </tbody>
     </table>
 
+    <ConfigSummary
+      config={quote.config}
+      triggers={quote.consult_triggers}
+      directions={quote.directions}
+      consult={quote.status === 'consult'}
+    />
+
     {
-      quote.needs_conversation && (
+      // Legacy volume quotes; a consult quote has its own notice above.
+      quote.needs_conversation && quote.status !== 'consult' && (
         <p class="mt-5 text-sm text-[var(--color-ink)] bg-[rgba(146,64,14,0.1)] border-l-2 border-[var(--color-ochre)] rounded-r-sm px-4 py-3 leading-relaxed">
           At this volume, figures are indicative. We'll confirm sequencing capacity, timeline, and
           final pricing before anything is committed.

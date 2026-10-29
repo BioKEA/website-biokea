@@ -14,7 +14,7 @@ BioKEA (**Bi**ology **K**nowledge **E**xploration **A**ssistant) is an independe
 
 BioKEA offers molecular sequencing as a service out of the Berkeley LDC, targeted at environmental DNA (eDNA) and related customers — conservation nonprofits, state/federal agencies, academic labs, and environmental consultancies. Three services have published rate cards with academic/nonprofit and commercial rates; targeted eDNA (qPCR) is quoted per project, and consulting is quoted per request.
 
-Priced services (full rate cards at https://biokea.ai/pricing; instant quotes at https://biokea.ai/quote):
+Priced services (full rate cards at https://biokea.ai/pricing; instant quotes at https://biokea.ai/quote, or on the store at https://store.biokea.ai/pages/order):
 
 - **Voucher-linked specimen barcoding** — every specimen imaged, non-destructively extracted, COI-barcoded on Oxford Nanopore, identified against BOLD/NCBI with a confidence rating. $6–$20 per specimen by volume tier; identification-only (no voucher) $5 flat. Other markers at 75% of the per-specimen rate. https://biokea.ai/pricing#barcoding
 - **Environmental DNA (eDNA) metabarcoding** — community-level detection from water, soil, sediment, or air samples; one marker or several stacked. $115–$205 per sample by volume tier; extra markers $12–$15 per sample. https://biokea.ai/pricing#metabarcoding

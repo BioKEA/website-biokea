@@ -4,6 +4,7 @@
 // customer panel all agree to the cent. Spec §5.5.
 import {
   buildQuote,
+  lineKey,
   type Audience,
   type QuoteLine,
   type QuoteLineInput,
@@ -127,10 +128,15 @@ export function computeBalance(
   const lines: InvoiceLineSpec[] = actual.lines.map((l) => {
     const p = l[audience];
     const engineCents = Math.round(p.total * 100);
+    // Matched on the whole line identity (kind + slug + assay), not the slug
+    // alone: an mt assay, an id-only run or a preservative-eDNA add-on shares
+    // its parent's slug but not its rate, so holding it to the parent's rate
+    // would bill the wrong money. Stored lines from before kinds existed have
+    // no `kind` and lineKey reads them as 'service'.
     // Matched on markers too: a different marker count is a different rate,
     // so there is nothing honest to hold it to.
     const quoted = quotedLines.find(
-      (q) => q.serviceSlug === l.serviceSlug && q.markers === l.markers,
+      (q) => lineKey(q) === lineKey(l) && (q.markers ?? 1) === (l.markers ?? 1),
     );
     if (!quoted) {
       uncapped.push(l.serviceSlug);
