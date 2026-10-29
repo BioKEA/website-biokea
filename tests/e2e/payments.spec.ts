@@ -50,6 +50,8 @@ test('pricing advertises paying online for both store-backed services', async ({
   const store = page.getByRole('link', { name: /Configure and pay online/i });
   await expect(store.first()).toBeVisible();
   const hrefs = await store.evaluateAll((els) => els.map((e) => e.getAttribute('href')));
+  // The page hero covers every service, so it pre-selects none.
+  expect(hrefs).toContain('https://store.biokea.ai/pages/order');
   expect(hrefs).toContain('https://store.biokea.ai/pages/order?service=barcoding');
   expect(hrefs).toContain('https://store.biokea.ai/pages/order?service=metabarcoding');
   // /services carries no store buttons any more (spec 2026-10-26 §5), but

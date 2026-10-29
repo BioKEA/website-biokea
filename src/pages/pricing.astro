@@ -21,6 +21,9 @@ import { stringifyJsonLd } from '@/lib/json-ld';
 const barcoding = pricedServices.find((s) => s.slug === 'barcoding')!;
 const edna = pricedServices.find((s) => s.slug === 'metabarcoding')!;
 
+// The page hero covers every service, so it opens the Order page with no
+// service pre-selected; each section's button pre-selects its own.
+const storeOrderUrl = 'https://store.biokea.ai/pages/order';
 const storeUrl: Record<string, string> = {
   barcoding: 'https://store.biokea.ai/pages/order?service=barcoding',
   metabarcoding: 'https://store.biokea.ai/pages/order?service=metabarcoding',
@@ -139,7 +142,7 @@ const jsonLd = {
     </p>
     <div class="mt-6 flex items-center gap-4 flex-wrap">
       <a
-        href={storeUrl.barcoding}
+        href={storeOrderUrl}
         class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium"
       >
         Configure and pay online →
