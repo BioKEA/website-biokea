@@ -165,6 +165,9 @@ details step as today.
   (priced at the specimen rate as an estimate; required description;
   consult trigger).
 - Number of specimens/samples → integer ≥ 1. One line per assay.
+- Volume above 50 specimens (per assay) → consult with a Volume trigger
+  (Sean's call, 2026-10-29: one dedicated flow cell per specimen;
+  `metagenomicsConversationThreshold = 51` in `src/data/pricing.ts`).
 
 **Targeted eDNA (qPCR)** — custom intake, always consult, no prices:
 species of interest (required), what to measure (presence/absence,
