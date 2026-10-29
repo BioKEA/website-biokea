@@ -91,6 +91,10 @@ test('metagenomics section prices both assays and routes to a conversation', asy
     '/contact?topic=sequencing',
   );
   await expect(panel.getByRole('link', { name: /build a quote/i })).toHaveCount(0);
+  await expect(panel.getByRole('link', { name: /Configure and pay online/i })).toHaveAttribute(
+    'href',
+    'https://store.biokea.ai/pages/order?service=metagenomics',
+  );
 });
 
 test('targeted eDNA section has no prices and a custom-quote button', async ({ page }) => {

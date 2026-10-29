@@ -27,6 +27,7 @@ const storeOrderUrl = 'https://store.biokea.ai/pages/order';
 const storeUrl: Record<string, string> = {
   barcoding: 'https://store.biokea.ai/pages/order?service=barcoding',
   metabarcoding: 'https://store.biokea.ai/pages/order?service=metabarcoding',
+  metagenomics: 'https://store.biokea.ai/pages/order?service=metagenomics',
 };
 
 const contactHref = '/contact?topic=sequencing';
@@ -421,10 +422,16 @@ const jsonLd = {
             <p class="mt-4 text-sm text-slate-500 leading-relaxed">{n}</p>
           ))
         }
-        <div class="mt-6">
+        <div class="mt-6 flex items-center gap-4 flex-wrap">
+          <a
+            href={storeUrl.metagenomics}
+            class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium"
+          >
+            Configure and pay online →
+          </a>
           <a
             href={contactHref}
-            class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium inline-block"
+            class="border-[1.5px] border-[var(--color-ink)] text-[var(--color-ink)] px-4 py-2.5 rounded-sm text-sm font-medium hover:bg-[var(--color-ink)] hover:text-[var(--color-cream)]"
           >
             Talk to us →
           </a>
