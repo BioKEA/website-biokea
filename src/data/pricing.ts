@@ -213,6 +213,10 @@ export interface Assay {
   commercialPrice: number;
 }
 
+/** Metagenomics orders above 50 specimens (per assay) are quoted per project:
+ * each specimen takes a dedicated flow cell, so volume is bound by lab capacity. */
+export const metagenomicsConversationThreshold = 51;
+
 export const metagenomics = {
   slug: 'metagenomics',
   serviceTag: 'Whole-community sequencing',

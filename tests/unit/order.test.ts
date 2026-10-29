@@ -80,6 +80,24 @@ describe('buildOrder', () => {
     expect(env.consult).toBe(true);
     expect(env.quote.total.academic).toBe(9600);
   });
+  it('metagenomics is payable up to 50 specimens and a volume consult above', () => {
+    const at50 = buildOrder({
+      service: 'metagenomics',
+      assays: ['mg'],
+      source: 'specimens',
+      count: 50,
+    });
+    expect(at50.triggers).toEqual([]);
+    expect(at50.consult).toBe(false);
+    const at51 = buildOrder({
+      service: 'metagenomics',
+      assays: ['mg', 'mt'],
+      source: 'specimens',
+      count: 51,
+    });
+    expect(at51.triggers).toEqual([{ key: 'volume', label: 'Volume', detail: '51 specimens' }]);
+    expect(at51.consult).toBe(true);
+  });
   it('qPCR is always consult with no lines and a zero total', () => {
     const o = buildOrder({
       service: 'targeted-edna',

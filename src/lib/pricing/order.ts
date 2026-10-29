@@ -17,7 +17,12 @@ import {
   type ServiceSlug,
   type TargetId,
 } from '@/data/configurator';
-import { metagenomics, pricedServices, samplingKitPrice } from '@/data/pricing';
+import {
+  metagenomics,
+  metagenomicsConversationThreshold,
+  pricedServices,
+  samplingKitPrice,
+} from '@/data/pricing';
 import { buildQuote, type Quote, type QuoteLineInput } from './quote';
 
 export interface BarcodingConfig {
@@ -221,6 +226,10 @@ function metagenomicsOrder(c: MetagenomicsConfig): Parts {
     c.source === 'environmental'
       ? [{ key: 'environmental', label: 'Environmental samples', detail: text(c.envNotes) }]
       : [];
+  // The count applies to each selected assay, so the threshold is per assay.
+  if (c.count >= metagenomicsConversationThreshold) {
+    triggers.push({ key: 'volume', label: 'Volume', detail: `${c.count} specimens` });
+  }
   return {
     inputs: c.assays.map((assay) => ({
       serviceSlug: 'metagenomics',

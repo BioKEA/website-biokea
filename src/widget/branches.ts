@@ -362,7 +362,7 @@ function metagenomicsCountField(): string {
           id: 'bk-metagenomics-count',
           field: 'count',
           label: 'Number of specimens',
-          hint: 'Priced per specimen.',
+          hint: 'Priced per specimen. Orders above 50 specimens are quoted per project.',
           labelAttrs: 'data-count-label',
         })}
       </div>`;
