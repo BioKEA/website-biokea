@@ -4,7 +4,15 @@ compatibility_date = "2026-04-18"
 compatibility_flags = ["nodejs_compat"]
 
 # Astro's Cloudflare adapter emits the worker entry + static assets;
-# wrangler deploy picks them up from dist/ via `astro build`.
+# wrangler deploy picks them up from dist/ via `astro build`. Our own entry
+# wraps the adapter's fetch handler to add the scheduled keep-alive below.
+main = "./src/worker.ts"
+
+# Daily Supabase keep-alive (src/lib/keep-alive.ts): the free-tier project
+# pauses after a week idle, which took quotes and the order webhook down on
+# 2026-10-28. 09:17 UTC, off the hour.
+[triggers]
+crons = ["17 9 * * *"]
 
 [vars]
 CONTACT_FROM_EMAIL = "notifications@biokea.ai"

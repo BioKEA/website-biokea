@@ -122,7 +122,16 @@ export function computeBalance(
   actualLines: QuoteLine[];
   uncapped: string[];
 } {
-  const actual = buildQuote(inputs); // throws on bad input, same as /api/quote
+  // A custom line's price lives on the quoted line, not in the form: copy
+  // it across so the actual count is billed at the rate the lab agreed. A
+  // custom input with no quoted line has no price at all, so refuse it.
+  const priced = inputs.map((i) => {
+    if (i.kind !== 'custom') return i;
+    const quoted = quotedLines.find((q) => lineKey(q) === lineKey(i));
+    if (!quoted?.custom) throw new Error(`No quoted line for ${i.serviceSlug}`);
+    return { ...i, custom: quoted.custom };
+  });
+  const actual = buildQuote(priced); // throws on bad input, same as /api/quote
   const uncapped: string[] = [];
 
   const lines: InvoiceLineSpec[] = actual.lines.map((l) => {

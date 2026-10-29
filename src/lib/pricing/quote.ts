@@ -19,7 +19,24 @@ export type Audience = 'academic' | 'commercial';
  * kinds are priced variants that hang off a parent service slug. Lines stored
  * before kinds existed have no `kind` — read them as `l.kind ?? 'service'`.
  */
-export type LineKind = 'service' | 'id-only' | 'preservative-edna' | 'assay';
+export type LineKind = 'service' | 'id-only' | 'preservative-edna' | 'assay' | 'custom';
+
+/**
+ * A price the lab agreed by hand when firming up a consult quote (spec 3).
+ * Only the Access-protected admin endpoint builds these: the public quote
+ * API's line schema strips `kind` and `custom`, so a customer can never
+ * price their own line.
+ */
+export interface CustomLineSpec {
+  title: string;
+  unitLabel: string;
+  /** Dollars per unit, up to two decimals. */
+  academic: number;
+  commercial: number;
+}
+
+/** Custom lines carry a per-quote slug: custom-1, custom-2, … */
+export const CUSTOM_SLUG = /^custom-[1-9][0-9]{0,2}$/;
 
 export interface QuoteLineInput {
   serviceSlug: string;
@@ -30,6 +47,8 @@ export interface QuoteLineInput {
   kind?: LineKind;
   /** Required for, and only meaningful on, kind 'assay'. */
   assay?: 'mg' | 'mt';
+  /** Required for, and only meaningful on, kind 'custom'. */
+  custom?: CustomLineSpec;
 }
 
 export interface PriceResult {
@@ -64,6 +83,8 @@ export interface QuoteLine {
   /** Always written on new lines; absent on rows stored before kinds existed. */
   kind?: LineKind;
   assay?: 'mg' | 'mt';
+  /** Kind 'custom' only: the agreed price, kept so the balance can re-count at it. */
+  custom?: CustomLineSpec;
 }
 
 export interface Quote {
@@ -165,6 +186,22 @@ function priceSource(input: QuoteLineInput): PriceSource {
         markerRule: { type: 'none' },
       };
     }
+    case 'custom': {
+      const c = input.custom;
+      if (!CUSTOM_SLUG.test(input.serviceSlug)) {
+        throw new Error(`Custom lines need a custom-<n> slug, not ${input.serviceSlug}`);
+      }
+      const price = (n: unknown) => typeof n === 'number' && Number.isFinite(n) && n > 0;
+      if (!c || !c.title || !c.unitLabel || !price(c.academic) || !price(c.commercial)) {
+        throw new Error('Custom lines need a title, a unit and a positive price per audience');
+      }
+      return {
+        tiers: flatTier('agreed rate', c.academic, c.commercial),
+        title: c.title,
+        unitLabel: c.unitLabel,
+        markerRule: { type: 'none' },
+      };
+    }
     default:
       throw new Error(`Unknown line kind: ${String(kind)}`);
   }
@@ -257,6 +294,7 @@ export function buildQuote(inputs: QuoteLineInput[]): Quote {
         src.conversationThreshold !== undefined && count >= src.conversationThreshold,
       kind,
       ...(kind === 'assay' ? { assay: input.assay } : {}),
+      ...(kind === 'custom' ? { custom: { ...input.custom! } } : {}),
     };
   });
 

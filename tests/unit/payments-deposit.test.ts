@@ -276,6 +276,43 @@ describe('handlePayment', () => {
     expect(gateway.created).toHaveLength(0);
   });
 
+  it('a lab revision that lands mid-checkout aborts the payment instead of billing stale lines', async () => {
+    const insert = db.insertPayment.bind(db);
+    db.insertPayment = async (row) => {
+      const r = await insert(row);
+      // The finalise endpoint rewrites the firm quote between our read and our claim.
+      // A new object, as a real re-read would return.
+      db.quotes[0] = { ...db.quotes[0], total_commercial: db.quotes[0].total_commercial + 500 };
+      return r;
+    };
+    const res = await handlePayment(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+      db,
+      gateway,
+      now: NOW,
+    });
+    expect(res.headers.get('location')).toBe(`/quote/${TOKEN}?pay=unavailable#pay`);
+    expect(gateway.created).toHaveLength(0);
+    expect(db.payments).toHaveLength(0);
+    expect(db.quotes[0].status).toBe('quoted');
+  });
+
+  it('claims the quote before the gateway call, so a revision during it cannot apply', async () => {
+    let statusDuringCall: string | undefined;
+    class WatchingGateway extends MemoryGateway {
+      override async createInvoice(spec: Parameters<MemoryGateway['createInvoice']>[0]) {
+        statusDuringCall = db.quotes[0].status;
+        return super.createInvoice(spec);
+      }
+    }
+    await handlePayment(post(TOKEN, { audience: 'commercial' }), TOKEN, {
+      db,
+      gateway: new WatchingGateway(),
+      now: NOW,
+    });
+    expect(statusDuringCall).toBe('deposit_invoiced');
+    expect(db.quotes[0].status).toBe('deposit_invoiced');
+  });
+
   it('never clobbers a status the webhook already advanced while the gateway call was in flight', async () => {
     class RacingGateway extends MemoryGateway {
       constructor(private readonly db: MemoryDb) {

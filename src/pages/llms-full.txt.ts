@@ -141,7 +141,9 @@ BioKEA offers molecular sequencing as a service out of the Berkeley LDC, targete
 
 ${renderServiceOfferings()}
 
-Full catalog, FAQ, and quote intake: ${SITE}/services
+Full catalog and FAQ: ${SITE}/services
+
+Ordering: configure a project for an instant quote at ${SITE}/quote, or order on the store at https://store.biokea.ai/pages/order (pay by card through Shopify checkout, or request a net-30 invoice with a PO). Projects that need a conversation first (targeted eDNA / qPCR, sampling kits, very large volumes, unusual sample types or markers) are saved as a consultation request; the lab replies with a firm quote and a payment link.
 
 ## Team
 
