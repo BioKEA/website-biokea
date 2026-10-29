@@ -285,23 +285,57 @@ export function touchedKeys(el: Element): string[] {
   return [...keys];
 }
 
+let slotSeq = 0;
+/** The slot's id, minted on first use: the same field name appears in more
+ * than one branch (and the widget can mount twice), so ids can't be static. */
+function slotId(slot: HTMLElement): string {
+  if (!slot.id) slot.id = `bk-error-${++slotSeq}`;
+  return slot.id;
+}
+
+/** Add or remove one id in an element's aria-describedby, keeping any others
+ * (a hint the template already points at). */
+function describedBy(el: Element, id: string, on: boolean): void {
+  const ids = new Set((el.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean));
+  if (on) ids.add(id);
+  else ids.delete(id);
+  if (ids.size > 0) el.setAttribute('aria-describedby', [...ids].join(' '));
+  else el.removeAttribute('aria-describedby');
+}
+
 /** Fill each `[data-error-for]` slot in the branch from `errors` when
  * `show(key)` allows it, clear the rest, and mark the matching
- * text/number/select controls aria-invalid on the same rule. */
+ * text/number/select controls aria-invalid on the same rule. A shown error
+ * is tied to its control with aria-describedby — or, for a radio/checkbox
+ * group, to the group's fieldset — so a screen reader reads it with the
+ * field, not only once when it appears. */
 export function showErrors(
   branch: ParentNode,
   errors: Record<string, string>,
   show: (key: string) => boolean,
 ): void {
   const visible = (key: string) => (errors[key] && show(key) ? errors[key] : '');
+  const slots = new Map<string, HTMLElement>();
   branch.querySelectorAll<HTMLElement>('[data-error-for]').forEach((slot) => {
-    const msg = visible(slot.dataset.errorFor ?? '');
+    const key = slot.dataset.errorFor ?? '';
+    const msg = visible(key);
     slot.textContent = msg;
     slot.hidden = !msg;
+    slots.set(key, slot);
   });
+  const groups = new Map<Element, { id: string; on: boolean }>();
   branch.querySelectorAll<Control>('[data-field]').forEach((el) => {
-    if (isToggle(el)) return;
-    if (visible(errorKey(el.dataset.field ?? ''))) el.setAttribute('aria-invalid', 'true');
+    const key = errorKey(el.dataset.field ?? '');
+    const slot = slots.get(key);
+    const on = Boolean(visible(key));
+    if (isToggle(el)) {
+      const group = el.closest('fieldset');
+      if (group && slot) groups.set(group, { id: slotId(slot), on });
+      return;
+    }
+    if (on) el.setAttribute('aria-invalid', 'true');
     else el.removeAttribute('aria-invalid');
+    if (slot) describedBy(el, slotId(slot), on);
   });
+  for (const [group, { id, on }] of groups) describedBy(group, id, on);
 }

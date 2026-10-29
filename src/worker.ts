@@ -8,7 +8,12 @@ import { keepSupabaseAwake, type KeepAliveEnv } from './lib/keep-alive';
 
 export default {
   fetch: handle,
-  async scheduled(_controller: ScheduledController, env: KeepAliveEnv, ctx: ExecutionContext) {
+  // Typed locally: the project doesn't load @cloudflare/workers-types globally.
+  async scheduled(
+    _controller: unknown,
+    env: KeepAliveEnv,
+    ctx: { waitUntil(p: Promise<unknown>): void },
+  ) {
     ctx.waitUntil(keepSupabaseAwake(env));
   },
 };
