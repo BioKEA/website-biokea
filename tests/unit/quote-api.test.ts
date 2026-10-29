@@ -419,6 +419,18 @@ describe('config requests', () => {
     expect(emailTextTo(env.CONTACT_TO_EMAIL)).toContain('Dreissena');
     expect(labEmailSubject()).toMatch(/^\[consult\]/);
   });
+  it('a repeated marker is charged once and stored once', async () => {
+    const res = await handleQuote(
+      makeRequest({ ...base, config: edna({ markers: ['12S', '12S'] }) }),
+      env,
+    );
+    expect(res.status).toBe(200);
+    const row = insertedRow();
+    // 60 samples × $160 commercial: one 12S marker, no added-marker charge
+    // (12S + COI would be $10,500).
+    expect(row.total_commercial).toBe(9600);
+    expect(row.config).toMatchObject({ markers: ['12S'] });
+  });
   it('an invalid config is a 400', async () => {
     const res = await handleQuote(makeRequest({ ...base, config: edna({ markers: [] }) }), env);
     expect(res.status).toBe(400);
