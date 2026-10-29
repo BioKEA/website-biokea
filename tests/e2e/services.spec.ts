@@ -70,10 +70,11 @@ test('priced rows link to their pricing anchors and the right next step', async 
     'href',
     '/pricing#metagenomics',
   );
-  await expect(meta.getByRole('link', { name: 'Talk to us →' })).toHaveAttribute(
+  await expect(meta.getByRole('link', { name: 'Configure →' })).toHaveAttribute(
     'href',
-    '/contact?topic=sequencing',
+    '/quote?service=metagenomics',
   );
+  await expect(meta.getByRole('link', { name: 'Talk to us →' })).toHaveCount(0);
 
   const qpcr = priced.filter({ hasText: 'Targeted eDNA (qPCR)' });
   await expect(qpcr.getByRole('link', { name: 'See pricing →' })).toHaveAttribute(

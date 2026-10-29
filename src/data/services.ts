@@ -41,7 +41,7 @@ export const serviceOfferings: ServiceOffering[] = [
       'All the DNA in a specimen, or the genes it and its microbes are actively using, on a dedicated long-read flow cell per specimen.',
     kind: 'priced',
     pricingAnchor: 'metagenomics',
-    configurable: false,
+    configurable: true,
   },
   {
     name: 'Targeted eDNA (qPCR) for one or more species',

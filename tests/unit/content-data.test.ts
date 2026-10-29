@@ -458,7 +458,7 @@ describe('services data — priced and project-rate groups (spec 2026-10-26)', (
     expect(anchors).toEqual(pricingSections.map((s) => s.id));
   });
 
-  it('only barcoding and eDNA are configurable in the quote widget today', () => {
+  it('barcoding, eDNA and metagenomics are configurable in the quote widget; qPCR is not', () => {
     const byAnchor = Object.fromEntries(
       serviceOfferings
         .filter((s) => s.kind === 'priced')
@@ -467,7 +467,7 @@ describe('services data — priced and project-rate groups (spec 2026-10-26)', (
     expect(byAnchor).toEqual({
       barcoding: true,
       metabarcoding: true,
-      metagenomics: false,
+      metagenomics: true,
       'targeted-edna': false,
     });
   });
