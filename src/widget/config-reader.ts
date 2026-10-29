@@ -211,7 +211,21 @@ export function markerSuggestion(service: ServiceSlug, branch: ParentNode): Mark
   const targetIds = (
     service === 'barcoding' ? [str(branch, 'target')].filter(Boolean) : checked(branch, 'targets')
   ) as TargetId[];
-  return suggestedMarkers(service, targetIds);
+  // Subgroups refine the suggestion (barcoding fish → 12S). Read them the
+  // way the config readers above do: one 'subs' group under the chosen
+  // barcoding target, one 'subs-<target>' group per eDNA target.
+  const subs: Partial<Record<TargetId, string[]>> = {};
+  for (const t of targetIds) {
+    const picked =
+      service === 'barcoding'
+        ? (() => {
+            const wrap = branch.querySelector(`[data-subs-for="${CSS.escape(t)}"]`);
+            return wrap ? checked(wrap, 'subs') : [];
+          })()
+        : checked(branch, `subs-${t}`);
+    if (picked.length) subs[t] = picked;
+  }
+  return suggestedMarkers(service, targetIds, subs);
 }
 
 export function applyMarkers(branch: ParentNode, ids: MarkerId[]): void {

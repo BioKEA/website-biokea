@@ -26,6 +26,12 @@ export interface Target {
   services: ServiceSlug[];
   marker?: Partial<Record<ServiceSlug, MarkerId>>;
   subs?: { all?: string[]; metabarcoding?: string[] };
+  /**
+   * Per-service marker overrides for individual subgroups, keyed by the
+   * subgroup's label. A chosen subgroup without an entry falls back to
+   * `marker`.
+   */
+  subMarkers?: Partial<Record<ServiceSlug, Record<string, MarkerId>>>;
   consult?: true;
 }
 
@@ -140,6 +146,9 @@ export const targets: Target[] = [
     label: 'Vertebrates (non-human)',
     services: ['barcoding', 'metabarcoding'],
     marker: { barcoding: 'COI', metabarcoding: '12S' },
+    // Sean, 2026-10-29: barcoding suggestions depend on the subgroup — 12S
+    // for fish (sharks and rays included), COI for every other vertebrate.
+    subMarkers: { barcoding: { Fish: '12S', 'Sharks and rays': '12S' } },
     subs: {
       all: [
         'Fish',
@@ -221,14 +230,25 @@ export const vertebrateNotice =
   'Please use methods that don’t harm live animals, such as swabs, hair with follicles, or feces. Collection from live animals should follow your institution’s animal care requirements and any permits that apply.';
 
 /**
- * Markers to pre-select: the unique marker of each chosen target for this
- * service, in selection order. Barcoding defaults to COI; eDNA to none.
+ * Markers to pre-select, unique, in selection order. Each chosen target
+ * contributes its marker for this service; when subgroups of it are chosen,
+ * each subgroup contributes its own override (`subMarkers`) or, failing
+ * that, the target's marker. Barcoding defaults to COI; eDNA to none.
  */
-export function suggestedMarkers(service: ServiceSlug, targetIds: TargetId[]): MarkerId[] {
+export function suggestedMarkers(
+  service: ServiceSlug,
+  targetIds: TargetId[],
+  subs: Partial<Record<TargetId, string[]>> = {},
+): MarkerId[] {
   const out: MarkerId[] = [];
-  for (const id of targetIds) {
-    const m = targets.find((t) => t.id === id)?.marker?.[service];
+  const add = (m: MarkerId | undefined) => {
     if (m && !out.includes(m)) out.push(m);
+  };
+  for (const id of targetIds) {
+    const t = targets.find((x) => x.id === id);
+    const picked = subs[id] ?? [];
+    if (picked.length === 0) add(t?.marker?.[service]);
+    for (const sub of picked) add(t?.subMarkers?.[service]?.[sub] ?? t?.marker?.[service]);
   }
   if (out.length === 0 && service === 'barcoding') return ['COI'];
   return out;
