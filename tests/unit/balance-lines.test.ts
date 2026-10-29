@@ -152,6 +152,17 @@ describe('balance with line kinds', () => {
     expect(spec.footer).toContain('Markers: 12S, COI');
     expect(spec.attributes).toEqual([{ key: 'directions', value: 'Filter on site.' }]);
   });
+  it('truncates long directions to 255 characters without splitting an emoji', async () => {
+    // 256 code points; a UTF-16 slice at 255 would cut the first 🦋 in half
+    // and leave a lone surrogate, which Shopify rejects.
+    const directions = 'a'.repeat(254) + '🦋🦋';
+    const spec = await pay(
+      quoteRecord(buildOrder(edna()).quote.lines, { config: edna(), directions }),
+    );
+    const value = spec.attributes?.[0].value ?? '';
+    expect(value).toBe('a'.repeat(254) + '🦋');
+    expect(value).not.toMatch(/[\uD800-\uDBFF]$/);
+  });
   it('a legacy quote keeps exactly today’s footer and no extra attributes', async () => {
     const lines = buildQuote([{ serviceSlug: 'barcoding', count: 800 }]).lines;
     const spec = await pay(quoteRecord(lines));

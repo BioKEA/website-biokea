@@ -153,7 +153,13 @@ export async function handlePayment(
         // have no config and keep exactly the sentence above.
         (quote.config ? '\n\n' + summarizeConfig(quote.config).join('\n') : ''),
       ...(quote.directions
-        ? { attributes: [{ key: 'directions', value: quote.directions.slice(0, 255) }] }
+        ? {
+            // Truncate by code point: a UTF-16 slice can split an emoji and
+            // leave a lone surrogate, which makes draftOrderCreate fail.
+            attributes: [
+              { key: 'directions', value: Array.from(quote.directions).slice(0, 255).join('') },
+            ],
+          }
         : {}),
       daysUntilDue: INVOICE_DAYS_UNTIL_DUE,
     });
