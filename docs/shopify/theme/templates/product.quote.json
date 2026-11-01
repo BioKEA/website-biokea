@@ -16,7 +16,7 @@
           "type": "custom-liquid",
           "name": "t:names.custom_liquid",
           "settings": {
-            "custom_liquid": "{%- assign svc = 'barcoding' -%}\n{%- if product.handle == 'edna-metabarcoding' -%}{%- assign svc = 'metabarcoding' -%}{%- endif -%}\n<a class=\"button\" href=\"/pages/order?service={{ svc }}\">Configure this service →</a>"
+            "custom_liquid": "{%- case product.handle -%}\n{%- when 'specimen-barcoding' -%}{%- assign svc = 'barcoding' -%}\n{%- when 'edna-metabarcoding' -%}{%- assign svc = 'metabarcoding' -%}\n{%- when 'metagenome-sequencing' -%}{%- assign svc = 'metagenomics' -%}\n{%- when 'targeted-edna' -%}{%- assign svc = 'targeted-edna' -%}\n{%- endcase -%}\n<link rel=\"stylesheet\" href=\"https://biokea.ai/widget/quote.css?v=1.4.0\">\n<div id=\"quote-widget\" data-source=\"store\" data-service=\"{{ svc }}\" data-lock-service data-services-href=\"/pages/order\"></div>\n<script src=\"https://biokea.ai/widget/quote.js?v=1.4.0\" defer></script>"
           },
           "blocks": {}
         },

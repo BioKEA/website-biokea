@@ -8,13 +8,15 @@ sits at its theme-relative path, so `templates/page.order.json` here is
 
 ## What in each file is ours
 
-| File                           | Ours                                                                                                                                                                                                                                                                     |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `templates/page.order.json`    | The whole file. It is `page.json` with the `page-content` block swapped for one `custom-liquid` block (`custom_liquid_order`) that mounts the quote widget from `biokea.ai/widget/quote.{css,js}`. Used by the **Order** page (handle `order`, template suffix `order`). |
-| `templates/product.quote.json` | Only the `custom_liquid` string of block `custom_liquid_CGdHbB`: a **Configure this service →** button to `/pages/order?service=barcoding` or `?service=metabarcoding` (for `edna-metabarcoding`). Everything else is editor-owned.                                      |
-| `templates/index.json`         | Only the hero button `button_H9gpTf`: `label` "Configure a sequencing order", `link` `/pages/order`. Everything else is editor-owned.                                                                                                                                    |
-| `blocks/_header-logo.liquid`   | The `logo_link` setting (schema entry and the `href` that reads it). The rest is stock Horizon.                                                                                                                                                                          |
-| `sections/header-group.json`   | Only `logo_link: "https://biokea.ai/"` on the header logo block. Everything else is editor-owned.                                                                                                                                                                        |
+| File                                  | Ours                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `templates/page.order.json`           | The whole file. It is `page.json` with the `page-content` block swapped for one `custom-liquid` block (`custom_liquid_order`) that mounts the quote widget from `biokea.ai/widget/quote.{css,js}`. Used by the **Order** page (handle `order`, template suffix `order`).                                                                                                                      |
+| `templates/product.quote.json`        | Only the `custom_liquid` string of block `custom_liquid_CGdHbB`: maps the product handle to a service (`specimen-barcoding`→`barcoding`, `edna-metabarcoding`→`metabarcoding`, `metagenome-sequencing`→`metagenomics`, `targeted-edna`→`targeted-edna`) and mounts the quote widget locked to it (`data-lock-service`, `data-services-href="/pages/order"`). Everything else is editor-owned. |
+| `templates/index.json`                | Only the hero button `button_H9gpTf` (`label` "Configure a sequencing order", `link` `/pages/order`) and the product list's `collection: "services"` (manual order: barcoding, metabarcoding, metagenomics, targeted eDNA). Everything else is editor-owned.                                                                                                                                  |
+| `snippets/price.liquid`               | The `bk_price_range` branch at the top (and its closing `endif` at the bottom): a product with metafield `biokea.price_range` shows that text instead of its variant price, on every card and product page. The rest is stock Horizon.                                                                                                                                                        |
+| `blocks/_product-card-gallery.liquid` | The `bk_sold_out` liquid block: products with `biokea.price_range` get no "Sold out" badge. The rest is stock Horizon.                                                                                                                                                                                                                                                                        |
+| `blocks/_header-logo.liquid`          | The `logo_link` setting (schema entry and the `href` that reads it). The rest is stock Horizon.                                                                                                                                                                                                                                                                                               |
+| `sections/header-group.json`          | Only `logo_link: "https://biokea.ai/"` on the header logo block. Everything else is editor-owned.                                                                                                                                                                                                                                                                                             |
 
 The theme editor rewrites JSON templates whenever someone saves in it, so
 the copies here go stale for every part that isn't ours. **Never push these
@@ -26,6 +28,20 @@ the editor. Make the hero-button edit on a fresh pull every time.
 The repo copies are also not byte-identical to what Shopify stores, because
 the pre-commit hook runs Prettier over JSON under `docs/`. Push from the
 pulled theme directory, never from this folder.
+
+## Service products can't be bought directly
+
+The four service products are set to track inventory at 0 with overselling
+off, so `/cart/add`, cart links (`/cart/<variant>:1`), quick-add and shopping
+agents all get "sold out". Customers order through the quote widget, whose
+draft orders use custom line items and never reference these products. Keep
+it that way when adding a service product: `tracked: true`, quantity 0,
+`inventoryPolicy: DENY`, template suffix `quote`, metafield
+`biokea.price_range`, and add it to the Services collection.
+
+The price-range text is typed into Shopify by hand. After a rate-card change,
+update the metafields and run
+`STORE_CHECK=1 npx playwright test tests/e2e/store-prices.spec.ts`.
 
 ## Procedure: pull → edit → check → push
 
@@ -66,8 +82,8 @@ and so on) and commit.
 ## Verify
 
 ```bash
-curl -sL https://store.biokea.ai/pages/order | tr '\n' ' ' | grep -o 'widget/quote.js?v=1.3.0'
-curl -sL https://store.biokea.ai/products/specimen-barcoding | tr '\n' ' ' | grep -o 'href="/pages/order?service=barcoding"'
+curl -sL https://store.biokea.ai/pages/order | tr '\n' ' ' | grep -o 'widget/quote.js?v=1.4.0'
+curl -sL https://store.biokea.ai/products/specimen-barcoding | tr '\n' ' ' | grep -o 'data-service="barcoding" data-lock-service'
 curl -sL https://store.biokea.ai/ | tr '\n' ' ' | grep -o 'href="/pages/order"' | head -2
 ```
 
