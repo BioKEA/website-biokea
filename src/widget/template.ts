@@ -13,7 +13,7 @@
 // controller via renderQuotePanel), then the details form and the hidden
 // hand-off form, which live outside the panel so re-rendering it never
 // wipes what the customer has typed.
-import { serviceChoices } from '@/data/configurator';
+import { serviceChoices, type ServiceSlug } from '@/data/configurator';
 import type { Order } from '@/lib/pricing/order';
 import {
   nextTierUpsell,
@@ -29,6 +29,10 @@ export { esc };
 
 export interface WidgetTemplateOptions {
   turnstileSiteKey?: string;
+  /** Store product pages: configure this one service, no menu. */
+  onlyService?: ServiceSlug;
+  /** Where "Choose a different service" goes. Same-site paths only. */
+  servicesHref?: string;
 }
 
 export const usd = (n: number): string => '$' + n.toLocaleString('en-US');
@@ -55,6 +59,20 @@ export function renderError(_field: string, msg: string): string {
 }
 
 // ── the configurator shell ────────────────────────────────────────────
+
+/** A product page is about one service, so instead of the menu it says
+ * which service this is and links back to the full menu. The single radio
+ * stays (checked, hidden) because the controller reads the choice from it. */
+function lockedServiceStep(slug: ServiceSlug, servicesHref?: string): string {
+  const s = serviceChoices.find((c) => c.slug === slug)!;
+  const href = servicesHref && /^\/(?!\/)/.test(servicesHref) ? servicesHref : null;
+  return `<div class="bk-service-only" data-step="service">
+      <input type="radio" name="bk-service" value="${esc(s.slug)}" data-service-choice="${esc(s.slug)}" checked hidden />
+      <p class="bk-service-only-line">Configuring <strong>${esc(s.title)}</strong>${
+        href ? ` <a class="bk-link" href="${esc(href)}">Choose a different service →</a>` : ''
+      }</p>
+    </div>`;
+}
 
 function serviceStep(): string {
   const cards = serviceChoices
@@ -162,7 +180,7 @@ export function renderWidgetHtml(opts: WidgetTemplateOptions = {}): string {
   return `
 <div class="bk-quote">
   <div class="bk-steps">
-    ${serviceStep()}
+    ${opts.onlyService ? lockedServiceStep(opts.onlyService, opts.servicesHref) : serviceStep()}
     ${audienceStep()}
     ${branchBlocks()}
     ${directionsStep()}

@@ -19,6 +19,21 @@ describe('renderWidgetHtml (configurator)', () => {
     expect(html).not.toMatch(/data-service-choice="[a-z-]+"[^>]*checked/);
     expect(html).toContain('$6–$20 per specimen');
   });
+  it('locked to one service: no menu, the service checked, and a way back to the menu', () => {
+    const one = renderWidgetHtml({ onlyService: 'metagenomics', servicesHref: '/pages/order' });
+    expect(one.match(/data-service-choice=/g)).toHaveLength(1);
+    expect(one).toMatch(/data-service-choice="metagenomics"[^>]*checked/);
+    expect(one).toContain('Metagenome and metatranscriptome sequencing');
+    expect(one).toMatch(/<a [^>]*href="\/pages\/order"[^>]*>Choose a different service/);
+    // every branch is still rendered; the controller shows the chosen one
+    expect(one.match(/data-branch=/g)).toHaveLength(4);
+  });
+  it('locked without a safe menu link omits the link', () => {
+    for (const href of [undefined, '//evil.example', 'javascript:alert(1)', 'https://x.test'])
+      expect(renderWidgetHtml({ onlyService: 'barcoding', servicesHref: href })).not.toContain(
+        'Choose a different service',
+      );
+  });
   it('renders one hidden branch per service with the mockup fields', () => {
     for (const s of ['barcoding', 'metabarcoding', 'metagenomics', 'targeted-edna'])
       expect(html).toMatch(new RegExp(`data-branch="${s}"[^>]*hidden`));

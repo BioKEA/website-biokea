@@ -39,6 +39,10 @@ function autoMount(): void {
   mount(el, {
     source: el.dataset.source || 'site',
     service: isServiceSlug(service) ? service : undefined,
+    // `data-lock-service` (store product pages): that service only, with a
+    // link to the full menu at `data-services-href`.
+    lockService: el.dataset.lockService !== undefined,
+    servicesHref: el.dataset.servicesHref,
   });
 }
 

@@ -18,7 +18,7 @@ const ASSETS = 'http://assets.biokea.test';
 const read = (name: string) =>
   readFileSync(fileURLToPath(new URL(`../../public/widget/${name}`, import.meta.url)), 'utf8');
 
-async function embed(page: Page, source?: string, service?: string): Promise<void> {
+async function embed(page: Page, source?: string, service?: string, extra = ''): Promise<void> {
   await page.route(`${ASSETS}/widget/quote.css`, (route) =>
     route.fulfill({ contentType: 'text/css', body: read('quote.css') }),
   );
@@ -26,7 +26,9 @@ async function embed(page: Page, source?: string, service?: string): Promise<voi
     route.fulfill({ contentType: 'text/javascript', body: read('quote.js') }),
   );
   const attr =
-    (source ? ` data-source="${source}"` : '') + (service ? ` data-service="${service}"` : '');
+    (source ? ` data-source="${source}"` : '') +
+    (service ? ` data-service="${service}"` : '') +
+    extra;
   await page.route(`${STORE}/**`, (route) =>
     route.fulfill({
       contentType: 'text/html',
@@ -178,4 +180,29 @@ test('destroy() releases the mount element so it can be mounted again', async ({
       return { flag: host.dataset.bkMounted ?? null, html: host.innerHTML };
     }),
   ).toEqual({ flag: null, html: '' });
+});
+
+test('a store product page locks the widget to its service', async ({ page }) => {
+  await embed(
+    page,
+    'store',
+    'metabarcoding',
+    ' data-lock-service data-services-href="/pages/order"',
+  );
+
+  await expect(page.locator('[data-service-choice]')).toHaveCount(1);
+  await expect(page.locator('[data-service-choice="metabarcoding"]')).toBeChecked();
+  await expect(page.locator('[data-branch="metabarcoding"]')).toBeVisible();
+  await expect(page.getByRole('link', { name: /Choose a different service/ })).toHaveAttribute(
+    'href',
+    '/pages/order',
+  );
+  await ednaPath(page);
+  await expect(page.locator('[data-total]')).toHaveText('$10,500');
+});
+
+test('a lock with an unknown service falls back to the full menu', async ({ page }) => {
+  await embed(page, 'store', 'nonsense', ' data-lock-service');
+  await expect(page.locator('[data-service-choice]')).toHaveCount(4);
+  await expect(page.locator('[data-service-choice]:checked')).toHaveCount(0);
 });

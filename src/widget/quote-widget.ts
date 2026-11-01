@@ -35,6 +35,10 @@ export interface WidgetOptions {
   source?: string;
   /** Pre-selects a service (store product pages, `?service=` links). */
   service?: ServiceSlug;
+  /** Store product pages: show only `service`, without the menu. */
+  lockService?: boolean;
+  /** Target of the locked view's "Choose a different service" link. */
+  servicesHref?: string;
 }
 
 export interface QuoteWidget {
@@ -137,7 +141,11 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
     track('quote_widget_engaged', { source });
   }
 
-  root.innerHTML = renderWidgetHtml({ turnstileSiteKey: opts.turnstileSiteKey });
+  const locked = opts.lockService && opts.service && isServiceSlug(opts.service);
+  root.innerHTML = renderWidgetHtml({
+    turnstileSiteKey: opts.turnstileSiteKey,
+    ...(locked ? { onlyService: opts.service, servicesHref: opts.servicesHref } : {}),
+  });
   if (opts.turnstileSiteKey) setupTurnstile(root, opts.turnstileSiteKey);
 
   const $ = <T extends Element>(sel: string) => root.querySelector<T>(sel)!;

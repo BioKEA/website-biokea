@@ -519,3 +519,14 @@ textarea.bk-input {
   font-size: 0.875rem;
   color: var(--bk-slate);
 }
+
+/* Store product pages: one service, no menu (see lockedServiceStep). */
+.bk-service-only-line {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  align-items: baseline;
+  font-size: 0.9375rem;
+  color: var(--bk-slate);
+}
