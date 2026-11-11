@@ -16,6 +16,7 @@ import {
   type SampleTypeId,
   type ServiceSlug,
   type TargetId,
+  suggestedMarkers,
 } from '@/data/configurator';
 import {
   metagenomics,
@@ -165,9 +166,17 @@ function kitsParts(samples: number, parts: Parts): void {
 }
 
 /** The configured markers' display names, in the order the engine bills
- * them (the first at the tier rate). */
-const markerNames = (c: BarcodingConfig | MetabarcodingConfig): string[] =>
-  c.markers.map((m) => (m === 'other' ? `Other (${text(c.markerOther)})` : markerLabel(m)));
+ * them: the first is the tier-rate line, so the marker the form suggested
+ * for the chosen targets leads when it was picked; the rest keep form order. */
+function markerNames(c: BarcodingConfig | MetabarcodingConfig): string[] {
+  const suggested =
+    c.service === 'barcoding'
+      ? suggestedMarkers('barcoding', [c.target], c.subs ? { [c.target]: c.subs } : {})
+      : suggestedMarkers('metabarcoding', c.targets, c.subs ?? {});
+  const lead = suggested.find((m) => c.markers.includes(m));
+  const ordered = lead ? [lead, ...c.markers.filter((m) => m !== lead)] : c.markers;
+  return ordered.map((m) => (m === 'other' ? `Other (${text(c.markerOther)})` : markerLabel(m)));
+}
 
 function barcodingOrder(c: BarcodingConfig): Parts {
   const kind = c.handling === 'idOnly' ? 'id-only' : 'service';

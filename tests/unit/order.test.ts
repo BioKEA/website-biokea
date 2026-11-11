@@ -185,3 +185,18 @@ describe('ConfigSchema', () => {
     expect(ConfigSchema.safeParse(bc({ samples: 0 })).success).toBe(false);
   });
 });
+
+describe('tier-rate marker', () => {
+  it('the suggested marker leads, whatever order the form sent', () => {
+    const o = buildOrder(edna({ targets: ['vertebrates'], markers: ['COI', '12S', '18S'] }));
+    expect(o.quote.lines[0].markerNames).toEqual(['12S', 'COI', '18S']);
+  });
+  it('follows the subgroup suggestion for barcoding (fish → 12S)', () => {
+    const o = buildOrder(bc({ target: 'vertebrates', subs: ['Fish'], markers: ['COI', '12S'] }));
+    expect(o.quote.lines[0].markerNames).toEqual(['12S', 'COI']);
+  });
+  it('keeps form order when no suggested marker was picked', () => {
+    const o = buildOrder(edna({ targets: ['vertebrates'], markers: ['COI', '18S'] }));
+    expect(o.quote.lines[0].markerNames).toEqual(['COI', '18S']);
+  });
+});
