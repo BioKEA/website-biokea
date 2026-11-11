@@ -371,6 +371,20 @@ textarea.bk-input {
   color: var(--bk-slate-soft);
 }
 
+/* The marker charge: its own amount, right-aligned under the line price. */
+.bk-line-sub--charge {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.bk-line-sub-price {
+  flex: none;
+  font-family: var(--bk-mono);
+  font-variant-numeric: tabular-nums;
+}
+
 .bk-total-row {
   display: flex;
   justify-content: space-between;

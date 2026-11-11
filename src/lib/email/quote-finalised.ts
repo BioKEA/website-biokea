@@ -5,6 +5,7 @@
 import type { EmailMessage } from './resend';
 import type { QuoteRecord } from '@/lib/payments/types';
 import { SITE_URL } from './quote-payments';
+import { baseText, lineBreakdown, markerText } from '@/lib/pricing/breakdown';
 
 const usd = (n: number) => '$' + n.toLocaleString('en-US');
 const plural = (n: number, unit: string) =>
@@ -16,9 +17,14 @@ export function firmQuoteReadyEmail(q: QuoteRecord, revised: boolean): EmailMess
     a
       ? usd(l[a].total)
       : `${usd(l.academic.total)} academic / ${usd(l.commercial.total)} commercial`;
-  const lines = q.lines.map((l) => {
+  const lines = q.lines.flatMap((l) => {
     const markers = l.markers > 1 ? ` × ${l.markers} markers` : '';
-    return `  · ${l.serviceTitle}: ${plural(l.count, l.unitLabel)}${markers} — ${amount(l)}`;
+    const head = `  · ${l.serviceTitle}: ${plural(l.count, l.unitLabel)}${markers} — ${amount(l)}`;
+    // The marker arithmetic, for the recorded audience only.
+    const b = a ? lineBreakdown(l, a) : null;
+    return b
+      ? [head, `      ${baseText(b, l.unitLabel)}`, `      + ${markerText(b, l.unitLabel)}`]
+      : [head];
   });
   const total = a
     ? `Total (${a} rate): ${usd(a === 'academic' ? q.total_academic : q.total_commercial)}`
