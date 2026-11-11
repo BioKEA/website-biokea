@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { vertebrateNotice } from '@/data/configurator';
 import { buildOrder } from '@/lib/pricing/order';
+import { buildQuote } from '@/lib/pricing/quote';
 import {
   renderWidgetHtml,
   renderQuotePanel,
@@ -165,10 +166,25 @@ describe('renderQuotePanel', () => {
     expect(p).toContain('Custom quote after consultation');
     expect(p).not.toContain('data-total"');
   });
-  it('marker surcharge shows as a sub-line, not a separate line', () => {
+  it('extra markers: samples × tier rate, then the marker charge on its own sub-line', () => {
     const p = renderQuotePanel(buildOrder(edna()), 'commercial');
     expect(p.match(/class="bk-line"/g)).toHaveLength(1);
-    expect(p).toContain('2 markers');
+    expect(p).toContain('60 samples × $160 = $9,600');
+    expect(p).toMatch(
+      /data-marker-charge[^>]*>\s*<span>Additional markers: 1 added marker × 60 samples × \$15<\/span>\s*<span[^>]*>\$900<\/span>/,
+    );
+    expect(p).toContain('$10,500');
+    expect(p).not.toContain('$175');
+    const a = renderQuotePanel(buildOrder(edna()), 'academic');
+    expect(a).toContain('60 samples × $130 = $7,800');
+    expect(a).toContain('1 added marker × 60 samples × $12');
+  });
+
+  it('upsell names the next tier rate and the marker charge separately', () => {
+    const q = buildQuote([{ serviceSlug: 'metabarcoding', count: 60, markers: 2 }]);
+    expect(renderUpsell(q, 'commercial')).toContain(
+      'drops it to $145/sample, plus $15/sample per added marker.',
+    );
   });
 
   it('is empty with no order', () => {

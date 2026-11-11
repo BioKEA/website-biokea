@@ -7,9 +7,18 @@ import { SupabaseDb } from '@/lib/payments/db';
 import { shopifyConfigured } from '@/lib/payments/shopify-env';
 import { panelView } from '@/lib/payments/panel';
 import { usdCents } from '@/lib/payments/terms';
+import { baseText, lineBreakdown, markerText } from '@/lib/pricing/breakdown';
+import type { Audience, QuoteLine } from '@/lib/pricing/quote';
 import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
 
 export const prerender = false;
+
+// Extra markers: units × tier rate, plus the marker charge, as two lines
+// under the amount (the same arithmetic the configurator and invoice show).
+const markerSplit = (l: QuoteLine, a: Audience): string[] => {
+  const b = lineBreakdown(l, a);
+  return b ? [baseText(b, l.unitLabel), `+ ${markerText(b, l.unitLabel)}`] : [];
+};
 
 const { token } = Astro.params;
 const e = env as unknown as {
@@ -118,6 +127,14 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
                     {l.academic.freeHeadroom > 0 &&
                       ` · ships up to ${l.academic.pricedCount.toLocaleString()}`}
                   </div>
+                  {markerSplit(l, 'academic').map((t) => (
+                    <div
+                      data-marker-breakdown
+                      class="mt-0.5 font-sans text-[11px] font-normal text-slate-500 whitespace-normal"
+                    >
+                      {t}
+                    </div>
+                  ))}
                 </td>
               )}
               {quote.audience !== 'academic' && (
@@ -128,6 +145,14 @@ const keptPo = Astro.url.searchParams.get('po') ?? '';
                     {l.commercial.freeHeadroom > 0 &&
                       ` · ships up to ${l.commercial.pricedCount.toLocaleString()}`}
                   </div>
+                  {markerSplit(l, 'commercial').map((t) => (
+                    <div
+                      data-marker-breakdown
+                      class="mt-0.5 font-sans text-[11px] font-normal text-slate-500 whitespace-normal"
+                    >
+                      {t}
+                    </div>
+                  ))}
                 </td>
               )}
             </tr>

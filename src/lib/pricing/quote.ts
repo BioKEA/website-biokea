@@ -59,6 +59,9 @@ export interface PriceResult {
   total: number;
   /** Per-unit rate actually applied, including any marker surcharge. */
   effectiveRate: number;
+  /** The tier's own per-unit rate, before any marker surcharge. Absent on
+   * lines stored before 2026-11-10; see lineBreakdown in ./breakdown. */
+  baseRate?: number;
   /** Display label of the tier whose rate was applied, e.g. "300–999". */
   tierRange: string;
   /** What the customer's own count would have cost at its own tier. */
@@ -258,6 +261,7 @@ function priceOne(src: PriceSource, count: number, markers: number, a: Audience)
     pricedCount: best.pricedCount,
     total,
     effectiveRate: effectiveRate(src, best.tier, markers, a),
+    baseRate: rateOf(best.tier, a),
     tierRange: best.tier.range,
     literalTotal: roundedLiteral,
     isBetterThanLiteral: savings > 0,
@@ -320,7 +324,12 @@ export function nextTierUpsell(
   markers: number,
   audience: Audience,
   kind: LineKind = 'service',
-): { additionalUnits: number; additionalCost: number; newRate: number } | null {
+): {
+  additionalUnits: number;
+  additionalCost: number;
+  newRate: number;
+  newBaseRate: number;
+} | null {
   // Upsells are for rate-card service lines only; flat kinds have no next
   // tier to reach.
   if (kind !== 'service') return null;
@@ -334,5 +343,6 @@ export function nextTierUpsell(
     additionalUnits: next.minQty - current.pricedCount,
     additionalCost: nextTotal - current.total,
     newRate: effectiveRate(src, next, markers, audience),
+    newBaseRate: rateOf(next, audience),
   };
 }

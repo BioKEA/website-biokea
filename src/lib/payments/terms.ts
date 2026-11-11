@@ -9,6 +9,7 @@ import {
   type QuoteLine,
   type QuoteLineInput,
 } from '@/lib/pricing/quote';
+import { lineBreakdown, money } from '@/lib/pricing/breakdown';
 import type { InvoiceLineSpec, PaymentRecord, QuoteRecord } from './types';
 
 export const INVOICE_DAYS_UNTIL_DUE = 30;
@@ -63,17 +64,39 @@ function heldLineDescription(
   );
 }
 
-/** The up-front invoice: 100% of the quote. Spec §4.1. One line per quote
- * line, each rounded independently, so the invoice's lines add up to its
- * total exactly. */
+/** A quote line as invoice lines. With extra markers the marker charge is
+ * its own line (samples × tier rate, then added markers × samples × marker
+ * rate), and the second line takes whatever cents the first leaves, so the
+ * pair always adds up to the line's total. */
+function invoiceLines(l: QuoteLine, audience: Audience): InvoiceLineSpec[] {
+  const p = l[audience];
+  const cents = Math.round(p.total * 100);
+  const b = lineBreakdown(l, audience);
+  if (!b)
+    return [{ description: lineDescription(l, audience, p.effectiveRate), amountCents: cents }];
+  const baseCents = b.baseTotal * 100;
+  return [
+    {
+      description:
+        `${l.serviceTitle} — ${plural(b.units, l.unitLabel)}` +
+        ` @ ${money(b.baseRate)}/${l.unitLabel}, ${audience} rate`,
+      amountCents: baseCents,
+    },
+    {
+      description:
+        `${l.serviceTitle}, additional markers — ` +
+        `${b.extraMarkers} added marker${b.extraMarkers === 1 ? '' : 's'} × ${plural(b.units, l.unitLabel)}` +
+        ` @ ${money(b.markerRate)}/${l.unitLabel} per marker, ${audience} rate`,
+      amountCents: cents - baseCents,
+    },
+  ];
+}
+
+/** The up-front invoice: 100% of the quote. Spec §4.1. Each quote line
+ * becomes one invoice line (two with extra markers), each rounded
+ * independently, so the invoice's lines add up to its total exactly. */
 export function paymentLines(lines: QuoteLine[], audience: Audience): InvoiceLineSpec[] {
-  return lines.map((l) => {
-    const p = l[audience];
-    return {
-      description: lineDescription(l, audience, p.effectiveRate),
-      amountCents: Math.round(p.total * 100),
-    };
-  });
+  return lines.flatMap((l) => invoiceLines(l, audience));
 }
 
 export function paymentTotalCents(lines: InvoiceLineSpec[]): number {
@@ -134,7 +157,7 @@ export function computeBalance(
   const actual = buildQuote(priced); // throws on bad input, same as /api/quote
   const uncapped: string[] = [];
 
-  const lines: InvoiceLineSpec[] = actual.lines.map((l) => {
+  const lines: InvoiceLineSpec[] = actual.lines.flatMap((l): InvoiceLineSpec[] => {
     const p = l[audience];
     const engineCents = Math.round(p.total * 100);
     // Matched on the whole line identity (kind + slug + assay), not the slug
@@ -149,10 +172,7 @@ export function computeBalance(
     );
     if (!quoted) {
       uncapped.push(l.serviceSlug);
-      return {
-        description: lineDescription(l, audience, p.effectiveRate),
-        amountCents: engineCents,
-      };
+      return invoiceLines(l, audience);
     }
 
     const lockedRate = quoted[audience].effectiveRate;
@@ -168,14 +188,16 @@ export function computeBalance(
         ? Math.round(quoted[audience].total * 100) - Math.round(shortfall * lockedRate * 100)
         : engineCents;
 
-    const held = capCents < engineCents;
-    const amountCents = held ? capCents : engineCents;
-    return {
-      description: held
-        ? heldLineDescription(l, quoted, audience, lockedRate, shortfall)
-        : lineDescription(l, audience, p.effectiveRate),
-      amountCents,
-    };
+    // A held line keeps one description: its math is the quoted block
+    // minus the shortfall, which doesn't split into tier and markers.
+    if (capCents < engineCents)
+      return [
+        {
+          description: heldLineDescription(l, quoted, audience, lockedRate, shortfall),
+          amountCents: capCents,
+        },
+      ];
+    return invoiceLines(l, audience);
   });
 
   const actualTotalCents = lines.reduce((s, l) => s + l.amountCents, 0);

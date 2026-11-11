@@ -22,6 +22,7 @@ import {
   type Quote,
   type QuoteLine,
 } from '@/lib/pricing/quote';
+import { baseText, lineBreakdown, markerText, money } from '@/lib/pricing/breakdown';
 import { branches } from './branches';
 import { esc, fieldset } from './html';
 
@@ -208,19 +209,26 @@ function tierText(l: QuoteLine, price: PriceResult): string {
   }
 }
 
-/** The service-line `<li>`s, priced for one audience. Extra markers are a
- * per-unit surcharge inside the line, so they show as a sub-line. */
+/** The service-line `<li>`s, priced for one audience. With extra markers
+ * the line reads as units × the tier rate, then the marker charge on its
+ * own sub-line with its amount, so the arithmetic is visible. */
 function renderLineItems(quote: Quote, audience: Audience): string {
   return quote.lines
     .map((l) => {
       const price = l[audience];
-      const markers =
-        l.markers > 1
-          ? `\n      <div class="bk-line-sub">${l.markers} markers, first included</div>`
-          : '';
+      const b = lineBreakdown(l, audience);
+      const meta = b
+        ? `${esc(baseText(b, l.unitLabel))} · ${esc(tierText(l, price))}`
+        : `${esc(plural(l.count, l.unitLabel))} × ${rate(price.effectiveRate)} · ${esc(tierText(l, price))}`;
+      const markers = b
+        ? `\n      <div class="bk-line-sub bk-line-sub--charge" data-marker-charge>
+        <span>Additional markers: ${esc(markerText(b, l.unitLabel, false))}</span>
+        <span class="bk-line-sub-price">${money(b.markerTotal)}</span>
+      </div>`
+        : '';
       return `<li class="bk-line">
       <div class="bk-line-head"><span class="bk-line-title">${esc(l.serviceTitle)}</span><span class="bk-line-price">${usd(price.total)}</span></div>
-      <div class="bk-line-meta">${esc(plural(l.count, l.unitLabel))} × ${rate(price.effectiveRate)} · ${esc(tierText(l, price))}</div>${markers}
+      <div class="bk-line-meta">${meta}</div>${markers}
     </li>`;
     })
     .join('\n    ');
@@ -369,9 +377,17 @@ export function renderUpsell(quote: Quote, audience: Audience): string | null {
   const l = quote.lines[0];
   const next = nextTierUpsell(l.serviceSlug, l.count, l.markers, audience, l.kind ?? 'service');
   if (!next || next.additionalCost <= 0) return null;
+  // With extra markers, name the tier rate and the marker charge apart, the
+  // way the line itself reads (the blended rate matches neither number).
+  const extra = l.markers - 1;
+  const rateText =
+    extra > 0
+      ? `${money(next.newBaseRate)}/${esc(l.unitLabel)}, plus ` +
+        `${money((next.newRate - next.newBaseRate) / extra)}/${esc(l.unitLabel)} per added marker`
+      : `${money(next.newRate)}/${esc(l.unitLabel)}`;
   return (
     `${next.additionalUnits.toLocaleString()} more ${esc(l.unitLabel)}s costs ` +
     `${usd(next.additionalCost)} more at the ${audience === 'academic' ? 'academic' : 'commercial'} rate — ` +
-    `and drops it to $${next.newRate}/${esc(l.unitLabel)}.`
+    `and drops it to ${rateText}.`
   );
 }

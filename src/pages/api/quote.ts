@@ -8,6 +8,7 @@ import { ConfigSchema } from '@/lib/pricing/config-schema';
 import { configLines, consultBullets, whatHappensNext } from '@/lib/email/quote-config';
 import { preflight, withCors } from '@/lib/cors';
 import { shopifyConfigured, type ShopifyEnv } from '@/lib/payments/shopify-env';
+import { baseText, lineBreakdown, markerText } from '@/lib/pricing/breakdown';
 
 export const prerender = false;
 
@@ -258,16 +259,27 @@ async function handleQuoteInner(
       .map((l) => {
         const markerNote = l.markers > 1 ? ` × ${l.markers} markers` : '';
         const head = `  · ${l.serviceTitle}: ${l.count.toLocaleString()} ${l.unitLabel}s${markerNote}`;
-        const priced = (label: string, p: (typeof l)['academic']) =>
-          `      ${label}${usd(p.total)} (${p.tierRange} tier` +
-          (p.freeHeadroom > 0 ? `, ships up to ${p.pricedCount.toLocaleString()}` : '') +
-          `)`;
+        // With extra markers, the arithmetic follows each amount:
+        // samples × tier rate, then the marker charge.
+        const priced = (label: string, a: 'academic' | 'commercial') => {
+          const p = l[a];
+          const b = lineBreakdown(l, a);
+          return (
+            `      ${label}${usd(p.total)} (${p.tierRange} tier` +
+            (p.freeHeadroom > 0 ? `, ships up to ${p.pricedCount.toLocaleString()}` : '') +
+            `)` +
+            (b
+              ? `\n        ${baseText(b, l.unitLabel)}` +
+                `\n        + ${markerText(b, l.unitLabel)}`
+              : '')
+          );
+        };
         return forAudience
-          ? [head, priced('', l[forAudience])].join('\n')
+          ? [head, priced('', forAudience)].join('\n')
           : [
               head,
-              priced('academic/nonprofit: ', l.academic),
-              priced('commercial: ', l.commercial),
+              priced('academic/nonprofit: ', 'academic'),
+              priced('commercial: ', 'commercial'),
             ].join('\n');
       })
       .join('\n');
