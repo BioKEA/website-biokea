@@ -18,6 +18,11 @@ sits at its theme-relative path, so `templates/page.order.json` here is
 | `blocks/_header-logo.liquid`          | The `logo_link` setting (schema entry and the `href` that reads it). The rest is stock Horizon.                                                                                                                                                                                                                                                                                               |
 | `sections/header-group.json`          | Only `logo_link: "https://biokea.ai/"` on the header logo block. Everything else is editor-owned.                                                                                                                                                                                                                                                                                             |
 
+Product-card grids (`index.json`, `product.quote.json`, `collection.json`,
+`search.json`) have the card gallery's `image_ratio` set to `square`
+(2026-11-10). That is an editor setting, so it needs no re-applying; it is
+noted here only so nobody wonders why the cards crop.
+
 The theme editor rewrites JSON templates whenever someone saves in it, so
 the copies here go stale for every part that isn't ours. **Never push these
 repo copies over the live theme.** Pull the live theme, re-apply our edits
