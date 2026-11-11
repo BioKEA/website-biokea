@@ -45,12 +45,48 @@ export const money = (n: number): string =>
 const plural = (n: number, unit: string): string =>
   `${n.toLocaleString('en-US')} ${unit}${n === 1 ? '' : 's'}`;
 
-/** "60 samples × $160 = $9,600" */
-export const baseText = (b: LineBreakdown, unit: string): string =>
-  `${plural(b.units, unit)} × ${money(b.baseRate)} = ${money(b.baseTotal)}`;
+export interface MarkerPart {
+  /** The marker's name, or "Marker 1" / "Added marker 2" on lines saved
+   * without names. */
+  name: string;
+  /** True for the first marker, which the tier rate covers. */
+  tierRate: boolean;
+  units: number;
+  rate: number;
+  total: number;
+}
 
-/** "1 added marker × 60 samples × $15 = $900" (or without the " = $900"
- * where the amount sits in its own column). */
-export const markerText = (b: LineBreakdown, unit: string, withTotal = true): string =>
-  `${plural(b.extraMarkers, 'added marker')} × ${plural(b.units, unit)} × ${money(b.markerRate)}` +
-  (withTotal ? ` = ${money(b.markerTotal)}` : '');
+/** One part per marker: the first at the tier rate, each added one at the
+ * marker rate. The last part takes any rounding cents so the parts sum to
+ * the line total exactly. */
+export function markerParts(l: QuoteLine, audience: Audience): MarkerPart[] | null {
+  const b = lineBreakdown(l, audience);
+  if (!b) return null;
+  const names = l.markerNames?.length === l.markers ? l.markerNames : null;
+  const parts: MarkerPart[] = [
+    {
+      name: names?.[0] ?? 'Marker 1',
+      tierRate: true,
+      units: b.units,
+      rate: b.baseRate,
+      total: b.baseTotal,
+    },
+  ];
+  let left = b.markerTotal;
+  for (let i = 1; i <= b.extraMarkers; i++) {
+    const total = i === b.extraMarkers ? left : Math.round(b.units * b.markerRate);
+    left -= total;
+    parts.push({
+      name: names?.[i] ?? `Added marker ${i + 1}`,
+      tierRate: false,
+      units: b.units,
+      rate: b.markerRate,
+      total,
+    });
+  }
+  return parts;
+}
+
+/** "COI — 60 samples × $160 (tier rate)" — the amount goes alongside. */
+export const markerPartText = (m: MarkerPart, unit: string): string =>
+  `${m.name} — ${plural(m.units, unit)} × ${money(m.rate)} (${m.tierRate ? 'tier rate' : 'added marker'})`;

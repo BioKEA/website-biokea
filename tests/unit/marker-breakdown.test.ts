@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildQuote, nextTierUpsell } from '@/lib/pricing/quote';
-import { baseText, lineBreakdown, markerText } from '@/lib/pricing/breakdown';
+import { lineBreakdown, markerParts } from '@/lib/pricing/breakdown';
 import { paymentLines, paymentTotalCents } from '@/lib/payments/terms';
 
 // Sean, 2026-11-10: with several eDNA markers the total must read as
@@ -49,12 +49,6 @@ describe('lineBreakdown', () => {
     delete legacy.commercial.baseRate;
     expect(lineBreakdown(legacy, 'commercial')).toBeNull();
   });
-
-  it('reads as sentences', () => {
-    const b = lineBreakdown(edna60x2, 'commercial')!;
-    expect(baseText(b, 'sample')).toBe('60 samples × $160 = $9,600');
-    expect(markerText(b, 'sample')).toBe('1 added marker × 60 samples × $15 = $900');
-  });
 });
 
 describe('Shopify invoice lines', () => {
@@ -62,9 +56,11 @@ describe('Shopify invoice lines', () => {
     const lines = paymentLines([edna60x2], 'commercial');
     expect(lines).toHaveLength(2);
     expect(lines[0]).toMatchObject({ amountCents: 960000 });
-    expect(lines[0].description).toContain('60 samples @ $160/sample');
+    expect(lines[0].description).toContain('Marker 1: 60 samples @ $160/sample (tier rate)');
     expect(lines[1]).toMatchObject({ amountCents: 90000 });
-    expect(lines[1].description).toContain('1 added marker × 60 samples @ $15');
+    expect(lines[1].description).toContain(
+      'Added marker 2: 60 samples @ $15/sample (added marker)',
+    );
     expect(paymentTotalCents(lines)).toBe(1050000);
   });
 
@@ -111,8 +107,36 @@ describe('emails', () => {
       },
       false,
     );
-    expect(msg.text).toContain('60 samples × $160 = $9,600');
-    expect(msg.text).toContain('+ 1 added marker × 60 samples × $15 = $900');
+    expect(msg.text).toContain('Marker 1 — 60 samples × $160 (tier rate): $9,600');
+    expect(msg.text).toContain('Added marker 2 — 60 samples × $15 (added marker): $900');
     expect(msg.text).toContain('$10,500');
+  });
+});
+
+describe('markerParts', () => {
+  it('names each marker when the order recorded them, and sums to the line', () => {
+    const l = buildQuote([
+      { serviceSlug: 'metabarcoding', count: 250, markers: 3, markerNames: ['12S', 'COI', '18S'] },
+    ]).lines[0];
+    const parts = markerParts(l, 'commercial')!;
+    expect(parts.map((m) => [m.name, m.rate, m.total])).toEqual([
+      ['12S', 145, 36250],
+      ['COI', 15, 3750],
+      ['18S', 15, 3750],
+    ]);
+    const inv = paymentLines([l], 'commercial');
+    expect(inv.map((x) => x.description.split(' — ')[1].split(':')[0])).toEqual([
+      '12S',
+      'COI',
+      '18S',
+    ]);
+    expect(paymentTotalCents(inv)).toBe(l.commercial.total * 100);
+  });
+
+  it('drops names that do not match the marker count', () => {
+    const l = buildQuote([
+      { serviceSlug: 'metabarcoding', count: 60, markers: 2, markerNames: ['12S'] },
+    ]).lines[0];
+    expect(l.markerNames).toBeUndefined();
   });
 });

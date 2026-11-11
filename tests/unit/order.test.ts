@@ -8,7 +8,13 @@ describe('buildOrder', () => {
     const o = buildOrder(bc({ markers: ['COI', '12S'] }));
     expect(barcodingCount(bc())).toBe(150);
     expect(o.inputs).toEqual([
-      { serviceSlug: 'barcoding', count: 150, markers: 2, kind: 'service' },
+      {
+        serviceSlug: 'barcoding',
+        count: 150,
+        markers: 2,
+        kind: 'service',
+        markerNames: ['COI', '12S'],
+      },
     ]);
     expect(o.quote.total.academic).toBe(4200);
     expect(o.consult).toBe(false);
@@ -32,6 +38,7 @@ describe('buildOrder', () => {
       kind: 'preservative-edna',
       count: 3,
       markers: 1,
+      markerNames: ['COI'],
     });
   });
   it('eDNA 60 samples, 2 markers, commercial = $10,500; kits turn it into consult', () => {

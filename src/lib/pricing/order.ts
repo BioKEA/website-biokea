@@ -164,6 +164,11 @@ function kitsParts(samples: number, parts: Parts): void {
   parts.tbc.push({ title, desc });
 }
 
+/** The configured markers' display names, in the order the engine bills
+ * them (the first at the tier rate). */
+const markerNames = (c: BarcodingConfig | MetabarcodingConfig): string[] =>
+  c.markers.map((m) => (m === 'other' ? `Other (${text(c.markerOther)})` : markerLabel(m)));
+
 function barcodingOrder(c: BarcodingConfig): Parts {
   const kind = c.handling === 'idOnly' ? 'id-only' : 'service';
   const count = barcodingCount(c);
@@ -190,7 +195,13 @@ function barcodingOrder(c: BarcodingConfig): Parts {
       });
     }
   } else {
-    parts.inputs.push({ serviceSlug: 'barcoding', count, markers, kind });
+    parts.inputs.push({
+      serviceSlug: 'barcoding',
+      count,
+      markers,
+      kind,
+      markerNames: markerNames(c),
+    });
   }
   if (c.preservativeEdna) {
     parts.inputs.push({
@@ -198,6 +209,7 @@ function barcodingOrder(c: BarcodingConfig): Parts {
       kind: 'preservative-edna',
       count: c.samples,
       markers,
+      markerNames: markerNames(c),
     });
   }
   if (c.kits) kitsParts(c.samples, parts);
@@ -212,6 +224,7 @@ function metabarcodingOrder(c: MetabarcodingConfig): Parts {
         count: c.samples,
         markers: c.markers.length,
         kind: 'service',
+        markerNames: markerNames(c),
       },
     ],
     triggers: choiceTriggers(c, c.targets),
@@ -359,10 +372,7 @@ function serviceTitle(slug: ServiceSlug): string {
 }
 
 function markersLine(c: BarcodingConfig | MetabarcodingConfig): string {
-  const names = c.markers.map((m) =>
-    m === 'other' ? `Other (${text(c.markerOther)})` : markerLabel(m),
-  );
-  return `Markers: ${names.join(', ')}`;
+  return `Markers: ${markerNames(c).join(', ')}`;
 }
 
 function sampleTypeLine(c: BarcodingConfig | MetabarcodingConfig): string {

@@ -9,7 +9,7 @@ import {
   type QuoteLine,
   type QuoteLineInput,
 } from '@/lib/pricing/quote';
-import { lineBreakdown, money } from '@/lib/pricing/breakdown';
+import { markerParts, money } from '@/lib/pricing/breakdown';
 import type { InvoiceLineSpec, PaymentRecord, QuoteRecord } from './types';
 
 export const INVOICE_DAYS_UNTIL_DUE = 30;
@@ -64,32 +64,32 @@ function heldLineDescription(
   );
 }
 
-/** A quote line as invoice lines. With extra markers the marker charge is
- * its own line (samples × tier rate, then added markers × samples × marker
- * rate), and the second line takes whatever cents the first leaves, so the
- * pair always adds up to the line's total. */
+/** A quote line as invoice lines. With extra markers each marker is its
+ * own line (the first at the tier rate, each added one at the marker rate),
+ * matching the draft quote; the parts sum to the line's total exactly. */
 function invoiceLines(l: QuoteLine, audience: Audience): InvoiceLineSpec[] {
   const p = l[audience];
-  const cents = Math.round(p.total * 100);
-  const b = lineBreakdown(l, audience);
-  if (!b)
-    return [{ description: lineDescription(l, audience, p.effectiveRate), amountCents: cents }];
-  const baseCents = b.baseTotal * 100;
-  return [
-    {
+  const parts = markerParts(l, audience);
+  if (!parts)
+    return [
+      {
+        description: lineDescription(l, audience, p.effectiveRate),
+        amountCents: Math.round(p.total * 100),
+      },
+    ];
+  // Cents from the line total, so rounding can't make the parts drift.
+  const lineCents = Math.round(p.total * 100);
+  let left = lineCents;
+  return parts.map((m, i) => {
+    const amountCents = i === parts.length - 1 ? left : Math.round(m.total * 100);
+    left -= amountCents;
+    return {
       description:
-        `${l.serviceTitle} — ${plural(b.units, l.unitLabel)}` +
-        ` @ ${money(b.baseRate)}/${l.unitLabel}, ${audience} rate`,
-      amountCents: baseCents,
-    },
-    {
-      description:
-        `${l.serviceTitle}, additional markers — ` +
-        `${b.extraMarkers} added marker${b.extraMarkers === 1 ? '' : 's'} × ${plural(b.units, l.unitLabel)}` +
-        ` @ ${money(b.markerRate)}/${l.unitLabel} per marker, ${audience} rate`,
-      amountCents: cents - baseCents,
-    },
-  ];
+        `${l.serviceTitle} — ${m.name}: ${plural(m.units, l.unitLabel)}` +
+        ` @ ${money(m.rate)}/${l.unitLabel} (${m.tierRate ? 'tier rate' : 'added marker'}), ${audience} rate`,
+      amountCents,
+    };
+  });
 }
 
 /** The up-front invoice: 100% of the quote. Spec §4.1. Each quote line
