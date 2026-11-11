@@ -8,7 +8,7 @@ import { ConfigSchema } from '@/lib/pricing/config-schema';
 import { configLines, consultBullets, whatHappensNext } from '@/lib/email/quote-config';
 import { preflight, withCors } from '@/lib/cors';
 import { shopifyConfigured, type ShopifyEnv } from '@/lib/payments/shopify-env';
-import { baseText, lineBreakdown, markerText } from '@/lib/pricing/breakdown';
+import { markerPartText, markerParts, money } from '@/lib/pricing/breakdown';
 
 export const prerender = false;
 
@@ -263,15 +263,14 @@ async function handleQuoteInner(
         // samples × tier rate, then the marker charge.
         const priced = (label: string, a: 'academic' | 'commercial') => {
           const p = l[a];
-          const b = lineBreakdown(l, a);
+          const parts = markerParts(l, a) ?? [];
           return (
             `      ${label}${usd(p.total)} (${p.tierRange} tier` +
             (p.freeHeadroom > 0 ? `, ships up to ${p.pricedCount.toLocaleString()}` : '') +
             `)` +
-            (b
-              ? `\n        ${baseText(b, l.unitLabel)}` +
-                `\n        + ${markerText(b, l.unitLabel)}`
-              : '')
+            parts
+              .map((m) => `\n        ${markerPartText(m, l.unitLabel)}: ${money(m.total)}`)
+              .join('')
           );
         };
         return forAudience

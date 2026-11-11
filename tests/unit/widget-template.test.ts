@@ -166,18 +166,33 @@ describe('renderQuotePanel', () => {
     expect(p).toContain('Custom quote after consultation');
     expect(p).not.toContain('data-total"');
   });
-  it('extra markers: samples × tier rate, then the marker charge on its own sub-line', () => {
+  it('extra markers: each selected marker is a sub-line with its own cost', () => {
+    // fixture: vertebrates, markers 12S + COI, 60 water samples
     const p = renderQuotePanel(buildOrder(edna()), 'commercial');
     expect(p.match(/class="bk-line"/g)).toHaveLength(1);
-    expect(p).toContain('60 samples × $160 = $9,600');
-    expect(p).toMatch(
-      /data-marker-charge[^>]*>\s*<span>Additional markers: 1 added marker × 60 samples × \$15<\/span>\s*<span[^>]*>\$900<\/span>/,
-    );
+    expect(p).toContain('60 samples · 49–199 tier');
+    const parts = [
+      ...p.matchAll(
+        /data-marker-charge[^>]*>\s*<span>([^<]*)<\/span>\s*<span[^>]*>([^<]*)<\/span>/g,
+      ),
+    ].map((m) => [m[1], m[2]]);
+    expect(parts).toEqual([
+      ['12S — 60 samples × $160 (tier rate)', '$9,600'],
+      ['COI — 60 samples × $15 (added marker)', '$900'],
+    ]);
     expect(p).toContain('$10,500');
     expect(p).not.toContain('$175');
     const a = renderQuotePanel(buildOrder(edna()), 'academic');
-    expect(a).toContain('60 samples × $130 = $7,800');
-    expect(a).toContain('1 added marker × 60 samples × $12');
+    expect(a).toContain('12S — 60 samples × $130 (tier rate)');
+    expect(a).toContain('COI — 60 samples × $12 (added marker)');
+  });
+
+  it('three markers: three priced sub-lines that add up to the line', () => {
+    const o = buildOrder(edna({ markers: ['12S', 'COI', '18S'], samples: 250 }));
+    const p = renderQuotePanel(o, 'commercial');
+    expect(p.match(/data-marker-charge/g)).toHaveLength(3);
+    expect(p).toContain('18S — 250 samples × $15 (added marker)');
+    expect(o.quote.total.commercial).toBe(250 * 145 + 2 * 250 * 15);
   });
 
   it('upsell names the next tier rate and the marker charge separately', () => {

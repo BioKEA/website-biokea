@@ -49,6 +49,9 @@ export interface QuoteLineInput {
   assay?: 'mg' | 'mt';
   /** Required for, and only meaningful on, kind 'custom'. */
   custom?: CustomLineSpec;
+  /** Display names of the markers, first (tier-rate) one first. Kept only
+   * when there is one per marker; never affects the price. */
+  markerNames?: string[];
 }
 
 export interface PriceResult {
@@ -88,6 +91,8 @@ export interface QuoteLine {
   assay?: 'mg' | 'mt';
   /** Kind 'custom' only: the agreed price, kept so the balance can re-count at it. */
   custom?: CustomLineSpec;
+  /** Which markers these are, for display; see QuoteLineInput.markerNames. */
+  markerNames?: string[];
 }
 
 export interface Quote {
@@ -299,6 +304,7 @@ export function buildQuote(inputs: QuoteLineInput[]): Quote {
       kind,
       ...(kind === 'assay' ? { assay: input.assay } : {}),
       ...(kind === 'custom' ? { custom: { ...input.custom! } } : {}),
+      ...(input.markerNames?.length === markers ? { markerNames: [...input.markerNames] } : {}),
     };
   });
 

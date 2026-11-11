@@ -7,18 +7,16 @@ import { SupabaseDb } from '@/lib/payments/db';
 import { shopifyConfigured } from '@/lib/payments/shopify-env';
 import { panelView } from '@/lib/payments/panel';
 import { usdCents } from '@/lib/payments/terms';
-import { baseText, lineBreakdown, markerText } from '@/lib/pricing/breakdown';
+import { markerPartText, markerParts, money } from '@/lib/pricing/breakdown';
 import type { Audience, QuoteLine } from '@/lib/pricing/quote';
 import type { PaymentRecord, QuoteRecord } from '@/lib/payments/types';
 
 export const prerender = false;
 
-// Extra markers: units × tier rate, plus the marker charge, as two lines
-// under the amount (the same arithmetic the configurator and invoice show).
-const markerSplit = (l: QuoteLine, a: Audience): string[] => {
-  const b = lineBreakdown(l, a);
-  return b ? [baseText(b, l.unitLabel), `+ ${markerText(b, l.unitLabel)}`] : [];
-};
+// Extra markers: one line per marker with its cost, under the amount (the
+// same parts the configurator and the invoice show).
+const markerSplit = (l: QuoteLine, a: Audience): string[] =>
+  (markerParts(l, a) ?? []).map((m) => `${markerPartText(m, l.unitLabel)}: ${money(m.total)}`);
 
 const { token } = Astro.params;
 const e = env as unknown as {

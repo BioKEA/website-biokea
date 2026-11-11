@@ -22,7 +22,7 @@ import {
   type Quote,
   type QuoteLine,
 } from '@/lib/pricing/quote';
-import { baseText, lineBreakdown, markerText, money } from '@/lib/pricing/breakdown';
+import { markerPartText, markerParts, money } from '@/lib/pricing/breakdown';
 import { branches } from './branches';
 import { esc, fieldset } from './html';
 
@@ -210,25 +210,29 @@ function tierText(l: QuoteLine, price: PriceResult): string {
 }
 
 /** The service-line `<li>`s, priced for one audience. With extra markers
- * the line reads as units × the tier rate, then the marker charge on its
- * own sub-line with its amount, so the arithmetic is visible. */
+ * each selected marker is its own sub-line with its cost — the first at the
+ * tier rate, each added one at the marker rate — so the line's total is
+ * visibly the sum of its parts. */
 function renderLineItems(quote: Quote, audience: Audience): string {
   return quote.lines
     .map((l) => {
       const price = l[audience];
-      const b = lineBreakdown(l, audience);
-      const meta = b
-        ? `${esc(baseText(b, l.unitLabel))} · ${esc(tierText(l, price))}`
+      const parts = markerParts(l, audience);
+      const meta = parts
+        ? `${esc(plural(parts[0].units, l.unitLabel))} · ${esc(tierText(l, price))}`
         : `${esc(plural(l.count, l.unitLabel))} × ${rate(price.effectiveRate)} · ${esc(tierText(l, price))}`;
-      const markers = b
-        ? `\n      <div class="bk-line-sub bk-line-sub--charge" data-marker-charge>
-        <span>Additional markers: ${esc(markerText(b, l.unitLabel, false))}</span>
-        <span class="bk-line-sub-price">${money(b.markerTotal)}</span>
-      </div>`
-        : '';
+      const subs = (parts ?? [])
+        .map(
+          (m) => `
+      <div class="bk-line-sub bk-line-sub--charge" data-marker-charge>
+        <span>${esc(markerPartText(m, l.unitLabel))}</span>
+        <span class="bk-line-sub-price">${money(m.total)}</span>
+      </div>`,
+        )
+        .join('');
       return `<li class="bk-line">
       <div class="bk-line-head"><span class="bk-line-title">${esc(l.serviceTitle)}</span><span class="bk-line-price">${usd(price.total)}</span></div>
-      <div class="bk-line-meta">${meta}</div>${markers}
+      <div class="bk-line-meta">${meta}</div>${subs}
     </li>`;
     })
     .join('\n    ');
