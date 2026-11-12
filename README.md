@@ -183,3 +183,5 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full workflow.
   `src/layouts/BaseLayout.astro`
 - Dependabot is wired up (`.github/dependabot.yml`); review the initial wave of PRs
   when they land
+
+<!-- write-access test 2026-08-16 -->
