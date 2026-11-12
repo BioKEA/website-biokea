@@ -68,6 +68,24 @@ const tallies = {
       '@context': 'https://schema.org',
       '@graph': [
         {
+          '@type': 'WebApplication',
+          '@id': 'https://biokea.ai/projects#calatbi-dashboard',
+          name: 'Atlas-CalATBI Biodiversity Dashboard',
+          applicationCategory: 'Biodiversity data platform',
+          operatingSystem: 'Web',
+          url: 'https://calatbi.biokea.ai/',
+          description:
+            'The public data platform for the California All Taxa Biodiversity Inventory. Connects field samples, lab processing, occurrence records, and DNA reference barcodes — 3,500+ field samples, 230,000+ mapped California occurrence records, and 15,000+ species-level names — with exact-ID sample tracking for contributors and dataset provenance for collaborators.',
+          creator: { '@id': 'https://biokea.ai/mission#sean' },
+          provider: { '@id': 'https://biokea.ai/#org' },
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+          about: [
+            { '@type': 'DefinedTerm', name: 'California All Taxa Biodiversity Inventory' },
+            { '@type': 'DefinedTerm', name: 'DNA barcoding' },
+            { '@type': 'DefinedTerm', name: 'Darwin Core' },
+          ],
+        },
+        {
           '@type': 'SoftwareApplication',
           '@id': 'https://biokea.ai/projects#intertidal-gap',
           name: 'Intertidal Biodiversity DNA Barcode Library',

@@ -97,6 +97,7 @@ Arriving early summer 2026: **DiversityScanner** — a roboticized imaging platf
 
 ## Active & forthcoming projects
 
+- **Atlas-CalATBI Biodiversity Dashboard** (LIVE) — Public data platform for the California All Taxa Biodiversity Inventory, connecting field samples, lab processing, occurrence records, and DNA reference barcodes: 3,500+ field samples, 230,000+ mapped California occurrence records, 15,000+ species-level names, with exact-ID sample tracking and dataset provenance. https://calatbi.biokea.ai/ · Lead: Sean
 - **Intertidal Biodiversity DNA Barcode Library** (LIVE · Coastal Quest partnership) — Reference barcode taxonomic coverage gap analysis tool covering 4,384 intertidal species along the California coast, cross-referenced against BOLD, NCBI GenBank, NCBI SRA, and GBIF. Interactive Shiny app: https://biokea.shinyapps.io/california_intertidal_gap_analysis/ · Lead: Sean
 - **California Insect Barcoding Initiative** (REVEALING SOON · pending Ecography publication · _independent origin_) — First large-scale DNA-barcode survey of California insects: 1M+ specimens barcoded, ~61,000 species estimated statewide with roughly one-third still undiscovered. Spatial richness interpolations constrained by ecoregion + vegetation type. Originated independently of BioKEA as Austin Baker's prior research program; continued under the BioKEA umbrella. Manager: Austin
 - **Bay Estuary Metabarcoding Baseline** (REVEALING Q4 2026 · SFEI partnership) — Longitudinal metabarcoding baseline for the San Francisco Bay estuary. Lead: Michelle; contributor: Sean

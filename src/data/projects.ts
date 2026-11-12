@@ -45,6 +45,23 @@ export interface Project {
 
 export const projects: Project[] = [
   {
+    slug: 'calatbi-dashboard',
+    title: 'Atlas-CalATBI biodiversity dashboard',
+    summary:
+      'The public data platform for the California All Taxa Biodiversity Inventory. Connects field samples, lab processing, occurrence records, and DNA reference barcodes — 3,500+ field samples, 230,000+ mapped California occurrence records, and 15,000+ species-level names — with exact-ID sample tracking for contributors and dataset provenance for collaborators.',
+    type: 'Web application',
+    year: '2026',
+    tags: ['biodiversity', 'DNA barcoding', 'California', 'Darwin Core', 'sample tracking'],
+    status: 'live',
+    link: 'https://calatbi.biokea.ai/',
+    hero: '/assets/images/project-calatbi-dashboard.webp',
+    heroAlt:
+      "Atlas-CalATBI dashboard home page, 'Discover California's Biodiversity', with counts of field samples, lab samples, occurrence records, and species-level names.",
+    heroWidth: 1200,
+    heroHeight: 675,
+    team: [{ name: 'Sean', lead: true }],
+  },
+  {
     slug: 'california-intertidal-gap-analysis',
     title: 'Intertidal Biodiversity DNA Barcode Library',
     summary:
