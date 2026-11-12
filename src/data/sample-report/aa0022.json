@@ -1,0 +1,684 @@
+[
+  {
+    "well": "A1",
+    "status": "species",
+    "label": "A wasp that rides on spiders",
+    "name": "Acrodactyla quadrisculpta",
+    "reads": 45034,
+    "match": 99.1
+  },
+  {
+    "well": "A2",
+    "status": "species",
+    "label": "A leafminer fly",
+    "name": "Liriomyza septentrionalis",
+    "reads": 46367,
+    "match": 99.4
+  },
+  {
+    "well": "A3",
+    "status": "order",
+    "label": "Hemiptera"
+  },
+  {
+    "well": "A4",
+    "status": "genus",
+    "label": "Anthomyiidae",
+    "name": "Adia sp.",
+    "reads": 5813
+  },
+  {
+    "well": "A5",
+    "status": "genus",
+    "label": "Cicadellidae",
+    "name": " sp.",
+    "reads": 32167
+  },
+  {
+    "well": "A6",
+    "status": "order",
+    "label": "Diptera"
+  },
+  {
+    "well": "A7",
+    "status": "genus",
+    "label": "Pipunculidae",
+    "name": "Chalarus sp.",
+    "reads": 38903
+  },
+  {
+    "well": "A8",
+    "status": "species",
+    "label": "Ephydridae",
+    "name": "Hydrellia griseola",
+    "reads": 45718,
+    "match": 99.1
+  },
+  {
+    "well": "A9",
+    "status": "species",
+    "label": "A predatory plant bug used in biocontrol",
+    "name": "Dicyphus hesperus",
+    "reads": 39540,
+    "match": 100
+  },
+  {
+    "well": "A10",
+    "status": "species",
+    "label": "Dasydemellidae",
+    "name": "Teliapsocus conterminus",
+    "reads": 32724,
+    "match": 98.8
+  },
+  {
+    "well": "A11",
+    "status": "species",
+    "label": "A leafminer fly",
+    "name": "Liriomyza septentrionalis",
+    "reads": 48617,
+    "match": 99.4
+  },
+  {
+    "well": "A12",
+    "status": "order",
+    "label": "Hemiptera"
+  },
+  {
+    "well": "B1",
+    "status": "genus",
+    "label": "Coniopterygidae",
+    "name": "Coniopteryx sp.",
+    "reads": 34002
+  },
+  {
+    "well": "B2",
+    "status": "species",
+    "label": "Anthomyzidae",
+    "name": "Anthomyza vockerothi",
+    "reads": 44054,
+    "match": 99.5
+  },
+  {
+    "well": "B3",
+    "status": "species",
+    "label": "Dasydemellidae",
+    "name": "Teliapsocus conterminus",
+    "reads": 30225,
+    "match": 98.9
+  },
+  {
+    "well": "B4",
+    "status": "genus",
+    "label": "Formicidae",
+    "name": "Temnothorax sp.",
+    "reads": 30340
+  },
+  {
+    "well": "B5",
+    "status": "species",
+    "label": "A leafminer fly",
+    "name": "Liriomyza septentrionalis",
+    "reads": 43615,
+    "match": 99.5
+  },
+  {
+    "well": "B6",
+    "status": "species",
+    "label": "A leafminer fly",
+    "name": "Liriomyza septentrionalis",
+    "reads": 47164,
+    "match": 99.9
+  },
+  {
+    "well": "B7",
+    "status": "order",
+    "label": "Hemiptera"
+  },
+  {
+    "well": "B8",
+    "status": "species",
+    "label": "A leafminer fly",
+    "name": "Liriomyza septentrionalis",
+    "reads": 50251,
+    "match": 99.1
+  },
+  {
+    "well": "B9",
+    "status": "species",
+    "label": "A leafminer fly",
+    "name": "Liriomyza septentrionalis",
+    "reads": 47624,
+    "match": 99.4
+  },
+  {
+    "well": "B10",
+    "status": "species",
+    "label": "A leafminer fly",
+    "name": "Liriomyza septentrionalis",
+    "reads": 41696,
+    "match": 99.4
+  },
+  {
+    "well": "B11",
+    "status": "genus",
+    "label": "Formicidae",
+    "name": "Crematogaster sp.",
+    "reads": 25067
+  },
+  {
+    "well": "B12",
+    "status": "species",
+    "label": "Psychodidae",
+    "name": "Psychoda alternata",
+    "reads": 36218,
+    "match": 99.7
+  },
+  {
+    "well": "C1",
+    "status": "genus",
+    "label": "Eulophidae",
+    "name": "Euderus sp.",
+    "reads": 29548
+  },
+  {
+    "well": "C2",
+    "status": "species",
+    "label": "A leafminer fly",
+    "name": "Liriomyza septentrionalis",
+    "reads": 50522,
+    "match": 99.4
+  },
+  {
+    "well": "C3",
+    "status": "genus",
+    "label": "Diapriidae",
+    "name": " sp.",
+    "reads": 15753
+  },
+  {
+    "well": "C4",
+    "status": "genus",
+    "label": "Chloropidae",
+    "name": "Elachiptera sp.",
+    "reads": 49355
+  },
+  {
+    "well": "C5",
+    "status": "species",
+    "label": "Ephydridae",
+    "name": "Hydrellia griseola",
+    "reads": 42729,
+    "match": 99.9
+  },
+  {
+    "well": "C6",
+    "status": "species",
+    "label": "A leafminer fly",
+    "name": "Liriomyza septentrionalis",
+    "reads": 36526,
+    "match": 99.1
+  },
+  {
+    "well": "C7",
+    "status": "species",
+    "label": "A leafminer fly",
+    "name": "Liriomyza septentrionalis",
+    "reads": 43482,
+    "match": 99.7
+  },
+  {
+    "well": "C8",
+    "status": "species",
+    "label": "A leafminer fly",
+    "name": "Liriomyza septentrionalis",
+    "reads": 39682,
+    "match": 98.9
+  },
+  {
+    "well": "C9",
+    "status": "species",
+    "label": "Ephydridae",
+    "name": "Hydrellia griseola",
+    "reads": 44566,
+    "match": 100
+  },
+  {
+    "well": "C10",
+    "status": "species",
+    "label": "Ephydridae",
+    "name": "Hydrellia griseola",
+    "reads": 46314,
+    "match": 100
+  },
+  {
+    "well": "C11",
+    "status": "genus",
+    "label": "Cicadellidae",
+    "name": "Erythroneura sp.",
+    "reads": 36483
+  },
+  {
+    "well": "C12",
+    "status": "species",
+    "label": "A predatory plant bug used in biocontrol",
+    "name": "Dicyphus hesperus",
+    "reads": 38525,
+    "match": 100
+  },
+  {
+    "well": "D1",
+    "status": "species",
+    "label": "Ephydridae",
+    "name": "Hydrellia griseola",
+    "reads": 47123,
+    "match": 99.7
+  },
+  {
+    "well": "D2",
+    "status": "species",
+    "label": "Stenopsocidae",
+    "name": "Graphopsocus cruciatus",
+    "reads": 38705,
+    "match": 99.2
+  },
+  {
+    "well": "D3",
+    "status": "species",
+    "label": "Cicadellidae",
+    "name": "Balclutha manitou",
+    "reads": 16533,
+    "match": 100
+  },
+  {
+    "well": "D4",
+    "status": "species",
+    "label": "Stenopsocidae",
+    "name": "Graphopsocus cruciatus",
+    "reads": 34120,
+    "match": 99.5
+  },
+  {
+    "well": "D5",
+    "status": "species",
+    "label": "A predatory plant bug used in biocontrol",
+    "name": "Dicyphus hesperus",
+    "reads": 36626,
+    "match": 100
+  },
+  {
+    "well": "D6",
+    "status": "genus",
+    "label": "Chamaemyiidae",
+    "name": "Leucopis sp.",
+    "reads": 34935
+  },
+  {
+    "well": "D7",
+    "status": "species",
+    "label": "Western subterranean termite",
+    "name": "Reticulitermes hesperus",
+    "reads": 22998,
+    "match": 98.8
+  },
+  {
+    "well": "D8",
+    "status": "order",
+    "label": "Hemiptera"
+  },
+  {
+    "well": "D9",
+    "status": "genus",
+    "label": "Platypezidae",
+    "name": " sp.",
+    "reads": 46517
+  },
+  {
+    "well": "D10",
+    "status": "genus",
+    "label": "Ceratopogonidae",
+    "name": " sp.",
+    "reads": 29835
+  },
+  {
+    "well": "D11",
+    "status": "genus",
+    "label": "Eulophidae",
+    "name": " sp.",
+    "reads": 23449
+  },
+  {
+    "well": "D12",
+    "status": "order",
+    "label": "Diptera"
+  },
+  {
+    "well": "E1",
+    "status": "species",
+    "label": "Lygaeidae",
+    "name": "Nysius cymoides",
+    "reads": 37193,
+    "match": 100
+  },
+  {
+    "well": "E2",
+    "status": "genus",
+    "label": "Chloropidae",
+    "name": "Olcella sp.",
+    "reads": 35697
+  },
+  {
+    "well": "E3",
+    "status": "order",
+    "label": "Hymenoptera"
+  },
+  {
+    "well": "E4",
+    "status": "genus",
+    "label": "Chloropidae",
+    "name": "Malloewia sp.",
+    "reads": 47800
+  },
+  {
+    "well": "E5",
+    "status": "genus",
+    "label": "Cicadellidae",
+    "name": " sp.",
+    "reads": 46680
+  },
+  {
+    "well": "E6",
+    "status": "genus",
+    "label": "Formicidae",
+    "name": "Formica sp.",
+    "reads": 38447
+  },
+  {
+    "well": "E7",
+    "status": "genus",
+    "label": "Tortricidae",
+    "name": "Eucosma sp.",
+    "reads": 43969
+  },
+  {
+    "well": "E8",
+    "status": "genus",
+    "label": "Formicidae",
+    "name": "Tapinoma sp.",
+    "reads": 32966
+  },
+  {
+    "well": "E9",
+    "status": "species",
+    "label": "Lygaeidae",
+    "name": "Nysius tenellus",
+    "reads": 32060,
+    "match": 99.9
+  },
+  {
+    "well": "E10",
+    "status": "genus",
+    "label": "Formicidae",
+    "name": "Tapinoma sp.",
+    "reads": 16399
+  },
+  {
+    "well": "E11",
+    "status": "species",
+    "label": "Minute pirate bug",
+    "name": "Orius tristicolor",
+    "reads": 4457,
+    "match": 98.3
+  },
+  {
+    "well": "E12",
+    "status": "genus",
+    "label": "Tephritidae",
+    "name": "Goedenia sp.",
+    "reads": 39108
+  },
+  {
+    "well": "F1",
+    "status": "order",
+    "label": "Hemiptera"
+  },
+  {
+    "well": "F2",
+    "status": "genus",
+    "label": "Braconidae",
+    "name": " sp.",
+    "reads": 41995
+  },
+  {
+    "well": "F3",
+    "status": "genus",
+    "label": "Bombyliidae",
+    "name": "Geron sp.",
+    "reads": 54707
+  },
+  {
+    "well": "F4",
+    "status": "genus",
+    "label": "Chloropidae",
+    "name": "Malloewia sp.",
+    "reads": 12228
+  },
+  {
+    "well": "F5",
+    "status": "species",
+    "label": "Lygaeidae",
+    "name": "Nysius tenellus",
+    "reads": 32437,
+    "match": 99.9
+  },
+  {
+    "well": "F6",
+    "status": "order",
+    "label": "Hymenoptera"
+  },
+  {
+    "well": "F7",
+    "status": "genus",
+    "label": "Chloropidae",
+    "name": "Olcella sp.",
+    "reads": 34022
+  },
+  {
+    "well": "F8",
+    "status": "genus",
+    "label": "Chloropidae",
+    "name": "Olcella sp.",
+    "reads": 33563
+  },
+  {
+    "well": "F9",
+    "status": "genus",
+    "label": "Bombyliidae",
+    "name": " sp.",
+    "reads": 38728
+  },
+  {
+    "well": "F10",
+    "status": "genus",
+    "label": "Bombyliidae",
+    "name": " sp.",
+    "reads": 41195
+  },
+  {
+    "well": "F11",
+    "status": "genus",
+    "label": "Chloropidae",
+    "name": "Malloewia sp.",
+    "reads": 42588
+  },
+  {
+    "well": "F12",
+    "status": "genus",
+    "label": "Bombyliidae",
+    "name": "Geron sp.",
+    "reads": 44827
+  },
+  {
+    "well": "G1",
+    "status": "genus",
+    "label": "Chloropidae",
+    "name": " sp.",
+    "reads": 46310
+  },
+  {
+    "well": "G2",
+    "status": "species",
+    "label": "Pteromalidae",
+    "name": "Catolaccus aeneoviridis",
+    "reads": 30330,
+    "match": 87.9
+  },
+  {
+    "well": "G3",
+    "status": "species",
+    "label": "Lygaeidae",
+    "name": "Nysius tenellus",
+    "reads": 41693,
+    "match": 99.9
+  },
+  {
+    "well": "G4",
+    "status": "genus",
+    "label": "Eurytomidae",
+    "name": "Tenuipetiolus sp.",
+    "reads": 41809
+  },
+  {
+    "well": "G5",
+    "status": "genus",
+    "label": "Coccinellidae",
+    "name": "Hippodamia sp.",
+    "reads": 35578
+  },
+  {
+    "well": "G6",
+    "status": "genus",
+    "label": "Formicidae",
+    "name": "Tapinoma sp.",
+    "reads": 35408
+  },
+  {
+    "well": "G7",
+    "status": "genus",
+    "label": "Formicidae",
+    "name": "Pogonomyrmex sp.",
+    "reads": 34727
+  },
+  {
+    "well": "G8",
+    "status": "genus",
+    "label": "Formicidae",
+    "name": "Formica sp.",
+    "reads": 39308
+  },
+  {
+    "well": "G9",
+    "status": "genus",
+    "label": "Bombyliidae",
+    "name": " sp.",
+    "reads": 47031
+  },
+  {
+    "well": "G10",
+    "status": "genus",
+    "label": "Bombyliidae",
+    "name": " sp.",
+    "reads": 39775
+  },
+  {
+    "well": "G11",
+    "status": "genus",
+    "label": "Formicidae",
+    "name": "Tapinoma sp.",
+    "reads": 36838
+  },
+  {
+    "well": "G12",
+    "status": "order",
+    "label": "Hymenoptera?"
+  },
+  {
+    "well": "H1",
+    "status": "genus",
+    "label": "Eurytomidae",
+    "name": "Tenuipetiolus sp.",
+    "reads": 34948
+  },
+  {
+    "well": "H2",
+    "status": "species",
+    "label": "A sweat bee",
+    "name": "Lasioglossum hyalinum",
+    "reads": 24965,
+    "match": 100
+  },
+  {
+    "well": "H3",
+    "status": "genus",
+    "label": "Cicadellidae",
+    "name": " sp.",
+    "reads": 48990
+  },
+  {
+    "well": "H4",
+    "status": "genus",
+    "label": "Coccinellidae",
+    "name": "Scymnus sp.",
+    "reads": 39753
+  },
+  {
+    "well": "H5",
+    "status": "species",
+    "label": "Pteromalidae",
+    "name": "Catolaccus aeneoviridis",
+    "reads": 35902,
+    "match": 87.9
+  },
+  {
+    "well": "H6",
+    "status": "genus",
+    "label": "Bombyliidae",
+    "name": " sp.",
+    "reads": 50331
+  },
+  {
+    "well": "H7",
+    "status": "genus",
+    "label": "Fanniidae",
+    "name": "Fannia sp.",
+    "reads": 49547
+  },
+  {
+    "well": "H8",
+    "status": "species",
+    "label": "Lygaeidae",
+    "name": "Nysius cymoides",
+    "reads": 39268,
+    "match": 100
+  },
+  {
+    "well": "H9",
+    "status": "genus",
+    "label": "Bombyliidae",
+    "name": " sp.",
+    "reads": 46864
+  },
+  {
+    "well": "H10",
+    "status": "genus",
+    "label": "Encyrtidae",
+    "name": " sp.",
+    "reads": 30034
+  },
+  {
+    "well": "H11",
+    "status": "genus",
+    "label": "Chloropidae",
+    "name": "Malloewia sp.",
+    "reads": 41109
+  }
+]

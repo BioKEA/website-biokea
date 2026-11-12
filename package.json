@@ -16,7 +16,8 @@
     "test:e2e": "playwright test",
     "lint": "prettier --check \"src/**/*.{astro,ts,tsx,md,mdx,css}\"",
     "format": "prettier --write \"src/**/*.{astro,ts,tsx,md,mdx,css}\"",
-    "prepare": "husky"
+    "prepare": "husky",
+    "sample-report:export": "node scripts/sample-report/export.mjs"
   },
   "lint-staged": {
     "*.{astro,ts,tsx,md,mdx,json,css}": [
