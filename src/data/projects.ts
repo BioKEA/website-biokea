@@ -155,24 +155,4 @@ export const projects: Project[] = [
     heroHeight: 941,
     team: [{ name: 'Sean', lead: true }],
   },
-  {
-    slug: 'colloquip',
-    title: 'Colloquip — multi-agent scientific deliberation',
-    summary:
-      'An open-source multi-agent AI deliberation platform. Specialized scientific personas — Biology, Chemistry, ADMET, Clinical, Regulatory, Red Team — self-organize to debate hypotheses, with emergent discussion phases and energy-based conclusion instead of fixed turn orders.',
-    type: 'Open-source platform',
-    year: '2026',
-    tags: ['AI', 'multi-agent', 'scientific reasoning', 'open source', 'deliberation'],
-    status: 'live',
-    link: 'https://github.com/sunitj/Colloquip',
-    hero: '/assets/images/Colloquip.png',
-    heroAlt:
-      'Colloquip multi-agent deliberation interface showing specialized scientific personas debating a hypothesis.',
-    heroWidth: 758,
-    heroHeight: 562,
-    team: [{ name: 'Sunit', lead: true }],
-    originIndependent: true,
-    originNote:
-      "Originated and maintained independently by Sunit Jain on GitHub; surfaced here through Sunit's advisor role, not authored by BioKEA.",
-  },
 ];

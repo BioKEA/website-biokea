@@ -32,14 +32,14 @@ Engagement routes (Contact-form topics): Sequencing service inquiry, Partnership
 - [The Lab & LDC](https://biokea.ai/lab): Berkeley facility, hardware inventory, capabilities, DiversityScanner
 - [Pipeline](https://biokea.ai/pipeline): the six-stage sample-to-claim workflow
 - [Projects](https://biokea.ai/projects): live and forthcoming work
-- [Mission & team](https://biokea.ai/mission): mission, team, advisors, partners, milestones, commitment, recognition
+- [Mission & team](https://biokea.ai/mission): mission, team, partners, milestones, commitment, recognition
 - [BioKEA Works](https://biokea.ai/works): the product suite (Works, Atlas, Studio, BioInfoOS, Scribe, Press) — closed-testing alpha, request access
 - [Press](https://biokea.ai/press): press kit, key facts, founder bios, logos, recent coverage
 - [Contact](https://biokea.ai/contact): sequencing inquiry / partnership / funding / press / hiring / BioKEA Works access intake
 
 ## Machine-readable data
 
-- [Team JSON](https://biokea.ai/api/team.json) — team + advisor roster
+- [Team JSON](https://biokea.ai/api/team.json) — team roster
 - [Projects JSON](https://biokea.ai/api/projects.json) — live / revealing-soon / coming-soon work
 - [Capabilities JSON](https://biokea.ai/api/capabilities.json) — equipment inventory + partners + services
 - [Sitemap](https://biokea.ai/sitemap-index.xml)
@@ -49,16 +49,10 @@ Engagement routes (Contact-form topics): Sequencing service inquiry, Partnership
 
 - **Sean Jungbluth, PhD** — CEO / CTO, Founder · Anthropic Claude Community Ambassador · Built with Claude Sonnet 4.5 Challenge winner
 - **Michelle Jungbluth, PhD** — CSO, Co-Founder
-- **Austin Baker, PhD** — Founding Research Scientist
+- **Austin Baker, PhD** — Research Scientist
+- **Stephanie Castillo, PhD** — Research Associate
 
-**About the team in brief:** Sean — microbial genomicist building computational and AI tooling for environmental biology; lectures sometimes at Stanford; previously studied deep-sea and subsurface microbial diversity. Michelle — marine and estuarine ecologist focused on zooplankton communities and food-web dynamics, lead investigator on the SF Bay metabarcoding baseline. Austin — entomologist managing the California Insect Barcoding Initiative; previously at NHMLAC; PhD on parasitoid-wasp systematics.
-
-## Advisors
-
-- **Sunit Jain, MS** — Advisor (author of Colloquip, a multi-agent AI deliberation platform: https://github.com/sunitj/Colloquip)
-- **Greg Fedewa, PhD** — Advisor
-
-**About the advisors:** Sunit Jain — bioinformatics scientist with 13+ years building agentic, multi-agent systems for microbial-community analysis; author of Colloquip. Greg Fedewa — bioinformatics scientist (Caltech, Centre for Pathogen Evolution) developing computational methods for immunological and antigenic data analysis.
+**About the team in brief:** Sean — microbial genomicist building computational and AI tooling for environmental biology; lectures sometimes at Stanford; previously studied deep-sea and subsurface microbial diversity. Michelle — marine and estuarine ecologist focused on zooplankton communities and food-web dynamics, lead investigator on the SF Bay metabarcoding baseline. Austin — entomologist managing the California Insect Barcoding Initiative; previously at NHMLAC; PhD on parasitoid-wasp systematics. Stephanie — entomologist and molecular biologist conducting biodiversity genomics lab work.
 
 ## Programs & support
 
@@ -107,7 +101,6 @@ Arriving early summer 2026: **DiversityScanner** — a roboticized imaging platf
 - **California Insect Barcoding Initiative** (REVEALING SOON · pending Ecography publication · _independent origin_) — First large-scale DNA-barcode survey of California insects: 1M+ specimens barcoded, ~61,000 species estimated statewide with roughly one-third still undiscovered. Spatial richness interpolations constrained by ecoregion + vegetation type. Originated independently of BioKEA as Austin Baker's prior research program; continued under the BioKEA umbrella. Manager: Austin
 - **Bay Estuary Metabarcoding Baseline** (REVEALING Q4 2026 · SFEI partnership) — Longitudinal metabarcoding baseline for the San Francisco Bay estuary. Lead: Michelle; contributor: Sean
 - **Long-read Microbial Genome Resource** (COMING Q4 2026) — Growing library of high-quality long-read microbial assemblies produced on the ONT Promethion 2, published as a public resource. Lead: Sean
-- **Colloquip** (LIVE open-source · _independent origin_) — Multi-agent AI deliberation platform with specialized scientific personas (Biology, Chemistry, ADMET, Clinical, Regulatory, Red Team) self-organizing to debate hypotheses. Originated and maintained independently by Sunit Jain on GitHub; surfaced here through Sunit's BioKEA advisor role, not authored by BioKEA. https://github.com/sunitj/Colloquip · Lead: Sunit
 - **DaKineDiving** (LIVE · _independent origin_) — Real-time dive intelligence platform for O'ahu, Hawai'i; combines NOAA tide data, PacIOOS wave buoys, and GBIF biodiversity records to surface conditions, species encounter probabilities, and Marine Life Conservation District boundaries. Built by Sean as a solo entry to Anthropic's Built with Claude Sonnet 4.5 Challenge (October 2025); winner of the contest. Lead: Sean. Award reference: https://x.com/alexalbert__/status/1978220407716245581
 
 ## Milestones

@@ -181,7 +181,5 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full workflow.
 
 - Cloudflare Web Analytics token — placeholder `REPLACE_WITH_CF_BEACON_TOKEN` in
   `src/layouts/BaseLayout.astro`
-- Replace advisor placeholder portraits (`portrait-placeholder.svg`) with real photos
-  for Sunit Jain and Greg Fedewa
 - Dependabot is wired up (`.github/dependabot.yml`); review the initial wave of PRs
   when they land

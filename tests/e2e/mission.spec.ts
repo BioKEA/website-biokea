@@ -90,18 +90,18 @@ test('mission Person JSON-LD reflects both Sean credentials', async ({ page }) =
   expect(sean.sameAs).toContain('https://x.com/alexalbert__/status/1978220407716245581');
 });
 
-test('mission page shows team and advisor bios', async ({ page }) => {
+test('mission page shows team bios and no advisors section', async ({ page }) => {
   await page.goto('/mission');
   await expect(page.getByText(/Microbial genomicist/i)).toBeVisible();
-  await expect(page.getByText(/Author of Colloquip/i)).toBeVisible();
+  await expect(page.getByText('ADVISORS')).toHaveCount(0);
 });
 
-test('mission JSON-LD has 6 Person nodes each with description', async ({ page }) => {
+test('mission JSON-LD has 4 Person nodes each with description', async ({ page }) => {
   await page.goto('/mission');
   const ld = await page.locator('script[type="application/ld+json"]').first().textContent();
   const parsed = JSON.parse(ld!);
   const people = parsed['@graph'].filter((n: { '@type': string }) => n['@type'] === 'Person');
-  expect(people).toHaveLength(6);
+  expect(people).toHaveLength(4);
   for (const p of people) {
     expect(typeof p.description).toBe('string');
     expect(p.description.length).toBeGreaterThan(20);

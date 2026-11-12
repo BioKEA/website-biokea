@@ -31,9 +31,9 @@ import { usd } from '@/lib/pricing/format';
 import { serviceOfferings } from '@/data/services';
 
 describe('team data', () => {
-  it('has four core team members and two advisors', () => {
+  it('has four core team members and no advisors', () => {
     expect(team.filter((p) => p.tier !== 'advisor')).toHaveLength(4);
-    expect(team.filter((p) => p.tier === 'advisor')).toHaveLength(2);
+    expect(team.filter((p) => p.tier === 'advisor')).toHaveLength(0);
   });
   it('every entry has name, role, image, alt', () => {
     for (const p of team) {
@@ -43,14 +43,12 @@ describe('team data', () => {
       expect(p.alt).toBeTruthy();
     }
   });
-  it('includes the named team + advisor members', () => {
+  it('includes the named team members', () => {
     const names = team.map((m) => m.name);
     expect(names).toContain('Sean Jungbluth');
     expect(names).toContain('Michelle Jungbluth');
     expect(names).toContain('Austin Baker');
     expect(names).toContain('Stephanie Castillo');
-    expect(names).toContain('Sunit Jain');
-    expect(names).toContain('Greg Fedewa');
   });
   it('every entry has a non-empty bio', () => {
     for (const p of team) {

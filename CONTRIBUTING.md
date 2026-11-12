@@ -52,7 +52,7 @@ Lighthouse shouldn't regress perf / a11y / best-practices / SEO on affected page
 Most content lives in typed modules under `src/data/`. Edit there, don't hardcode copy
 into pages.
 
-- Team / advisors → `src/data/team.ts`
+- Team → `src/data/team.ts`
 - Partners → `src/data/partners.ts` (url + description surface in the PartnerMark + JSON-LD)
 - Projects → `src/data/projects.ts`
 - Milestones → `src/data/milestones.ts`

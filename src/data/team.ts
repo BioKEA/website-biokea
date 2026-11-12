@@ -45,7 +45,7 @@ export const team: TeamMember[] = [
   },
   {
     name: 'Austin Baker',
-    role: 'Founding Research Scientist',
+    role: 'Research Scientist',
     postNominal: 'PhD',
     image: '/assets/images/portrait-austin.webp',
     alt: 'Headshot of Austin Baker',
@@ -61,31 +61,11 @@ export const team: TeamMember[] = [
   {
     name: 'Stephanie Castillo',
     role: 'Research Associate',
+    postNominal: 'PhD',
     image: '/assets/images/portrait-stephanie.jpg',
     alt: 'Headshot of Stephanie Castillo',
     tier: 'team',
     bio: 'Entomologist and molecular biologist conducting biodiversity genomics lab work.',
     knowsAbout: ['Molecular lab methods', 'Field sampling', 'Entomology'],
-  },
-  {
-    name: 'Sunit Jain',
-    role: 'Advisor',
-    postNominal: 'MS',
-    image: '/assets/images/portrait-placeholder.svg', // VERIFY: replace with real portrait
-    alt: 'Placeholder portrait of Sunit Jain',
-    tier: 'advisor',
-    bio: 'Bioinformatics scientist with 13+ years building agentic, multi-agent systems for microbial-community analysis. Author of Colloquip.',
-    knowsAbout: ['Multi-agent AI', 'Scientific deliberation', 'Bioinformatics'],
-    sameAs: ['https://github.com/sunitj'],
-  },
-  {
-    name: 'Greg Fedewa',
-    role: 'Advisor',
-    postNominal: 'PhD',
-    image: '/assets/images/portrait-placeholder.svg', // VERIFY: replace with real portrait
-    alt: 'Placeholder portrait of Greg Fedewa',
-    tier: 'advisor',
-    bio: 'Bioinformatics scientist (Caltech, Centre for Pathogen Evolution) developing computational methods for immunological and antigenic data analysis.',
-    knowsAbout: ['Bioinformatics', 'Immunology', 'Pathogen evolution'],
   },
 ];

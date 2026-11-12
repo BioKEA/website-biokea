@@ -22,7 +22,7 @@ test('/api/projects.json returns valid projects payload', async ({ request }) =>
   expect(Array.isArray(payload.projects)).toBe(true);
   const slugs = payload.projects.map((p: { slug: string }) => p.slug);
   expect(slugs).toContain('california-intertidal-gap-analysis');
-  expect(slugs).toContain('colloquip');
+  expect(slugs).not.toContain('colloquip');
   expect(slugs).toContain('dakinediving');
 });
 
