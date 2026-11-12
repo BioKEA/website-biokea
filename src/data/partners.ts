@@ -29,7 +29,7 @@ export const partners: Partner[] = [
   {
     name: 'Coastal Quest',
     note: 'collaboration',
-    url: 'https://www.coastalquest.org/',
+    url: 'https://www.coastal-quest.org/',
     description:
       'California-based nonprofit supporting coastal stewardship, conservation, and habitat restoration.',
   },
