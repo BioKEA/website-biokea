@@ -148,6 +148,7 @@ function overVolume(c: BarcodingConfig): boolean {
 function choiceTriggers(
   c: BarcodingConfig | MetabarcodingConfig,
   targetIds: TargetId[],
+  skipSampleType = false,
 ): ConsultTrigger[] {
   const out: ConsultTrigger[] = [];
   if (targetIds.includes('other')) {
@@ -156,7 +157,8 @@ function choiceTriggers(
   if (c.markers.includes('other')) {
     out.push({ key: 'marker-other', label: 'Marker: Other', detail: text(c.markerOther) });
   }
-  const st = sampleTypeOf(c.sampleType);
+  // Prepared libraries have no sample type; the widget posts 'unknown'.
+  const st = skipSampleType ? undefined : sampleTypeOf(c.sampleType);
   if (st?.consult) {
     out.push({
       key: 'sample-type',
@@ -246,7 +248,7 @@ function metabarcodingOrder(c: MetabarcodingConfig): Parts {
         markerNames: markerNames(c),
       },
     ],
-    triggers: choiceTriggers(c, c.targets),
+    triggers: choiceTriggers(c, c.targets, libraries),
     tbc: [],
   };
   if (c.kits && !libraries) kitsParts(c.samples, parts);

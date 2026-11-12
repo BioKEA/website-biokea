@@ -183,6 +183,7 @@ test('eDNA prepared libraries price at the prepared rate and switch back cleanly
   await field(page, 'metabarcoding', 'starting', 'libraries').check();
   await field(page, 'metabarcoding', 'platform', 'illumina').check();
   await expect(page.locator('[data-total]')).toHaveText('$7,860');
+  await expect(page.locator('[data-status-pill]')).toHaveText('Ready for checkout');
   await expect(field(page, 'metabarcoding', 'sampleType')).toBeHidden();
   await expect(field(page, 'metabarcoding', 'kits')).toBeHidden();
   const reqNote = branch(page, 'metabarcoding').getByText('Libraries must be indexed');

@@ -222,6 +222,34 @@ describe('eDNA prepared libraries', () => {
         .sampleType,
     ).toBeUndefined();
   });
+  it('prepared libraries ignore the sample-type consult (widget posts unknown)', () => {
+    const o = buildOrder(
+      edna({ starting: 'libraries', platform: 'illumina', sampleType: 'unknown' }),
+    );
+    expect(o.consult).toBe(false);
+    expect(o.triggers.map((t) => t.key)).not.toContain('sample-type');
+  });
+
+  it('prepared libraries still consult for an Other marker', () => {
+    const o = buildOrder(
+      edna({
+        starting: 'libraries',
+        platform: 'illumina',
+        sampleType: 'unknown',
+        markers: ['coi', 'other'],
+        markerOther: 'ITS3',
+      }),
+    );
+    expect(o.consult).toBe(true);
+    expect(o.triggers.map((t) => t.key)).toEqual(['marker-other']);
+  });
+
+  it('eDNA samples with an unknown sample type still consult', () => {
+    const o = buildOrder(edna({ sampleType: 'unknown' }));
+    expect(o.consult).toBe(true);
+    expect(o.triggers.map((t) => t.key)).toContain('sample-type');
+  });
+
   it('prepared libraries never add sampling kits', () => {
     const o = buildOrder(edna({ starting: 'libraries', platform: 'illumina', kits: true }));
     expect(o.inputs).toHaveLength(1);
