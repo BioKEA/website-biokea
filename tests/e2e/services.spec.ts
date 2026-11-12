@@ -173,3 +173,12 @@ test('barcoding row names BugPicker and links to its lab section', async ({ page
   await expect(link).toHaveAttribute('href', '/lab#lab-bugpicker');
   await expect(page.getByText(/BugPicker/).first()).toBeVisible();
 });
+
+test('services links the sample report and names both sequencers', async ({ page }) => {
+  await page.goto('/services');
+  await expect(page.getByRole('link', { name: /See a real plate/ })).toHaveAttribute(
+    'href',
+    '/sample-report',
+  );
+  await expect(page.getByText(/Promethion 2 or Illumina MiSeq i100/)).toBeVisible();
+});

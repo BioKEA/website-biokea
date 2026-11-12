@@ -40,7 +40,7 @@ const workflow = [
   {
     step: '03',
     title: 'We sequence and analyze',
-    body: 'Samples flow through the BioKEA six-stage pipeline at the Berkeley LDC: extraction, prep, quantification, sequencing on the ONT Promethion 2, and bioinformatic analysis with full provenance.',
+    body: 'Samples flow through the BioKEA six-stage pipeline at the Berkeley LDC: extraction, prep, quantification, sequencing on the ONT Promethion 2 or Illumina MiSeq i100, and bioinformatic analysis with full provenance.',
   },
   {
     step: '04',
@@ -189,6 +189,9 @@ const serviceJsonLd = serviceOfferings.map((s) => ({
                 in-house picking robot —{' '}
                 <a href="/lab#lab-bugpicker" class="text-[var(--color-teal)] underline">
                   see it running on the lab bench →
+                </a>{' '}
+                <a href="/sample-report" class="text-[var(--color-teal)] underline">
+                  See a real plate →
                 </a>
               </p>
             )}

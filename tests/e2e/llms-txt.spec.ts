@@ -116,3 +116,8 @@ test('llms.txt and llms-full.txt state the prepared-library ranges from pricing 
     expect(text, path).toContain(markers);
   }
 });
+
+test('llms.txt points to the sample report', async ({ request }) => {
+  const body = await (await request.get('/llms.txt')).text();
+  expect(body).toContain('https://biokea.ai/sample-report');
+});

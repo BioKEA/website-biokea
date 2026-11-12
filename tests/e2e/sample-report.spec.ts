@@ -67,3 +67,10 @@ test('page has no flagged wording', async ({ page }) => {
     /Wolbachia|candidate new species|contaminat|swap/i,
   );
 });
+
+for (const path of ['/pricing', '/']) {
+  test(`${path} links the sample report`, async ({ page }) => {
+    await page.goto(path);
+    await expect(page.locator('a[href="/sample-report"]').first()).toBeAttached();
+  });
+}

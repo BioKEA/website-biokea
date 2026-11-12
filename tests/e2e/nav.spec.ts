@@ -138,3 +138,14 @@ test('footer renders logo, copyright, demoted links, and Hiring callout', async 
     '/contact?topic=hiring',
   );
 });
+
+test('About menu links the sample report', async ({ page }) => {
+  await page.goto('/');
+  const nav = page.getByRole('navigation', { name: 'Primary' });
+  const desktop = nav.locator('div.hidden.md\\:flex').first();
+  await desktop.getByText('About', { exact: true }).click();
+  await expect(desktop.getByRole('link', { name: 'Sample report' })).toHaveAttribute(
+    'href',
+    '/sample-report',
+  );
+});
