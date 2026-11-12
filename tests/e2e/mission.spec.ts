@@ -96,12 +96,12 @@ test('mission page shows team and advisor bios', async ({ page }) => {
   await expect(page.getByText(/Author of Colloquip/i)).toBeVisible();
 });
 
-test('mission JSON-LD has 5 Person nodes each with description', async ({ page }) => {
+test('mission JSON-LD has 6 Person nodes each with description', async ({ page }) => {
   await page.goto('/mission');
   const ld = await page.locator('script[type="application/ld+json"]').first().textContent();
   const parsed = JSON.parse(ld!);
   const people = parsed['@graph'].filter((n: { '@type': string }) => n['@type'] === 'Person');
-  expect(people).toHaveLength(5);
+  expect(people).toHaveLength(6);
   for (const p of people) {
     expect(typeof p.description).toBe('string');
     expect(p.description.length).toBeGreaterThan(20);

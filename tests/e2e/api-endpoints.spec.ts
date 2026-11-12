@@ -11,6 +11,7 @@ test('/api/team.json returns valid team payload', async ({ request }) => {
   expect(names).toContain('Sean Jungbluth');
   expect(names).toContain('Michelle Jungbluth');
   expect(names).toContain('Austin Baker');
+  expect(names).toContain('Stephanie Castillo');
 });
 
 test('/api/projects.json returns valid projects payload', async ({ request }) => {

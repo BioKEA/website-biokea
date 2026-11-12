@@ -59,6 +59,15 @@ export const team: TeamMember[] = [
     ],
   },
   {
+    name: 'Stephanie Castillo',
+    role: 'Research Associate',
+    image: '/assets/images/portrait-stephanie.jpg',
+    alt: 'Headshot of Stephanie Castillo',
+    tier: 'team',
+    bio: 'Entomologist and molecular biologist conducting biodiversity genomics lab work.',
+    knowsAbout: ['Molecular lab methods', 'Field sampling', 'Entomology'],
+  },
+  {
     name: 'Sunit Jain',
     role: 'Advisor',
     postNominal: 'MS',
