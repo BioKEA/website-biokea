@@ -19,6 +19,7 @@ import {
   barcodingExtraMarkerFraction,
   ednaAdditionalMarkerPrice,
   preparedLibraries,
+  preparedLibraryMarkerPrice,
   samplingKitPrice,
 } from '@/data/pricing';
 import {
@@ -73,14 +74,29 @@ function targetOther(svc: ListService, when: string): string {
 }
 
 function markerFieldset(svc: ListService): string {
+  const perSample = (p: { academic: number; commercial: number }) =>
+    `Your first marker is included. Each additional marker adds $${p.academic} per sample (academic) or $${p.commercial} (commercial).`;
   const priceHint =
     svc === 'barcoding'
-      ? `Your first marker is included. Each additional marker adds ${barcodingExtraMarkerFraction * 100}% of your per-specimen rate.`
-      : `Your first marker is included. Each additional marker adds $${ednaAdditionalMarkerPrice.academic} per sample (academic) or $${ednaAdditionalMarkerPrice.commercial} (commercial).`;
+      ? hint(
+          `Your first marker is included. Each additional marker adds ${barcodingExtraMarkerFraction * 100}% of your per-specimen rate.`,
+        )
+      : [
+          showWhen(
+            'starting=samples',
+            hint(perSample(ednaAdditionalMarkerPrice)),
+            'bk-field--tight',
+          ),
+          showWhen(
+            'starting=libraries',
+            hint(perSample(preparedLibraryMarkerPrice)),
+            'bk-field--tight',
+          ),
+        ].join('\n        ');
   const opts = markers.map((m) => ({ value: m.id, label: m.label, desc: m.desc }));
   return fieldset(
     'Genetic markers',
-    `${hint(priceHint)}
+    `${priceHint}
         ${choices('checkbox', 'markers', opts)}
         <p class="bk-hint" data-marker-suggest></p>
         ${errorSlot('markers')}

@@ -11,8 +11,8 @@ import {
   esc,
 } from '@/widget/template';
 import { bc, edna, qpcr } from './fixtures/configs';
-import { metabarcodingBranch } from '@/widget/branches';
-import { preparedLibraries } from '@/data/pricing';
+import { barcodingBranch, metabarcodingBranch } from '@/widget/branches';
+import { preparedLibraries, preparedLibraryMarkerPrice } from '@/data/pricing';
 
 describe('renderWidgetHtml (configurator)', () => {
   const html = renderWidgetHtml({ turnstileSiteKey: '1x000' });
@@ -290,9 +290,23 @@ describe('eDNA branch: prepared libraries', () => {
   });
   it('hides sample type, kits and the no-preference platform unless sending samples', () => {
     const parts = html.split('data-show-when="starting=samples"');
-    expect(parts).toHaveLength(4); // sample type, no preference, kits
-    expect(parts[1]).toContain('Sample type');
-    expect(parts[2]).toContain('No preference');
-    expect(parts[3]).toContain('Sampling kits');
+    expect(parts).toHaveLength(5); // marker hint, sample type, no preference, kits
+    expect(parts[1]).toContain('Each additional marker');
+    expect(parts[2]).toContain('Sample type');
+    expect(parts[3]).toContain('No preference');
+    expect(parts[4]).toContain('Sampling kits');
+  });
+  it('shows the prepared-library marker price only for libraries, the full price only for samples', () => {
+    const { academic, commercial } = preparedLibraryMarkerPrice;
+    const hintFor = (when: string, a: number, c: number) =>
+      `data-show-when="${when}" hidden>\n        <p class="bk-hint">Your first marker is included. Each additional marker adds $${a} per sample (academic) or $${c} (commercial).</p>`;
+    expect(html).toContain(hintFor('starting=libraries', academic, commercial));
+    expect(html).toContain(hintFor('starting=samples', 12, 15));
+    expect([academic, commercial]).toEqual([9, 11]);
+  });
+  it('leaves the barcoding marker hint unchanged', () => {
+    const bcHtml = barcodingBranch();
+    expect(bcHtml).toContain('Each additional marker adds 75% of your per-specimen rate.');
+    expect(bcHtml).not.toContain('starting=libraries');
   });
 });

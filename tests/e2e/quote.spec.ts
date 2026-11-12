@@ -186,13 +186,18 @@ test('eDNA prepared libraries price at the prepared rate and switch back cleanly
   await expect(page.locator('[data-status-pill]')).toHaveText('Ready for checkout');
   await expect(field(page, 'metabarcoding', 'sampleType')).toBeHidden();
   await expect(field(page, 'metabarcoding', 'kits')).toBeHidden();
-  const reqNote = branch(page, 'metabarcoding').getByText('Libraries must be indexed');
+  const mb = branch(page, 'metabarcoding');
+  await expect(mb.getByText('$11 (commercial)')).toBeVisible();
+  await expect(mb.getByText('$15 (commercial)')).toBeHidden();
+  const reqNote = mb.getByText('Libraries must be indexed');
   await expect(reqNote).toBeVisible();
   await field(page, 'metabarcoding', 'starting', 'samples').check();
   await expect(page.locator('[data-total]')).toHaveText('$10,500');
   await expect(field(page, 'metabarcoding', 'sampleType')).toBeVisible();
   await expect(field(page, 'metabarcoding', 'kits')).toBeVisible();
   await expect(reqNote).toBeHidden();
+  await expect(mb.getByText('$15 (commercial)')).toBeVisible();
+  await expect(mb.getByText('$11 (commercial)')).toBeHidden();
 });
 
 test('choosing prepared libraries without a platform shows the platform error until one is picked', async ({
