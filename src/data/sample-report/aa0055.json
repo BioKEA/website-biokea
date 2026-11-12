@@ -216,11 +216,6 @@
     "size": "4.4 × 5.0 mm as picked"
   },
   {
-    "well": "D1",
-    "status": "awaiting",
-    "label": "Specimen D1"
-  },
-  {
     "well": "D2",
     "status": "awaiting",
     "label": "Specimen D2",
@@ -231,11 +226,6 @@
     "status": "awaiting",
     "label": "Specimen D3",
     "size": "2.5 × 3.3 mm as picked"
-  },
-  {
-    "well": "D4",
-    "status": "awaiting",
-    "label": "Specimen D4"
   },
   {
     "well": "D5",
@@ -490,11 +480,6 @@
     "size": "2.6 × 2.4 mm as picked"
   },
   {
-    "well": "G11",
-    "status": "awaiting",
-    "label": "Specimen G11"
-  },
-  {
     "well": "G12",
     "status": "awaiting",
     "label": "Specimen G12",
@@ -537,20 +522,10 @@
     "size": "5.1 × 5.2 mm as picked"
   },
   {
-    "well": "H7",
-    "status": "awaiting",
-    "label": "Specimen H7"
-  },
-  {
     "well": "H8",
     "status": "awaiting",
     "label": "Specimen H8",
     "size": "4.4 × 3.9 mm as picked"
-  },
-  {
-    "well": "H9",
-    "status": "awaiting",
-    "label": "Specimen H9"
   },
   {
     "well": "H10",

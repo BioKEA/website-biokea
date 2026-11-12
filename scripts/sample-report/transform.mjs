@@ -26,13 +26,16 @@ export function toBarcodedWell(raw) {
   const { well, cat } = raw;
   if (cat === 'control') return null;
   if (cat === 'species') {
+    // gb_pid is identity to the nearest GenBank record, which can be another
+    // taxon; only show it as "% match" when that record is the named species.
+    const sameTaxon = String(raw.gb ?? '').startsWith(`${raw.species} `);
     return {
       well,
       status: 'species',
       label: COMMON_NAMES[raw.species] ?? raw.family,
       name: raw.species,
       reads: raw.reads,
-      match: Math.round(Number(raw.gb_pid) * 10) / 10,
+      ...(sameTaxon ? { match: Math.round(Number(raw.gb_pid) * 10) / 10 } : {}),
     };
   }
   if (cat === 'genus') {
@@ -69,6 +72,18 @@ export function latestSizes(lines) {
       `${a.scan_bbox_width_mm.toFixed(1)} × ${a.scan_bbox_height_mm.toFixed(1)} mm as picked`,
     );
   return sizes;
+}
+
+/**
+ * Wells that BugPicker confirmed it picked an insect into. A well whose every
+ * attempt came back empty may hold nothing, so it is not shown as queued.
+ * @param {Record<string, any>[]} lines parsed plate_attempts.jsonl rows
+ * @returns {Set<string>}
+ */
+export function occupiedWells(lines) {
+  return new Set(
+    lines.filter((a) => String(a.confirmation ?? '').includes('occupied')).map((a) => a.well),
+  );
 }
 
 /**

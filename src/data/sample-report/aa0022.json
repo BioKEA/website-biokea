@@ -95,8 +95,7 @@
     "status": "species",
     "label": "Anthomyzidae",
     "name": "Anthomyza vockerothi",
-    "reads": 44054,
-    "match": 99.5
+    "reads": 44054
   },
   {
     "well": "B3",
@@ -170,8 +169,7 @@
     "status": "species",
     "label": "Psychodidae",
     "name": "Psychoda alternata",
-    "reads": 36218,
-    "match": 99.7
+    "reads": 36218
   },
   {
     "well": "C1",
@@ -278,8 +276,7 @@
     "status": "species",
     "label": "Stenopsocidae",
     "name": "Graphopsocus cruciatus",
-    "reads": 38705,
-    "match": 99.2
+    "reads": 38705
   },
   {
     "well": "D3",
@@ -294,8 +291,7 @@
     "status": "species",
     "label": "Stenopsocidae",
     "name": "Graphopsocus cruciatus",
-    "reads": 34120,
-    "match": 99.5
+    "reads": 34120
   },
   {
     "well": "D5",
@@ -356,8 +352,7 @@
     "status": "species",
     "label": "Lygaeidae",
     "name": "Nysius cymoides",
-    "reads": 37193,
-    "match": 100
+    "reads": 37193
   },
   {
     "well": "E2",
@@ -529,8 +524,7 @@
     "status": "species",
     "label": "Pteromalidae",
     "name": "Catolaccus aeneoviridis",
-    "reads": 30330,
-    "match": 87.9
+    "reads": 30330
   },
   {
     "well": "G3",
@@ -635,8 +629,7 @@
     "status": "species",
     "label": "Pteromalidae",
     "name": "Catolaccus aeneoviridis",
-    "reads": 35902,
-    "match": 87.9
+    "reads": 35902
   },
   {
     "well": "H6",
@@ -657,8 +650,7 @@
     "status": "species",
     "label": "Lygaeidae",
     "name": "Nysius cymoides",
-    "reads": 39268,
-    "match": 100
+    "reads": 39268
   },
   {
     "well": "H9",

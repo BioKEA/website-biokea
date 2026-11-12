@@ -2,10 +2,10 @@
 // data drives mounted: `npm run sample-report:export`.
 // Reads raw plate data and photos (read-only), applies the clean-highlights
 // transform, and writes display-only JSON plus resized WebP images.
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import sharp from 'sharp';
-import { latestSizes, toBarcodedWell, toHiresWell } from './transform.mjs';
+import { latestSizes, occupiedWells, toBarcodedWell, toHiresWell } from './transform.mjs';
 
 const BARCODING = '/Volumes/28TB_A/Projects/ONT-Insect-Barcoding';
 const IMAGES = '/Volumes/28TB_B/BugPicker-Image-Pipeline/Plate_insect_images';
@@ -44,6 +44,7 @@ const large = (src, dest, width = 1000) =>
 
 async function exportPlate(id, wells, photoFor, squareFromWide) {
   const dir = join(OUT_IMG, id);
+  rmSync(dir, { recursive: true, force: true }); // drop images of wells no longer shown
   mkdirSync(dir, { recursive: true });
   const kept = [];
   for (const w of wells) {
@@ -81,10 +82,11 @@ const attempts = readFileSync(join(IMAGES, 'P-AA0055/plate_attempts.jsonl'), 'ut
   .filter((l) => l.trim())
   .map((l) => JSON.parse(l));
 const sizes = latestSizes(attempts);
+const occupied = occupiedWells(attempts);
 const hiresPath = (w) => join(IMAGES, 'P-AA0055', `IMG-DNA-AA0055-${w}_hires.png`);
 await exportPlate(
   'aa0055',
-  WELLS.map((w) => toHiresWell(w, sizes)),
+  WELLS.filter((w) => occupied.has(w)).map((w) => toHiresWell(w, sizes)),
   hiresPath,
   false,
 );

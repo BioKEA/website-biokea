@@ -21,11 +21,11 @@ const STATUS_TEXT: Record<DisplayWell['status'], string> = {
 };
 
 const meta = (w: DisplayWell) => {
-  if (w.status === 'species' && w.reads != null && w.match != null)
-    return `${w.reads.toLocaleString('en-US')} reads · ${w.match.toFixed(1)}% match`;
-  if (w.status === 'genus' && w.reads != null) return `${w.reads.toLocaleString('en-US')} reads`;
   if (w.status === 'awaiting') return w.size ?? '';
-  return '';
+  const parts = [];
+  if (w.reads != null) parts.push(`${w.reads.toLocaleString('en-US')} reads`);
+  if (w.status === 'species' && w.match != null) parts.push(`${w.match.toFixed(1)}% match`);
+  return parts.join(' · ');
 };
 
 const first = plates[0];

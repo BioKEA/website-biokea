@@ -3,6 +3,7 @@ import {
   toBarcodedWell,
   latestSizes,
   toHiresWell,
+  occupiedWells,
 } from '../../scripts/sample-report/transform.mjs';
 
 const row = (o: Record<string, unknown>) => ({
@@ -14,6 +15,7 @@ const row = (o: Record<string, unknown>) => ({
   genus: 'Lasioglossum',
   species: 'Lasioglossum hyalinum',
   reads: 24965,
+  gb: 'Lasioglossum hyalinum voucher X',
   gb_pid: '100.0',
   ...o,
 });
@@ -27,6 +29,13 @@ test('species well gets common name, latin name, reads and match', () => {
     reads: 24965,
     match: 100,
   });
+});
+test('species match is omitted when the nearest GenBank hit is another taxon', () => {
+  const w = toBarcodedWell(
+    row({ species: 'Catolaccus aeneoviridis', gb: 'Pteromalidae sp. BOLD-2016', gb_pid: '87.9' }),
+  );
+  expect(w).not.toHaveProperty('match');
+  expect(w?.reads).toBe(24965);
 });
 test('species without a common name falls back to family', () => {
   expect(toBarcodedWell(row({ species: 'Nysius tenellus', family: 'Lygaeidae' })).label).toBe(
@@ -105,4 +114,13 @@ test('hi-res well with no occupied attempt has no size', () => {
     ]),
   );
   expect(w).toEqual({ well: 'D1', status: 'awaiting', label: 'Specimen D1' });
+});
+test('occupied wells are those with at least one occupied attempt', () => {
+  const s = occupiedWells([
+    { well: 'A1', confirmation: 'well QA empty' },
+    { well: 'A1', confirmation: 'manual occupied review' },
+    { well: 'D1', confirmation: 'bottom QA empty' },
+    { well: 'D1', confirmation: 'well QA empty' },
+  ]);
+  expect([...s]).toEqual(['A1']);
 });

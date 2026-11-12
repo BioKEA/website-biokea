@@ -11,10 +11,12 @@ test('AA0022 has 95 wells: 37 species, 48 genus, 10 order-only, no H12', () => {
   expect(w.filter((x) => x.status === 'order')).toHaveLength(10);
   expect(w.find((x) => x.well === 'H12')).toBeUndefined();
 });
-test('AA0055 has 95 awaiting wells and opens first on C5', () => {
+test('AA0055 shows only the 90 wells a pick was confirmed into, and opens first on C5', () => {
   expect(plates[0].id).toBe('aa0055');
   expect(byId('aa0055').wells.every((x) => x.status === 'awaiting')).toBe(true);
-  expect(byId('aa0055').wells).toHaveLength(95);
+  expect(byId('aa0055').wells).toHaveLength(90);
+  for (const id of ['D1', 'D4', 'G11', 'H7', 'H9'])
+    expect(byId('aa0055').wells.find((x) => x.well === id)).toBeUndefined();
   expect(byId('aa0055').defaultWell).toBe('C5');
 });
 test('committed plate data carries no flagged detail', () => {
@@ -34,4 +36,10 @@ test('every well has a thumb and a large image, each under 200 KB', () => {
         expect(statSync(f).size).toBeLessThan(200_000);
       }
   expect(existsSync('public/assets/sample-report/banner.webp')).toBe(true);
+});
+test('no species well shows a match to a different GenBank taxon', () => {
+  const w = byId('aa0022').wells;
+  for (const id of ['G2', 'H5', 'E1', 'H8'])
+    expect(w.find((x) => x.well === id)).not.toHaveProperty('match');
+  expect(w.find((x) => x.well === 'H2')?.match).toBe(100);
 });
