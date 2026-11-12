@@ -7,6 +7,8 @@ import {
   barcodingExtraMarkerFraction,
   identificationOnlyBarcoding,
   metagenomics,
+  preparedLibraryMarkerPrice,
+  preparedLibraryTiers,
   pricedServices,
   type PricedService,
   type PriceTier,
@@ -19,7 +21,13 @@ export type Audience = 'academic' | 'commercial';
  * kinds are priced variants that hang off a parent service slug. Lines stored
  * before kinds existed have no `kind` — read them as `l.kind ?? 'service'`.
  */
-export type LineKind = 'service' | 'id-only' | 'preservative-edna' | 'assay' | 'custom';
+export type LineKind =
+  | 'service'
+  | 'id-only'
+  | 'preservative-edna'
+  | 'prepared-library'
+  | 'assay'
+  | 'custom';
 
 /**
  * A price the lab agreed by hand when firming up a consult quote (spec 3).
@@ -128,7 +136,7 @@ interface PriceSource {
   title: string;
   unitLabel: string;
   markerRule: MarkerRule;
-  /** Only rate-card service lines can trigger a conversation. */
+  /** Only tiered eDNA/service lines can trigger a conversation. */
   conversationThreshold?: number;
 }
 
@@ -181,6 +189,18 @@ function priceSource(input: QuoteLineInput): PriceSource {
         title: 'Bulk eDNA from preservative',
         unitLabel: svc.unitLabel,
         markerRule: markerRuleFor(svc),
+      };
+    }
+    case 'prepared-library': {
+      requireSlug('metabarcoding');
+      // Client-indexed libraries: same boundaries as eDNA, 75% of the rates.
+      const svc = serviceFor('metabarcoding');
+      return {
+        tiers: preparedLibraryTiers,
+        title: 'eDNA metabarcoding, prepared libraries',
+        unitLabel: svc.unitLabel,
+        markerRule: { type: 'flat', price: preparedLibraryMarkerPrice },
+        conversationThreshold: svc.conversationThreshold,
       };
     }
     case 'assay': {
@@ -336,10 +356,9 @@ export function nextTierUpsell(
   newRate: number;
   newBaseRate: number;
 } | null {
-  // Upsells are for rate-card service lines only; flat kinds have no next
-  // tier to reach.
-  if (kind !== 'service') return null;
-  const src = priceSource({ serviceSlug, count, markers });
+  // Upsells are for tiered kinds only; flat kinds have no next tier to reach.
+  if (kind !== 'service' && kind !== 'prepared-library') return null;
+  const src = priceSource({ serviceSlug, count, markers, kind });
   const current = priceOne(src, count, markers, audience);
   const next = src.tiers.find((t) => t.minQty > current.pricedCount);
   if (!next) return null;

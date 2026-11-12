@@ -49,6 +49,12 @@ export const barcodingExtraMarkerFraction = 0.75;
  * engine reads it from `pricedServices[].additionalMarkerPrice`. */
 export const ednaAdditionalMarkerPrice = { academic: 12, commercial: 15 };
 
+/** Prepared libraries (client-indexed) are priced at this fraction of the
+ * full-service eDNA rates, rounded to whole dollars. */
+export const preparedLibraryFraction = 0.75;
+
+const preparedRate = (price: number) => Math.round(price * preparedLibraryFraction);
+
 const pct = (fraction: number) => `${Math.round(fraction * 100)}%`;
 
 export const pricedServices: PricedService[] = [
@@ -180,6 +186,34 @@ export const pricedServices: PricedService[] = [
     ],
   },
 ];
+
+const metabarcodingService = pricedServices.find((s) => s.slug === 'metabarcoding')!;
+
+export const preparedLibraryTiers: PriceTier[] = metabarcodingService.tiers.map((t) => ({
+  ...t,
+  academicPrice: preparedRate(t.academicPrice),
+  commercialPrice: preparedRate(t.commercialPrice),
+}));
+
+export const preparedLibraryMarkerPrice = {
+  academic: preparedRate(ednaAdditionalMarkerPrice.academic),
+  commercial: preparedRate(ednaAdditionalMarkerPrice.commercial),
+};
+
+export const preparedLibraries = {
+  title: 'eDNA metabarcoding from prepared libraries',
+  included: [
+    'Sequencing on Illumina (MiSeq i100) or Oxford Nanopore',
+    'Bioinformatics: taxonomic assignment and quality control',
+    'Digital report: full list of taxa detected within your target group, per sample',
+  ],
+  requirementsNote:
+    "Libraries must be indexed and meet our QC requirements. We'll send the spec sheet on request.",
+};
+
+/** Below this many samples, orders (both kinds) get the batching note. */
+export const smallBatchThreshold = 10;
+export const smallBatchNote = 'Small orders are batched with other runs, so they may take longer.';
 
 // ---------------------------------------------------------------------------
 // Catalog additions (2026-10-26). Page content only until spec 2 teaches the

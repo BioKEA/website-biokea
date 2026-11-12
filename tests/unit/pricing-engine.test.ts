@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildQuote, lineKey, nextTierUpsell } from '@/lib/pricing/quote';
+import { preparedLibraryTiers, preparedLibraryMarkerPrice } from '@/data/pricing';
 
 const bc = (count: number) => buildQuote([{ serviceSlug: 'barcoding', count }]);
 const ed = (count: number, markers = 1) =>
@@ -269,5 +270,47 @@ describe('line kinds', () => {
   });
   it('offers no tier upsell for flat lines', () => {
     expect(nextTierUpsell('barcoding', 10, 1, 'academic', 'id-only')).toBeNull();
+  });
+});
+
+describe('pricing engine — prepared libraries', () => {
+  it('derives tiers and marker price at 75%, whole dollars', () => {
+    expect(preparedLibraryTiers.map((t) => [t.academicPrice, t.commercialPrice])).toEqual([
+      [124, 154],
+      [98, 120],
+      [86, 109],
+    ]);
+    expect(preparedLibraryMarkerPrice).toEqual({ academic: 9, commercial: 11 });
+  });
+  it('prices 60 samples × 2 markers at the 49–199 prepared rate', () => {
+    const l = buildQuote([
+      { serviceSlug: 'metabarcoding', kind: 'prepared-library', count: 60, markers: 2 },
+    ]).lines[0];
+    expect(l.academic.total).toBe(6420); // 60 × (98 + 9)
+    expect(l.commercial.total).toBe(7860); // 60 × (120 + 11)
+    expect(l.serviceTitle).toBe('eDNA metabarcoding, prepared libraries');
+    expect(l.unitLabel).toBe('sample');
+  });
+  it('20 samples × 3 markers, academic, is $2,840', () => {
+    const l = buildQuote([
+      { serviceSlug: 'metabarcoding', kind: 'prepared-library', count: 20, markers: 3 },
+    ]).lines[0];
+    expect(l.academic.total).toBe(2840);
+  });
+  it('applies dead-zone pricing at 44 samples like the full service', () => {
+    const l = buildQuote([{ serviceSlug: 'metabarcoding', kind: 'prepared-library', count: 44 }])
+      .lines[0];
+    expect(l.academic.pricedCount).toBe(49);
+    expect(l.academic.total).toBe(49 * 98);
+  });
+  it('refuses prepared-library on another slug', () => {
+    expect(() =>
+      buildQuote([{ serviceSlug: 'barcoding', kind: 'prepared-library', count: 5 }]),
+    ).toThrow();
+  });
+  it('offers the next-tier upsell for prepared libraries', () => {
+    expect(
+      nextTierUpsell('metabarcoding', 10, 1, 'academic', 'prepared-library')?.newBaseRate,
+    ).toBe(98);
   });
 });
