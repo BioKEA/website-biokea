@@ -71,6 +71,9 @@ async function pay(quote: QuoteRecord) {
   return gateway.created[0];
 }
 
+// A line with extra markers is billed as two invoice lines (tier + markers).
+const sumCents = (lines: { amountCents: number }[]) => lines.reduce((t, l) => t + l.amountCents, 0);
+
 describe('balance with line kinds', () => {
   const quoted = buildQuote([
     { serviceSlug: 'metagenomics', kind: 'assay', assay: 'mg', count: 4 },
@@ -116,6 +119,39 @@ describe('balance with line kinds', () => {
     );
     expect(b.uncapped).toEqual([]);
     expect(b.lines[0].amountCents).toBe((300 * 12 - 50 * 12) * 100);
+  });
+  it('holds a prepared-library balance to the quoted prepared rate', () => {
+    const prepared = buildQuote([
+      { serviceSlug: 'metabarcoding', kind: 'prepared-library', count: 60, markers: 2 },
+    ]).lines;
+    const b = computeBalance(
+      [{ serviceSlug: 'metabarcoding', kind: 'prepared-library', count: 55, markers: 2 }],
+      'commercial',
+      { amountCents: 0, invoiceLabel: 'order #1', paidAt: '2026-10-28T00:00:00Z' },
+      prepared,
+    );
+    expect(b.uncapped).toEqual([]);
+    expect(sumCents(b.lines)).toBe((60 * 131 - 5 * 131) * 100);
+  });
+  it('a quoted full-service line does not match a prepared-library balance line', () => {
+    const full = buildQuote([{ serviceSlug: 'metabarcoding', count: 60, markers: 2 }]).lines;
+    const b = computeBalance(
+      [{ serviceSlug: 'metabarcoding', kind: 'prepared-library', count: 60, markers: 2 }],
+      'commercial',
+      { amountCents: 0, invoiceLabel: 'order #1', paidAt: '2026-10-28T00:00:00Z' },
+      full,
+    );
+    expect(b.uncapped).toEqual(['metabarcoding']);
+    expect(sumCents(b.lines)).toBe(60 * 131 * 100);
+  });
+  it('parseBalanceForm reads prepared-library keys', () => {
+    const fd = new URLSearchParams({
+      'counts[prepared-library:metabarcoding:]': '55',
+      'markers[prepared-library:metabarcoding:]': '2',
+    });
+    expect(parseBalanceForm(fd)?.inputs).toEqual([
+      { serviceSlug: 'metabarcoding', count: 55, markers: 2, kind: 'prepared-library' },
+    ]);
   });
   it('parseBalanceForm reads per-line keys and keeps legacy service lines bare', () => {
     const fd = new URLSearchParams({

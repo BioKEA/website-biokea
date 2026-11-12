@@ -22,6 +22,11 @@ export const FIRM_ROW_TYPES: readonly { value: string; label: string; markers: b
   { value: 'id-only:barcoding:', label: 'Specimen barcoding, identification only', markers: true },
   { value: 'service:metabarcoding:', label: 'eDNA metabarcoding', markers: true },
   {
+    value: 'prepared-library:metabarcoding:',
+    label: 'eDNA metabarcoding, prepared libraries',
+    markers: true,
+  },
+  {
     value: 'preservative-edna:metabarcoding:',
     label: 'Bulk eDNA from preservative',
     markers: true,

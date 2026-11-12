@@ -93,11 +93,19 @@ describe('formRows', () => {
       commercial: '1200',
     });
   });
+  it('labels the prepared-library row and takes markers', () => {
+    expect(FIRM_ROW_TYPES.find((t) => t.value === 'prepared-library:metabarcoding:')).toEqual({
+      value: 'prepared-library:metabarcoding:',
+      label: 'eDNA metabarcoding, prepared libraries',
+      markers: true,
+    });
+  });
   it('offers every rate-card kind plus custom', () => {
     expect(FIRM_ROW_TYPES.map((t) => t.value)).toEqual([
       'service:barcoding:',
       'id-only:barcoding:',
       'service:metabarcoding:',
+      'prepared-library:metabarcoding:',
       'preservative-edna:metabarcoding:',
       'assay:metagenomics:mg',
       'assay:metagenomics:mt',
@@ -160,6 +168,20 @@ describe('parseFinaliseForm', () => {
         },
       },
     ]);
+  });
+
+  it('builds a prepared-library line priced at the prepared rate', () => {
+    const r = parseFinaliseForm(
+      new URLSearchParams(
+        row(0, { type: 'prepared-library:metabarcoding:', count: '60', markers: '2' }),
+      ),
+    );
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.inputs).toEqual([
+      { serviceSlug: 'metabarcoding', kind: 'prepared-library', count: 60, markers: 2 },
+    ]);
+    expect(firmQuote(r.inputs).total.commercial).toBe(60 * (120 + 11));
   });
 
   it('defaults days to 30 and the note to null', () => {
