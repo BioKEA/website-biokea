@@ -23,6 +23,8 @@ import {
   metagenomicsConversationThreshold,
   pricedServices,
   samplingKitPrice,
+  smallBatchNote,
+  smallBatchThreshold,
 } from '@/data/pricing';
 import { buildQuote, type Quote, type QuoteLineInput } from './quote';
 
@@ -47,6 +49,9 @@ export interface BarcodingConfig {
 }
 export interface MetabarcodingConfig {
   service: 'metabarcoding';
+  /** Missing means 'samples' (the full service). */
+  starting?: 'samples' | 'libraries';
+  platform?: 'illumina' | 'nanopore' | 'none';
   targets: TargetId[];
   targetOther?: string;
   subs?: Partial<Record<TargetId, string[]>>;
@@ -58,6 +63,10 @@ export interface MetabarcodingConfig {
   kits: boolean;
   directions?: string;
 }
+export function ednaStarting(c: MetabarcodingConfig): 'samples' | 'libraries' {
+  return c.starting ?? 'samples';
+}
+
 export interface MetagenomicsConfig {
   service: 'metagenomics';
   assays: ('mg' | 'mt')[];
@@ -226,20 +235,21 @@ function barcodingOrder(c: BarcodingConfig): Parts {
 }
 
 function metabarcodingOrder(c: MetabarcodingConfig): Parts {
+  const libraries = ednaStarting(c) === 'libraries';
   const parts: Parts = {
     inputs: [
       {
         serviceSlug: 'metabarcoding',
         count: c.samples,
         markers: c.markers.length,
-        kind: 'service',
+        kind: libraries ? 'prepared-library' : 'service',
         markerNames: markerNames(c),
       },
     ],
     triggers: choiceTriggers(c, c.targets),
     tbc: [],
   };
-  if (c.kits) kitsParts(c.samples, parts);
+  if (c.kits && !libraries) kitsParts(c.samples, parts);
   return parts;
 }
 
@@ -308,6 +318,7 @@ function validateChoices(
   c: BarcodingConfig | MetabarcodingConfig,
   targetIds: TargetId[],
   errs: Record<string, string>,
+  skipSampleType = false,
 ): void {
   // An unchosen select reads as '' in the widget; the schema would reject
   // it server-side, so say so next to the field instead.
@@ -321,6 +332,7 @@ function validateChoices(
   if (c.markers.includes('other') && blank(c.markerOther)) {
     errs.markerOther = 'Tell us which marker you need.';
   }
+  if (skipSampleType) return;
   if (!c.sampleType) errs.sampleType = 'Choose a sample type.';
   if (sampleTypeOf(c.sampleType)?.consult && blank(c.sampleOther)) {
     errs.sampleOther = 'Tell us a little about your samples.';
@@ -345,8 +357,15 @@ export function validateConfig(config: ProjectConfig): Record<string, string> {
       }
       break;
     case 'metabarcoding':
-      validateChoices(c, c.targets, errs);
+      validateChoices(c, c.targets, errs, ednaStarting(c) === 'libraries');
       if (!isCount(c.samples)) errs.samples = 'Enter the number of samples as a whole number.';
+      if (
+        ednaStarting(c) === 'libraries' &&
+        c.platform !== 'illumina' &&
+        c.platform !== 'nanopore'
+      ) {
+        errs.platform = 'Choose the platform your libraries were built for.';
+      }
       break;
     case 'metagenomics':
       if (c.assays.length === 0) errs.assays = 'Choose metagenome, metatranscriptome, or both.';
@@ -421,15 +440,25 @@ function barcodingSummary(c: BarcodingConfig): string[] {
   return lines;
 }
 
+const platformText: Record<NonNullable<MetabarcodingConfig['platform']>, string> = {
+  illumina: 'Illumina',
+  nanopore: 'Oxford Nanopore',
+  none: 'No preference',
+};
+
 function metabarcodingSummary(c: MetabarcodingConfig): string[] {
+  const libraries = ednaStarting(c) === 'libraries';
   const targets = c.targets.map((t) => targetText(t, c.subs?.[t], c.targetOther));
   const lines = [
+    `Starting from: ${libraries ? 'prepared libraries' : 'samples'}`,
     `Targets: ${targets.join('; ')}`,
     markersLine(c),
-    sampleTypeLine(c),
-    `Samples: ${c.samples}`,
   ];
-  if (c.kits) lines.push(`Sampling kits: ${c.samples} (to be confirmed)`);
+  if (!libraries) lines.push(sampleTypeLine(c));
+  lines.push(`Samples: ${c.samples}`);
+  if (c.platform) lines.push(`Platform: ${platformText[c.platform]}`);
+  if (c.kits && !libraries) lines.push(`Sampling kits: ${c.samples} (to be confirmed)`);
+  if (c.samples < smallBatchThreshold) lines.push(`Note: ${smallBatchNote}`);
   return lines;
 }
 

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildOrder, validateConfig, summarizeConfig, barcodingCount } from '@/lib/pricing/order';
 import { ConfigSchema } from '@/lib/pricing/config-schema';
+import { smallBatchNote } from '@/data/pricing';
 import { bc, edna } from './fixtures/configs';
 
 describe('buildOrder', () => {
@@ -198,5 +199,39 @@ describe('tier-rate marker', () => {
   it('keeps form order when no suggested marker was picked', () => {
     const o = buildOrder(edna({ targets: ['vertebrates'], markers: ['COI', '18S'] }));
     expect(o.quote.lines[0].markerNames).toEqual(['COI', '18S']);
+  });
+});
+
+describe('eDNA prepared libraries', () => {
+  it('prepared libraries price as a prepared-library line', () => {
+    const o = buildOrder(edna({ starting: 'libraries', platform: 'illumina' }));
+    expect(o.inputs[0]).toMatchObject({ kind: 'prepared-library', count: 60, markers: 2 });
+    expect(o.quote.total.commercial).toBe(7860);
+  });
+  it('a stored config without starting prices as the full service', () => {
+    expect(buildOrder(edna()).quote.total.commercial).toBe(10500);
+  });
+  it('prepared libraries need a real platform', () => {
+    expect(validateConfig(edna({ starting: 'libraries', platform: 'none' })).platform).toBeTruthy();
+    expect(validateConfig(edna({ starting: 'libraries' })).platform).toBeTruthy();
+    expect(validateConfig(edna({ platform: 'none' })).platform).toBeUndefined();
+  });
+  it('prepared libraries skip the sample-type check', () => {
+    expect(
+      validateConfig(edna({ starting: 'libraries', platform: 'nanopore', sampleType: '' as never }))
+        .sampleType,
+    ).toBeUndefined();
+  });
+  it('prepared libraries never add sampling kits', () => {
+    const o = buildOrder(edna({ starting: 'libraries', platform: 'illumina', kits: true }));
+    expect(o.inputs).toHaveLength(1);
+  });
+  it('summary names the starting point, platform, and small-batch note under 10', () => {
+    const s = summarizeConfig(edna({ starting: 'libraries', platform: 'illumina', samples: 9 }));
+    expect(s).toContain('Starting from: prepared libraries');
+    expect(s).toContain('Platform: Illumina');
+    expect(s).toContain(`Note: ${smallBatchNote}`);
+    expect(s.some((l) => l.startsWith('Sample type:'))).toBe(false);
+    expect(summarizeConfig(edna({ samples: 10 }))).not.toContain(`Note: ${smallBatchNote}`);
   });
 });

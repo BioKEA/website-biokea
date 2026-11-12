@@ -52,6 +52,8 @@ const barcoding = z.object({
 
 const metabarcoding = z.object({
   service: z.literal('metabarcoding'),
+  starting: z.enum(['samples', 'libraries']).optional(),
+  platform: z.enum(['illumina', 'nanopore', 'none']).optional(),
   targets: z.array(targetId).max(targets.length),
   targetOther: freeText.optional(),
   subs: z.partialRecord(targetId, subList).optional(),

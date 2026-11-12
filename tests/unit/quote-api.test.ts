@@ -478,6 +478,21 @@ describe('config requests', () => {
     const res = await handleQuote(makeRequest({ ...base, config: edna({ targets: [] }) }), env);
     expect(res.status).toBe(400);
   });
+  it('prepared libraries with no platform preference is a 400', async () => {
+    const res = await handleQuote(
+      makeRequest({ ...base, config: edna({ starting: 'libraries', platform: 'none' }) }),
+      env,
+    );
+    expect(res.status).toBe(400);
+  });
+  it('prepared libraries with a platform return a prepared-library line', async () => {
+    const res = await handleQuote(
+      makeRequest({ ...base, config: edna({ starting: 'libraries', platform: 'nanopore' }) }),
+      env,
+    );
+    expect(res.status).toBe(200);
+    expect(insertedRow().lines).toEqual([expect.objectContaining({ kind: 'prepared-library' })]);
+  });
   it('a body with neither lines nor config is a 400', async () => {
     expect((await handleQuote(makeRequest(base), env)).status).toBe(400);
   });
