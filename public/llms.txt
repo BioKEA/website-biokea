@@ -52,7 +52,7 @@ Engagement routes (Contact-form topics): Sequencing service inquiry, Partnership
 - **Austin Baker, PhD** — Research Scientist
 - **Stephanie Castillo, PhD** — Research Associate
 
-**About the team in brief:** Sean — microbial genomicist building computational and AI tooling for environmental biology; lectures sometimes at Stanford; previously studied deep-sea and subsurface microbial diversity. Michelle — marine and estuarine ecologist focused on zooplankton communities and food-web dynamics, lead investigator on the SF Bay metabarcoding baseline. Austin — entomologist managing the California Insect Barcoding Initiative; previously at NHMLAC; PhD on parasitoid-wasp systematics. Stephanie — entomologist and molecular biologist conducting biodiversity genomics lab work.
+**About the team in brief:** Sean — microbial genomicist building computational and AI tooling for environmental biology; lectures sometimes at Stanford; previously studied deep-sea and subsurface microbial diversity. Michelle — marine and estuarine ecologist focused on zooplankton communities and food-web dynamics, lead investigator on the SF Bay metabarcoding baseline. Austin — entomologist managing the California Insect Barcoding Initiative; previously at NHMLAC; PhD on parasitoid-wasp systematics. Stephanie — entomologist and molecular biologist conducting biodiversity genomics lab work; PhD research at UC Riverside on assassin-bug evolution and systematics; previously a field associate at NHMLAC collecting for the California Insect Barcoding Initiative.
 
 ## Programs & support
 

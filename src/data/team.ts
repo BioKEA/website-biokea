@@ -65,7 +65,7 @@ export const team: TeamMember[] = [
     image: '/assets/images/portrait-stephanie.jpg',
     alt: 'Headshot of Stephanie Castillo',
     tier: 'team',
-    bio: 'Entomologist and molecular biologist conducting biodiversity genomics lab work.',
+    bio: 'Entomologist and molecular biologist conducting biodiversity genomics lab work. PhD research at UC Riverside on assassin-bug evolution and diversification, reconstructing phylogenies and describing new species. Previously a field associate at the Natural History Museum of Los Angeles County, collecting for the California Insect Barcoding Initiative.',
     knowsAbout: ['Molecular lab methods', 'Field sampling', 'Entomology'],
   },
 ];
