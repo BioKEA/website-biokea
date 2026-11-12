@@ -1,0 +1,121 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Eyebrow from '@/components/ui/Eyebrow.astro';
+import PlateExplorer from '@/components/ui/PlateExplorer.astro';
+import { bannerImage, plates } from '@/data/sample-report';
+import { stringifyJsonLd } from '@/lib/json-ld';
+
+const description =
+  'Real 96-well plates from BioKEA: every insect picked by BugPicker, photographed in its well, and named from its DNA barcode.';
+
+const stats = [
+  { value: '30+', label: '96-well plates sequenced' },
+  { value: '70', label: 'plates picked by BugPicker' },
+  { value: '98%', label: 'median barcode agreement' },
+  { value: 'CIB', label: 'anchor partner' },
+];
+
+const includes = [
+  'A photo of every specimen, in its well',
+  'A COI barcode for each well',
+  'A species table with match scores',
+  'A plate report you can share',
+  'Optional publication of the dataset on calatbi.biokea.ai',
+];
+---
+
+<BaseLayout title="What you get back — BioKEA" description={description}>
+  <section class="relative overflow-hidden bg-[var(--color-ink)]">
+    <img
+      src={bannerImage}
+      alt=""
+      width="1600"
+      height="900"
+      fetchpriority="high"
+      class="absolute inset-0 h-full w-full object-cover brightness-[0.45]"
+    />
+    <div
+      class="relative max-w-6xl mx-auto px-6 pt-28 pb-10 md:pt-40 md:pb-12 text-[var(--color-cream)]"
+    >
+      <p class="font-mono text-[11px] tracking-[0.12em] opacity-90">
+        WHAT YOU GET BACK · INSECT DNA BARCODING
+      </p>
+      <h1
+        class="mt-2 text-3xl md:text-5xl font-semibold tracking-[-0.025em] leading-[1.05] max-w-[22ch]"
+      >
+        Every insect. Photographed. Named.
+      </h1>
+      <p class="mt-4 max-w-[62ch] text-sm md:text-base text-slate-200 leading-relaxed">
+        Real plates from our work for the California Institute for Biodiversity, picked by
+        BugPicker, imaged, and DNA-barcoded.
+      </p>
+    </div>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+    <PlateExplorer plates={plates} />
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-8">
+    <dl class="grid grid-cols-2 md:grid-cols-4 gap-6">
+      {
+        stats.map((s) => (
+          <div class="flex flex-col border-l-2 border-[var(--color-teal)] pl-3">
+            <dt class="font-mono text-[10px] tracking-[0.1em] uppercase text-slate-600">
+              {s.label}
+            </dt>
+            <dd class="font-mono font-bold text-2xl text-[var(--color-ink)] order-first">
+              {s.value}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <section class="max-w-6xl mx-auto px-6 py-8">
+    <Eyebrow>Every order includes</Eyebrow>
+    <ul class="mt-4 grid sm:grid-cols-2 gap-2 max-w-[62ch] text-sm text-slate-600">
+      {
+        includes.map((item) => (
+          <li class="flex gap-2">
+            <span class="text-[var(--color-teal)]" aria-hidden="true">
+              ·
+            </span>
+            {item}
+          </li>
+        ))
+      }
+    </ul>
+    <div class="mt-8 flex items-center gap-6 flex-wrap">
+      <a
+        href="/quote"
+        class="bg-[var(--color-ink)] text-[var(--color-cream)] px-4 py-2.5 rounded-sm text-sm font-medium"
+      >
+        Build a quote →
+      </a>
+      <a href="https://calatbi.biokea.ai/" class="text-[var(--color-teal)] text-sm font-medium">
+        New datasets on calatbi.biokea.ai ↗
+      </a>
+    </div>
+  </section>
+
+  <script
+    type="application/ld+json"
+    is:inline
+    set:html={stringifyJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': 'https://biokea.ai/sample-report',
+      url: 'https://biokea.ai/sample-report',
+      name: 'What you get back',
+      description,
+      publisher: { '@id': 'https://biokea.ai/#org' },
+      mentions: { '@id': 'https://biokea.ai/#partner-cib' },
+      about: [
+        { '@type': 'DefinedTerm', name: 'DNA barcoding' },
+        { '@type': 'DefinedTerm', name: 'Insect biodiversity' },
+      ],
+    })}
+  />
+</BaseLayout>

@@ -1,0 +1,285 @@
+---
+// src/components/ui/PlateExplorer.astro
+// Tabs over 96-well plates; each well is a button showing the specimen photo.
+// Selecting a well fills the card beside the grid. The large photo loads only
+// when a well is selected (the default well's photo is server-rendered).
+import { largeSrc, thumbSrc, type DisplayWell, type Plate } from '@/data/sample-report';
+
+interface Props {
+  plates: Plate[];
+}
+const { plates } = Astro.props;
+
+const ROWS = [...'ABCDEFGH'];
+const COLS = Array.from({ length: 12 }, (_, i) => i + 1);
+
+const STATUS_TEXT: Record<DisplayWell['status'], string> = {
+  species: 'NAMED TO SPECIES',
+  genus: 'NAMED TO GENUS',
+  order: 'ORDER RECORDED AT PICKING',
+  awaiting: 'HIGH-RES IMAGE · BARCODE IN THE QUEUE',
+};
+
+const meta = (w: DisplayWell) => {
+  if (w.status === 'species' && w.reads != null && w.match != null)
+    return `${w.reads.toLocaleString('en-US')} reads · ${w.match.toFixed(1)}% match`;
+  if (w.status === 'genus' && w.reads != null) return `${w.reads.toLocaleString('en-US')} reads`;
+  if (w.status === 'awaiting') return w.size ?? '';
+  return '';
+};
+
+const first = plates[0];
+const firstWell = first.wells.find((w) => w.well === first.defaultWell)!;
+---
+
+<div data-plate-explorer>
+  <div role="tablist" aria-label="Example plates" class="flex flex-wrap gap-2">
+    {
+      plates.map((p, i) => (
+        <button
+          type="button"
+          role="tab"
+          id={`tab-${p.id}`}
+          aria-controls={`panel-${p.id}`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          tabindex={i === 0 ? 0 : -1}
+          data-tab={p.id}
+          data-default-well={p.defaultWell}
+          class="plate-tab px-3 py-1.5 rounded-full border border-slate-300 text-sm"
+        >
+          {p.tab}
+        </button>
+      ))
+    }
+  </div>
+
+  <div class="mt-6 flex flex-col lg:flex-row gap-8 items-start">
+    <div class="min-w-0">
+      {
+        plates.map((p, i) => {
+          const byWell = new Map(p.wells.map((w) => [w.well, w]));
+          return (
+            <div
+              role="tabpanel"
+              id={`panel-${p.id}`}
+              aria-labelledby={`tab-${p.id}`}
+              data-plate={p.id}
+              hidden={i !== 0}
+            >
+              <p class="text-sm text-slate-600 max-w-[62ch] mb-4">{p.caption}</p>
+              <div class="plate-grid font-mono text-[10px] text-slate-500">
+                <div />
+                {COLS.map((c) => (
+                  <div class="text-center">{c}</div>
+                ))}
+                {ROWS.map((r) => (
+                  <>
+                    <div class="self-center">{r}</div>
+                    {COLS.map((c) => {
+                      const w = byWell.get(`${r}${c}`);
+                      return w ? (
+                        <button
+                          type="button"
+                          class="well"
+                          data-well={w.well}
+                          data-status={w.status}
+                          data-status-text={STATUS_TEXT[w.status]}
+                          data-label={w.label}
+                          data-name={w.name ?? ''}
+                          data-meta={meta(w)}
+                          data-large={largeSrc(p.id, w.well)}
+                          aria-label={`Well ${w.well}: ${w.label}`}
+                          aria-pressed={i === 0 && w.well === p.defaultWell ? 'true' : 'false'}
+                        >
+                          <img
+                            src={thumbSrc(p.id, w.well)}
+                            alt=""
+                            width="160"
+                            height="160"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </button>
+                      ) : (
+                        <div class="well well-empty" aria-hidden="true" />
+                      );
+                    })}
+                  </>
+                ))}
+              </div>
+              {p.wells.some((w) => w.status !== 'awaiting') ? (
+                <ul class="mt-4 flex flex-wrap gap-x-5 gap-y-1 font-mono text-[10px] uppercase tracking-[0.1em] text-slate-600">
+                  <li>
+                    <span class="key" data-status="species" /> Species
+                  </li>
+                  <li>
+                    <span class="key" data-status="genus" /> Genus
+                  </li>
+                  <li>
+                    <span class="key" data-status="order" /> Order only
+                  </li>
+                </ul>
+              ) : null}
+            </div>
+          );
+        })
+      }
+    </div>
+
+    <div
+      data-card
+      class="w-full lg:w-[320px] shrink-0 rounded-md border border-slate-900/10 bg-white overflow-hidden"
+      aria-live="polite"
+    >
+      <img
+        data-card-img
+        src={largeSrc(first.id, firstWell.well)}
+        alt=""
+        width="1000"
+        height="562"
+        class="w-full aspect-video object-cover bg-slate-100"
+      />
+      <div class="px-4 py-3">
+        <p
+          data-card-status
+          class="font-mono text-[10px] tracking-[0.1em] text-[var(--color-teal)]"
+          data-status={firstWell.status}
+        >
+          WELL {firstWell.well} · {STATUS_TEXT[firstWell.status]}
+        </p>
+        <p data-card-label class="mt-1 font-semibold text-[var(--color-ink)]">{firstWell.label}</p>
+        <p data-card-name class="italic text-sm text-slate-600">{firstWell.name ?? ''}</p>
+        <p data-card-meta class="mt-2 font-mono text-[11px] text-slate-500">{meta(firstWell)}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .plate-grid {
+    display: grid;
+    grid-template-columns: 10px repeat(12, 23px);
+    gap: 2px;
+  }
+  @media (min-width: 640px) {
+    .plate-grid {
+      grid-template-columns: 14px repeat(12, 38px);
+      gap: 4px;
+    }
+  }
+  .well {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 9999px;
+    overflow: hidden;
+    padding: 0;
+    cursor: pointer;
+    box-shadow: 0 0 0 2px var(--ring);
+  }
+  .well img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .well-empty {
+    background: #e7e2d6;
+    cursor: default;
+    box-shadow: none;
+  }
+  .well:focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+  .well[aria-pressed='true'] {
+    outline: 3px solid #f59e0b;
+    outline-offset: 1px;
+  }
+  [data-status='species'] {
+    --ring: var(--color-teal);
+  }
+  [data-status='genus'] {
+    --ring: #94a3b8;
+  }
+  [data-status='order'] {
+    --ring: #e2e8f0;
+  }
+  [data-status='awaiting'] {
+    --ring: var(--color-ochre);
+  }
+  .key {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+    box-shadow: 0 0 0 2px var(--ring);
+    margin-right: 4px;
+    vertical-align: -1px;
+  }
+  [data-card-status][data-status='awaiting'] {
+    color: var(--color-ochre);
+  }
+  .plate-tab[aria-selected='true'] {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-cream);
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-plate-explorer]');
+  if (root) {
+    const q = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const img = q<HTMLImageElement>('[data-card-img]');
+    const status = q<HTMLElement>('[data-card-status]');
+    const label = q<HTMLElement>('[data-card-label]');
+    const name = q<HTMLElement>('[data-card-name]');
+    const metaEl = q<HTMLElement>('[data-card-meta]');
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+
+    const select = (btn: HTMLButtonElement) => {
+      const d = btn.dataset;
+      root
+        .querySelectorAll('.well[aria-pressed="true"]')
+        .forEach((b) => b.setAttribute('aria-pressed', 'false'));
+      btn.setAttribute('aria-pressed', 'true');
+      img.src = d.large!;
+      status.textContent = `WELL ${d.well} · ${d.statusText}`;
+      status.dataset.status = d.status;
+      label.textContent = d.label ?? '';
+      name.textContent = d.name ?? '';
+      metaEl.textContent = d.meta ?? '';
+    };
+
+    const show = (tab: HTMLButtonElement) => {
+      for (const t of tabs) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        q<HTMLElement>(`[data-plate="${t.dataset.tab}"]`).hidden = !on;
+      }
+      const def = q<HTMLButtonElement>(
+        `[data-plate="${tab.dataset.tab}"] [data-well="${tab.dataset.defaultWell}"]`,
+      );
+      select(def);
+    };
+
+    root.addEventListener('click', (e) => {
+      const target = e.target as Element;
+      const well = target.closest<HTMLButtonElement>('button[data-well]');
+      if (well) return select(well);
+      const tab = target.closest<HTMLButtonElement>('[role="tab"]');
+      if (tab && tab.getAttribute('aria-selected') !== 'true') show(tab);
+    });
+
+    root.querySelector('[role="tablist"]')!.addEventListener('keydown', (e) => {
+      const k = (e as KeyboardEvent).key;
+      if (k !== 'ArrowLeft' && k !== 'ArrowRight') return;
+      const i = tabs.indexOf(document.activeElement as HTMLButtonElement);
+      if (i < 0) return;
+      const next = tabs[(i + (k === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+      next.focus();
+      show(next);
+    });
+  }
+</script>

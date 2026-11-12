@@ -27,7 +27,8 @@ async function thumb(src, dest, squareFromWide) {
   let img = sharp(src);
   if (squareFromWide) {
     const { width, height } = await img.metadata();
-    const side = Math.min(width, height);
+    // Tight centre crop: the tube sits centred and the insect near its middle.
+    const side = Math.round(Math.min(width, height) * 0.55);
     img = img.extract({
       left: Math.round((width - side) / 2),
       top: Math.round((height - side) / 2),
