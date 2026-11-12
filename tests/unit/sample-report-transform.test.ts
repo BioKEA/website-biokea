@@ -124,3 +124,22 @@ test('occupied wells are those with at least one occupied attempt', () => {
   ]);
   expect([...s]).toEqual(['A1']);
 });
+test('species call whose nearest GenBank hit is another taxon below 97% drops to genus', () => {
+  expect(
+    toBarcodedWell(
+      row({
+        species: 'Catolaccus aeneoviridis',
+        genus: 'Catolaccus',
+        family: 'Pteromalidae',
+        gb: 'Pteromalidae sp. BOLD-2016',
+        gb_pid: '87.9',
+      }),
+    ),
+  ).toEqual({
+    well: 'A1',
+    status: 'genus',
+    label: 'Pteromalidae',
+    name: 'Catolaccus sp.',
+    reads: 24965,
+  });
+});

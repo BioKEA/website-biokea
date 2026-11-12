@@ -7,7 +7,7 @@ test('banner, tabs and CTA render', async ({ page }) => {
     'Every insect. Photographed. Named.',
   );
   await expect(
-    page.getByRole('tab', { name: 'Plate AA0055 · new high-res microscope' }),
+    page.getByRole('tab', { name: 'Plate AA0022 · photographed + barcoded' }),
   ).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByRole('link', { name: /Build a quote/ }).last()).toHaveAttribute(
     'href',
@@ -15,18 +15,18 @@ test('banner, tabs and CTA render', async ({ page }) => {
   );
   await expect(page.getByText('30+')).toBeVisible();
 });
-test('AA0055 opens on C5 with size and queue status', async ({ page }) => {
+test('AA0055 tab opens on C5 with size and queue status', async ({ page }) => {
   await page.goto('/sample-report');
+  await page.getByRole('tab', { name: 'Plate AA0055 · new high-res microscope' }).click();
   await expect(page.locator('[data-card-status]')).toHaveText(
     'WELL C5 · HIGH-RES IMAGE · BARCODE IN THE QUEUE',
   );
   await expect(page.locator('[data-card-meta]')).toHaveText(/^\d+\.\d × \d+\.\d mm as picked$/);
 });
-test('switching to AA0022 shows the sweat bee in H2, and clicking a well updates the card', async ({
+test('AA0022 opens on the sweat bee in H2, and clicking a well updates the card', async ({
   page,
 }) => {
   await page.goto('/sample-report');
-  await page.getByRole('tab', { name: 'Plate AA0022 · photographed + barcoded' }).click();
   await expect(page.locator('[data-card-label]')).toHaveText('A sweat bee');
   await expect(page.locator('[data-card-name]')).toHaveText('Lasioglossum hyalinum');
   await expect(page.locator('[data-card-meta]')).toHaveText('24,965 reads · 100.0% match');
@@ -39,7 +39,7 @@ test('switching to AA0022 shows the sweat bee in H2, and clicking a well updates
 });
 test('wells are keyboard-operable', async ({ page }) => {
   await page.goto('/sample-report');
-  await page.locator('[data-plate="aa0055"] [data-well="A1"]').focus();
+  await page.locator('[data-plate="aa0022"] [data-well="A1"]').focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('[data-card-status]')).toContainText('WELL A1');
 });

@@ -3,16 +3,16 @@ import { plates } from '@/data/sample-report';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 
 const byId = (id: string) => plates.find((p) => p.id === id)!;
-test('AA0022 has 95 wells: 37 species, 48 genus, 10 order-only, no H12', () => {
+test('AA0022 has 95 wells: 35 species, 50 genus, 10 order-only, no H12', () => {
   const w = byId('aa0022').wells;
   expect(w).toHaveLength(95);
-  expect(w.filter((x) => x.status === 'species')).toHaveLength(37);
-  expect(w.filter((x) => x.status === 'genus')).toHaveLength(48);
+  expect(w.filter((x) => x.status === 'species')).toHaveLength(35);
+  expect(w.filter((x) => x.status === 'genus')).toHaveLength(50);
   expect(w.filter((x) => x.status === 'order')).toHaveLength(10);
   expect(w.find((x) => x.well === 'H12')).toBeUndefined();
 });
-test('AA0055 shows only the 90 wells a pick was confirmed into, and opens first on C5', () => {
-  expect(plates[0].id).toBe('aa0055');
+test('AA0055 shows only the 90 wells a pick was confirmed into, and defaults to C5', () => {
+  expect(plates[0].id).toBe('aa0022');
   expect(byId('aa0055').wells.every((x) => x.status === 'awaiting')).toBe(true);
   expect(byId('aa0055').wells).toHaveLength(90);
   for (const id of ['D1', 'D4', 'G11', 'H7', 'H9'])
@@ -42,4 +42,11 @@ test('no species well shows a match to a different GenBank taxon', () => {
   for (const id of ['G2', 'H5', 'E1', 'H8'])
     expect(w.find((x) => x.well === id)).not.toHaveProperty('match');
   expect(w.find((x) => x.well === 'H2')?.match).toBe(100);
+});
+test('G2 and H5 are shown to genus only', () => {
+  for (const id of ['G2', 'H5'])
+    expect(byId('aa0022').wells.find((x) => x.well === id)).toMatchObject({
+      status: 'genus',
+      name: 'Catolaccus sp.',
+    });
 });

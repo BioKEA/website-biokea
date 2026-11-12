@@ -521,9 +521,9 @@
   },
   {
     "well": "G2",
-    "status": "species",
+    "status": "genus",
     "label": "Pteromalidae",
-    "name": "Catolaccus aeneoviridis",
+    "name": "Catolaccus sp.",
     "reads": 30330
   },
   {
@@ -626,9 +626,9 @@
   },
   {
     "well": "H5",
-    "status": "species",
+    "status": "genus",
     "label": "Pteromalidae",
-    "name": "Catolaccus aeneoviridis",
+    "name": "Catolaccus sp.",
     "reads": 35902
   },
   {

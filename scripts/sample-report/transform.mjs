@@ -25,10 +25,12 @@ export const COMMON_NAMES = {
 export function toBarcodedWell(raw) {
   const { well, cat } = raw;
   if (cat === 'control') return null;
-  if (cat === 'species') {
-    // gb_pid is identity to the nearest GenBank record, which can be another
-    // taxon; only show it as "% match" when that record is the named species.
-    const sameTaxon = String(raw.gb ?? '').startsWith(`${raw.species} `);
+  // gb_pid is identity to the nearest GenBank record, which can be another
+  // taxon; only show it as "% match" when that record is the named species.
+  const sameTaxon = String(raw.gb ?? '').startsWith(`${raw.species} `);
+  // A species call with no close GenBank support is shown to genus only.
+  const weakSpecies = cat === 'species' && !sameTaxon && Number(raw.gb_pid) < 97;
+  if (cat === 'species' && !weakSpecies) {
     return {
       well,
       status: 'species',
@@ -38,7 +40,7 @@ export function toBarcodedWell(raw) {
       ...(sameTaxon ? { match: Math.round(Number(raw.gb_pid) * 10) / 10 } : {}),
     };
   }
-  if (cat === 'genus') {
+  if (cat === 'genus' || weakSpecies) {
     return {
       well,
       status: 'genus',

@@ -24,6 +24,14 @@ export interface Plate {
 
 export const plates: Plate[] = [
   {
+    id: 'aa0022',
+    code: 'AA0022',
+    tab: 'Plate AA0022 · photographed + barcoded',
+    caption: '95 insects, each photographed in its well and named from its DNA barcode.',
+    wells: aa0022 as DisplayWell[],
+    defaultWell: 'H2',
+  },
+  {
     id: 'aa0055',
     code: 'AA0055',
     tab: 'Plate AA0055 · new high-res microscope',
@@ -31,14 +39,6 @@ export const plates: Plate[] = [
       'Our newer microscope photographs each insect at higher magnification before it is picked. This plate is sequencing now; its barcodes will appear here and on calatbi.biokea.ai.',
     wells: aa0055 as DisplayWell[],
     defaultWell: 'C5',
-  },
-  {
-    id: 'aa0022',
-    code: 'AA0022',
-    tab: 'Plate AA0022 · photographed + barcoded',
-    caption: '95 insects, each photographed in its well and named from its DNA barcode.',
-    wells: aa0022 as DisplayWell[],
-    defaultWell: 'H2',
   },
 ];
 
