@@ -190,7 +190,21 @@ test('eDNA prepared libraries price at the prepared rate and switch back cleanly
   await field(page, 'metabarcoding', 'starting', 'samples').check();
   await expect(page.locator('[data-total]')).toHaveText('$10,500');
   await expect(field(page, 'metabarcoding', 'sampleType')).toBeVisible();
+  await expect(field(page, 'metabarcoding', 'kits')).toBeVisible();
   await expect(reqNote).toBeHidden();
+});
+
+test('choosing prepared libraries without a platform shows the platform error until one is picked', async ({
+  page,
+}) => {
+  await page.goto('/quote');
+  await ednaPath(page);
+  await field(page, 'metabarcoding', 'starting', 'libraries').check();
+  const err = branch(page, 'metabarcoding').locator('[data-error-for="platform"]');
+  await expect(err).toBeVisible();
+  await expect(err).toHaveText('Choose the platform your libraries were built for.');
+  await field(page, 'metabarcoding', 'platform', 'illumina').check();
+  await expect(err).toBeHidden();
 });
 
 test('small eDNA orders show the batching note below 10', async ({ page }) => {

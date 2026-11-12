@@ -308,6 +308,8 @@ export function mountQuoteWidget(root: HTMLElement, opts: WidgetOptions = {}): Q
       const field = el.dataset.field;
       for (const key of touchedKeys(el)) touched.add(key);
       if (field === 'markers') markersTouched = true;
+      // Choosing libraries makes a missing platform an error the customer must see.
+      if (field === 'starting') touched.add('platform');
       if (ev.type === 'change') clampCount(el);
       // Branch-local so the suggestion follows the visible picker only.
       if (
