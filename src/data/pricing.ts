@@ -146,7 +146,7 @@ export const pricedServices: PricedService[] = [
     included: [
       'Extraction from your already-collected samples (water, soil, sediment, or air filters)',
       'PCR amplification for each target marker',
-      'Library indexing, pooling, and Oxford Nanopore sequencing',
+      'Library indexing, pooling, and sequencing on Illumina (MiSeq i100) or Oxford Nanopore',
       'Bioinformatics: taxonomic assignment and quality control',
       'Digital report: full list of taxa detected within your target group, per sample',
     ],

@@ -8,6 +8,10 @@ import NamedPriceRows from '@/components/ui/NamedPriceRows.astro';
 import AddonsPanel from '@/components/ui/AddonsPanel.astro';
 import {
   pricedServices,
+  preparedLibraries,
+  preparedLibraryTiers,
+  preparedLibraryMarkerPrice,
+  smallBatchNote,
   identificationOnlyBarcoding,
   confidenceRatings,
   metagenomics,
@@ -53,6 +57,20 @@ const unitSpec = (name: string, price: number, unitText: string) => ({
   unitText,
 });
 
+const preparedIntro =
+  "Already have indexed libraries? Send them and we'll sequence them and run the same bioinformatics and report, at 75% of the rates above. Sequenced on Illumina or Oxford Nanopore.";
+
+const rangeSpec = (name: string, prices: number[], unitText: string) => ({
+  '@type': 'UnitPriceSpecification',
+  name,
+  minPrice: Math.min(...prices),
+  maxPrice: Math.max(...prices),
+  priceCurrency: 'USD',
+  unitText,
+});
+const preparedAcademic = preparedLibraryTiers.map((t) => t.academicPrice);
+const preparedCommercial = preparedLibraryTiers.map((t) => t.commercialPrice);
+
 const tieredOffers = (svc: typeof barcoding) =>
   svc.tiers.map((t) => ({
     '@type': 'Offer',
@@ -94,7 +112,22 @@ const jsonLd = {
       name: edna.title,
       description: edna.description,
       provider: { '@id': 'https://biokea.ai/#org' },
-      offers: tieredOffers(edna),
+      offers: [
+        ...tieredOffers(edna),
+        {
+          '@type': 'Offer',
+          name: preparedLibraries.title,
+          eligibleQuantity: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            unitText: edna.unitLabel,
+          },
+          priceSpecification: [
+            rangeSpec('Academic & nonprofit', preparedAcademic, edna.unitLabel),
+            rangeSpec('Commercial', preparedCommercial, edna.unitLabel),
+          ],
+        },
+      ],
     },
     {
       '@type': 'Service',
@@ -354,6 +387,45 @@ const jsonLd = {
         for the whole batch.
       </p>
       <PriceLadder tiers={edna.tiers} unitLabel={edna.unitLabel} />
+
+      <div class="mt-12 max-w-[70ch]">
+        <h3
+          class="font-mono text-[13px] tracking-[0.08em] uppercase text-[var(--color-teal)] font-bold mb-3"
+        >
+          From prepared libraries
+        </h3>
+        <p class="text-sm text-slate-600 leading-relaxed">
+          {preparedIntro}
+        </p>
+        <ul class="flex flex-col mt-4">
+          {
+            preparedLibraries.included.map((item, i) => (
+              <li
+                class:list={[
+                  'flex gap-2.5 items-start text-[15px] text-[var(--color-ink)] leading-relaxed py-2.5',
+                  i > 0 && 'border-t border-slate-900/10',
+                ]}
+              >
+                <span class="mt-1 shrink-0 w-4 h-4 rounded-full bg-[var(--color-teal)] flex items-center justify-center text-white text-[10px]">
+                  ✓
+                </span>
+                <span>{item}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div class="mt-6">
+        <PriceLadder tiers={preparedLibraryTiers} unitLabel={edna.unitLabel} />
+      </div>
+      <p class="mt-4 text-sm text-slate-600 leading-relaxed">
+        {usd(preparedLibraryMarkerPrice.academic)} per sample, per added marker for academic and nonprofit;
+        {usd(preparedLibraryMarkerPrice.commercial)} per sample, per added marker for commercial.
+      </p>
+      <p class="mt-2 text-sm text-slate-600 leading-relaxed">
+        {preparedLibraries.requirementsNote}
+      </p>
+      <p class="mt-2 text-sm text-slate-600 leading-relaxed">{smallBatchNote}</p>
       <div class="mt-6 flex items-center gap-4 flex-wrap">
         <a
           href={storeUrl.metabarcoding}

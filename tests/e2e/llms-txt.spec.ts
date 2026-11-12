@@ -93,3 +93,10 @@ test('llms.txt lists the four priced services with their ranges and pricing anch
   expect(text).not.toMatch(/Four services have published rate cards/);
   expect(text).not.toMatch(/from \$/i);
 });
+
+test('llms.txt mentions prepared libraries and the MiSeq i100', async ({ request }) => {
+  const response = await request.get('/llms.txt');
+  const text = (await response.body()).toString('utf8');
+  expect(text).toContain('prepared libraries');
+  expect(text).toContain('MiSeq i100');
+});

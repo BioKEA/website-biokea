@@ -131,7 +131,7 @@ Sitemap: ${SITE}/sitemap-index.xml
 
 BioKEA offers molecular sequencing as a service out of the Berkeley LDC, targeted at environmental DNA (eDNA) and related customers — conservation nonprofits, state/federal agencies, academic labs, and environmental consultancies.
 
-- **eDNA & metabarcoding** (primary target) — water, soil, and sediment samples through extraction → amplification → quantification → long-read or amplicon sequencing → taxonomic assignment, delivered as a FAIR-compliant data package.
+- **eDNA & metabarcoding** (primary target) — water, soil, and sediment samples through extraction → amplification → quantification → long-read or amplicon sequencing → taxonomic assignment, delivered as a FAIR-compliant data package. Sequenced on Illumina (MiSeq i100) or Oxford Nanopore. Clients who already have indexed libraries can send them for sequencing and bioinformatics ("prepared libraries") at 75% of the full-service rates: $86–$154 per sample by volume tier, extra markers $9–$11 per sample. Small orders (under 10 samples) are batched with other runs, so they may take longer.
 - **DNA barcoding** — Sanger-replacement barcode surveys via amplicon sequencing on the ONT Promethion 2 (COI, 16S, 18S, ITS, rbcL, matK, and custom primers).
 - **Long-read microbial genomics** — whole-genome, metagenomic, and hybrid assemblies on the ONT Promethion 2.
 - **Specimen screening (arriving early summer 2026)** — high-throughput morphological imaging on DiversityScanner, pipelined into the LDC molecular workflow.

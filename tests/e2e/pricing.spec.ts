@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { preparedLibraries, smallBatchNote } from '../../src/data/pricing';
 
 const jsonLdGraph = async (page: import('@playwright/test').Page) => {
   const scripts = await page.locator('script[type="application/ld+json"]').allTextContents();
@@ -50,7 +51,7 @@ test('barcoding section shows all 4 tier prices, best rate on 5,000+, and the $5
     await expect(panel.getByText(price, { exact: true }).first()).toBeVisible();
   }
   const bestRow = panel.locator('div', { hasText: '5,000+' }).first();
-  await expect(bestRow.getByText('Best rate')).toBeVisible();
+  await expect(bestRow.getByText('Best rate').first()).toBeVisible();
   await expect(
     panel.getByRole('heading', { name: /Identification only, no voucher: \$5 per specimen/ }),
   ).toBeVisible();
@@ -71,12 +72,26 @@ test('eDNA section shows all 3 tier prices, best rate on 200+, and the marker ad
     await expect(panel.getByText(price, { exact: true }).first()).toBeVisible();
   }
   const bestRow = panel.locator('div', { hasText: '200+' }).first();
-  await expect(bestRow.getByText('Best rate')).toBeVisible();
+  await expect(bestRow.getByText('Best rate').first()).toBeVisible();
   await expect(panel.getByText(/\$12 per sample, per added marker/)).toBeVisible();
   await expect(panel.getByRole('link', { name: /Configure and pay online/ })).toHaveAttribute(
     'href',
     'https://store.biokea.ai/pages/order?service=metabarcoding',
   );
+});
+
+test('eDNA section shows the prepared-libraries ladder and notes', async ({ page }) => {
+  await page.goto('/pricing');
+  const panel = page.locator('#metabarcoding');
+  await expect(panel.getByRole('heading', { name: 'From prepared libraries' })).toBeVisible();
+  for (const price of ['$124', '$154', '$98', '$120', '$86', '$109']) {
+    await expect(panel.getByText(price, { exact: true }).first()).toBeVisible();
+  }
+  await expect(panel.getByText(/\$9 per sample, per added marker/)).toBeVisible();
+  await expect(panel.getByText(/\$11 per sample, per added marker/)).toBeVisible();
+  await expect(panel.getByText(preparedLibraries.requirementsNote)).toBeVisible();
+  await expect(panel.getByText(smallBatchNote)).toBeVisible();
+  await expect(panel.getByText(/Illumina or Oxford Nanopore/).first()).toBeVisible();
 });
 
 test('metagenomics section prices both assays and routes to a conversation', async ({ page }) => {
@@ -196,7 +211,12 @@ test('pricing JSON-LD has four Service nodes with the right offer counts', async
   expect(byName['Voucher-Linked Specimen Barcoding'].offers).toHaveLength(5);
   expect(byName['Voucher-Linked Specimen Barcoding'].offers[0].priceSpecification).toHaveLength(2);
   expect(byName['Voucher-Linked Specimen Barcoding'].offers[4].priceSpecification[0].price).toBe(5);
-  expect(byName['Environmental DNA (eDNA) Metabarcoding'].offers).toHaveLength(3);
+  expect(byName['Environmental DNA (eDNA) Metabarcoding'].offers).toHaveLength(4);
+  const prepared = byName['Environmental DNA (eDNA) Metabarcoding'].offers.find(
+    (o: { name: string }) => /prepared libraries/i.test(o.name),
+  );
+  expect(prepared).toBeDefined();
+  expect(prepared.priceSpecification).toHaveLength(2);
   expect(byName['Metagenome and metatranscriptome sequencing'].offers).toHaveLength(2);
   expect(byName['Targeted eDNA for one or more species'].offers).toBeUndefined();
 });
