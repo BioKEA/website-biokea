@@ -18,6 +18,7 @@ import {
 import {
   barcodingExtraMarkerFraction,
   ednaAdditionalMarkerPrice,
+  preparedLibraries,
   samplingKitPrice,
 } from '@/data/pricing';
 import {
@@ -288,16 +289,65 @@ function metabarcodingSamplesField(): string {
           label: 'Number of samples',
           hint: 'Priced per sample, with lower rates at higher volumes.',
         })}
+        <p class="bk-hint" data-small-batch-hint></p>
       </div>`;
+}
+
+function startingFieldset(): string {
+  return fieldset(
+    'What will you send us?',
+    `<div class="bk-choices bk-choices--2">
+        ${choices('radio', 'starting', [
+          {
+            value: 'samples',
+            label: 'Samples',
+            desc: 'Water, soil, sediment, or air samples or filters',
+            checked: true,
+          },
+          {
+            value: 'libraries',
+            label: 'Prepared libraries',
+            desc: 'Indexed libraries, ready to sequence',
+          },
+        ])}
+        </div>`,
+  );
+}
+
+function platformFieldset(): string {
+  return fieldset(
+    'Sequencing platform',
+    `${choices('radio', 'platform', [
+      { value: 'illumina', label: 'Illumina (MiSeq i100)' },
+      { value: 'nanopore', label: 'Oxford Nanopore' },
+    ])}
+        ${showWhen(
+          'starting=samples',
+          choice('radio', 'platform', {
+            value: 'none',
+            label: 'No preference',
+            checked: true,
+          }),
+          'bk-field--tight',
+        )}
+        ${errorSlot('platform')}`,
+  );
 }
 
 export function metabarcodingBranch(): string {
   return [
+    startingFieldset(),
     multiTargetFieldset(),
     markerFieldset('metabarcoding'),
-    sampleTypeField('metabarcoding'),
+    showWhen('starting=samples', sampleTypeField('metabarcoding'), 'bk-field--tight'),
     metabarcodingSamplesField(),
-    kitsFieldset('metabarcoding'),
+    platformFieldset(),
+    showWhen(
+      'starting=libraries',
+      `<p class="bk-callout">${esc(preparedLibraries.requirementsNote)}</p>`,
+      'bk-field--tight',
+    ),
+    showWhen('starting=samples', kitsFieldset('metabarcoding'), 'bk-field--tight'),
   ].join('\n      ');
 }
 

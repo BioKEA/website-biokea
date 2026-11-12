@@ -174,6 +174,34 @@ test('eDNA: 60 water samples, vertebrates → 12S suggested; adding COI prices $
   );
 });
 
+test('eDNA prepared libraries price at the prepared rate and switch back cleanly', async ({
+  page,
+}) => {
+  await page.goto('/quote');
+  await ednaPath(page);
+  await expect(page.locator('[data-total]')).toHaveText('$10,500');
+  await field(page, 'metabarcoding', 'starting', 'libraries').check();
+  await field(page, 'metabarcoding', 'platform', 'illumina').check();
+  await expect(page.locator('[data-total]')).toHaveText('$7,860');
+  await expect(field(page, 'metabarcoding', 'sampleType')).toBeHidden();
+  await expect(field(page, 'metabarcoding', 'kits')).toBeHidden();
+  const reqNote = branch(page, 'metabarcoding').getByText('Libraries must be indexed');
+  await expect(reqNote).toBeVisible();
+  await field(page, 'metabarcoding', 'starting', 'samples').check();
+  await expect(page.locator('[data-total]')).toHaveText('$10,500');
+  await expect(field(page, 'metabarcoding', 'sampleType')).toBeVisible();
+  await expect(reqNote).toBeHidden();
+});
+
+test('small eDNA orders show the batching note below 10', async ({ page }) => {
+  await page.goto('/quote');
+  await ednaPath(page, '9');
+  const note = branch(page, 'metabarcoding').locator('[data-small-batch-hint]');
+  await expect(note).toContainText('batched with other runs');
+  await field(page, 'metabarcoding', 'samples').fill('10');
+  await expect(note).toBeHidden();
+});
+
 test('switching the rate switches the headline total', async ({ page }) => {
   await page.goto('/quote');
   await ednaPath(page);

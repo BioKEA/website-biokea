@@ -11,6 +11,8 @@ import {
   esc,
 } from '@/widget/template';
 import { bc, edna, qpcr } from './fixtures/configs';
+import { metabarcodingBranch } from '@/widget/branches';
+import { preparedLibraries } from '@/data/pricing';
 
 describe('renderWidgetHtml (configurator)', () => {
   const html = renderWidgetHtml({ turnstileSiteKey: '1x000' });
@@ -265,5 +267,32 @@ describe('render helpers', () => {
   it('flat-rate lines never get an upsell', () => {
     const q = buildOrder(bc({ handling: 'idOnly', samples: 2 })).quote;
     expect(renderUpsell(q, 'commercial')).toBeNull();
+  });
+});
+
+describe('eDNA branch: prepared libraries', () => {
+  const html = metabarcodingBranch();
+  it('offers samples or prepared libraries, and a platform', () => {
+    expect(html).toContain('What will you send us?');
+    expect(html).toMatch(/value="samples" data-field="starting" checked/);
+    expect(html).toMatch(/value="libraries" data-field="starting"/);
+    expect(html).toContain('Indexed libraries, ready to sequence');
+    expect(html).toContain('Sequencing platform');
+    expect(html).toContain('Illumina (MiSeq i100)');
+    expect(html).toContain('Oxford Nanopore');
+    expect(html).toMatch(/value="none" data-field="platform" checked/);
+    expect(html).toContain('data-small-batch-hint');
+    expect(html).toMatch(/data-error-for="platform"[^>]*hidden/);
+  });
+  it('shows the requirements note for libraries only', () => {
+    expect(html).toMatch(/data-show-when="starting=libraries"[^>]*hidden/);
+    expect(html).toContain(esc(preparedLibraries.requirementsNote));
+  });
+  it('hides sample type, kits and the no-preference platform unless sending samples', () => {
+    const parts = html.split('data-show-when="starting=samples"');
+    expect(parts).toHaveLength(4); // sample type, no preference, kits
+    expect(parts[1]).toContain('Sample type');
+    expect(parts[2]).toContain('No preference');
+    expect(parts[3]).toContain('Sampling kits');
   });
 });

@@ -16,6 +16,7 @@ import {
   type ServiceSlug,
   type TargetId,
 } from '@/data/configurator';
+import { smallBatchNote, smallBatchThreshold } from '@/data/pricing';
 import type {
   BarcodingConfig,
   MetabarcodingConfig,
@@ -82,6 +83,9 @@ function optText<T extends object>(target: T, key: keyof T & string, value: stri
 
 const isConsultSampleType = (id: string) => sampleTypes.find((s) => s.id === id)?.consult === true;
 
+const pick = <T extends string>(v: string, allowed: readonly T[], fallback: T): T =>
+  (allowed as readonly string[]).includes(v) ? (v as T) : fallback;
+
 function readBarcoding(b: ParentNode): BarcodingConfig {
   const target = str(b, 'target') as TargetId;
   const markers = checked(b, 'markers') as MarkerId[];
@@ -117,14 +121,20 @@ function readMetabarcoding(b: ParentNode): MetabarcodingConfig {
   const targets = checked(b, 'targets') as TargetId[];
   const markers = checked(b, 'markers') as MarkerId[];
   const sampleType = str(b, 'sampleType') as MetabarcodingConfig['sampleType'];
+  const libraries = radio(b, 'starting') === 'libraries';
   const c: MetabarcodingConfig = {
     service: 'metabarcoding',
     targets,
     markers,
-    sampleType,
+    // The server schema still wants a valid sample type; libraries have none.
+    sampleType: libraries ? 'unknown' : sampleType,
     samples: num(b, 'samples'),
-    kits: on(b, 'kits'),
+    kits: libraries ? false : on(b, 'kits'),
   };
+  // Defaults are left off so a plain samples order posts the same config as before.
+  if (libraries) c.starting = 'libraries';
+  const platform = pick(radio(b, 'platform'), ['illumina', 'nanopore', 'none'], 'none');
+  if (libraries || platform !== 'none') c.platform = platform;
   if (targets.includes('other')) optText(c, 'targetOther', str(b, 'targetOther'));
   const subs: Partial<Record<TargetId, string[]>> = {};
   for (const t of targets) {
@@ -133,7 +143,8 @@ function readMetabarcoding(b: ParentNode): MetabarcodingConfig {
   }
   if (Object.keys(subs).length) c.subs = subs;
   if (markers.includes('other')) optText(c, 'markerOther', str(b, 'markerOther'));
-  if (isConsultSampleType(sampleType)) optText(c, 'sampleOther', str(b, 'sampleOther'));
+  if (!libraries && isConsultSampleType(sampleType))
+    optText(c, 'sampleOther', str(b, 'sampleOther'));
   return c;
 }
 
@@ -148,9 +159,6 @@ function readMetagenomics(b: ParentNode): MetagenomicsConfig {
   if (source === 'environmental') optText(c, 'envNotes', str(b, 'envNotes'));
   return c;
 }
-
-const pick = <T extends string>(v: string, allowed: readonly T[], fallback: T): T =>
-  (allowed as readonly string[]).includes(v) ? (v as T) : fallback;
 
 function readTargetedEdna(b: ParentNode): TargetedEdnaConfig {
   const c: TargetedEdnaConfig = {
@@ -264,6 +272,12 @@ export function syncHints(branch: ParentNode, config: ProjectConfig): void {
           ? 'Number of environmental samples'
           : 'Number of specimens';
     }
+  }
+  if (config.service === 'metabarcoding') {
+    const hint = branch.querySelector<HTMLElement>('[data-small-batch-hint]');
+    if (hint)
+      hint.textContent =
+        config.samples > 0 && config.samples < smallBatchThreshold ? smallBatchNote : '';
   }
   if (config.service === 'barcoding') {
     const hint = branch.querySelector<HTMLElement>('[data-per-sample-hint]');
