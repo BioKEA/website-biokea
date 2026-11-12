@@ -9,6 +9,7 @@ import AddonsPanel from '@/components/ui/AddonsPanel.astro';
 import {
   pricedServices,
   preparedLibraries,
+  preparedLibraryFraction,
   preparedLibraryTiers,
   preparedLibraryMarkerPrice,
   smallBatchNote,
@@ -57,8 +58,7 @@ const unitSpec = (name: string, price: number, unitText: string) => ({
   unitText,
 });
 
-const preparedIntro =
-  "Already have indexed libraries? Send them and we'll sequence them and run the same bioinformatics and report, at 75% of the rates above. Sequenced on Illumina or Oxford Nanopore.";
+const preparedIntro = `Already have indexed libraries? Send them and we'll sequence them and run the same bioinformatics and report, at ${Math.round(preparedLibraryFraction * 100)}% of the rates above. Sequenced on Illumina or Oxford Nanopore.`;
 
 const rangeSpec = (name: string, prices: number[], unitText: string) => ({
   '@type': 'UnitPriceSpecification',

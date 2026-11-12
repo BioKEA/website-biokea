@@ -3,6 +3,8 @@ import {
   priceRange,
   identificationOnlyBarcoding,
   ednaAdditionalMarkerPrice,
+  preparedLibraryTiers,
+  preparedLibraryMarkerPrice,
 } from '../../src/data/pricing';
 import { usd } from '../../src/lib/pricing/format';
 
@@ -99,4 +101,18 @@ test('llms.txt mentions prepared libraries and the MiSeq i100', async ({ request
   const text = (await response.body()).toString('utf8');
   expect(text).toContain('prepared libraries');
   expect(text).toContain('MiSeq i100');
+});
+
+test('llms.txt and llms-full.txt state the prepared-library ranges from pricing data', async ({
+  request,
+}) => {
+  const all = preparedLibraryTiers.flatMap((t) => [t.academicPrice, t.commercialPrice]);
+  const tierRange = `${usd(Math.min(...all))}–${usd(Math.max(...all))} per sample`;
+  const markers = `extra markers ${usd(preparedLibraryMarkerPrice.academic)}–${usd(preparedLibraryMarkerPrice.commercial)} per sample`;
+  for (const path of ['/llms.txt', '/llms-full.txt']) {
+    const response = await request.get(path);
+    const text = (await response.body()).toString('utf8');
+    expect(text, path).toContain(tierRange);
+    expect(text, path).toContain(markers);
+  }
 });
