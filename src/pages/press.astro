@@ -8,13 +8,16 @@ const coreTeam = team.filter((p) => p.tier !== 'advisor');
 const oneSentence =
   'BioKEA is an AI company with a wet-lab moat — a 5,000+ sq ft Berkeley lab and an AI pipeline from sample to verifiable, FAIR-compliant scientific claim.';
 
-const oneParagraph = `BioKEA — Biology Knowledge Exploration Assistant — is an independent biology company in Berkeley, California, founded in March 2025. The company operates the Large Data Collider (LDC), a combined wet-lab and compute platform built around an Oxford Nanopore Promethion 2 long-read sequencer and ~80 instruments sourced through Bay Area biotech auctions. BioKEA runs molecular sequencing as a service (DNA barcoding, environmental DNA, and long-read genomics) for environmental-DNA and biodiversity-omics customers, and is building BioKEA Works, a suite of scientific software products — including Press, for peer review and publication — currently in closed-testing alpha.`;
+const oneParagraph = `BioKEA — Biology Knowledge Exploration Assistant — is an independent biology company in Berkeley, California, founded in March 2025. The company operates the Large Data Collider (LDC), a combined wet-lab and compute platform built around an Oxford Nanopore Promethion 2 long-read sequencer, an Illumina MiSeq i100, and ~80 instruments sourced through Bay Area biotech auctions. BioKEA runs molecular sequencing as a service (DNA barcoding, environmental DNA, and long-read genomics) for environmental-DNA and biodiversity-omics customers, and is building BioKEA Works, a suite of scientific software products — including Press, for peer review and publication — currently in closed-testing alpha.`;
 
 const keyFacts = [
   { label: 'Founded', value: 'March 2025' },
   { label: 'Headquarters', value: 'Berkeley, California' },
   { label: 'Lab footprint', value: '5,000+ sq ft' },
-  { label: 'Sequencer', value: 'Oxford Nanopore Promethion 2 (live November 2025)' },
+  {
+    label: 'Sequencer',
+    value: 'Oxford Nanopore Promethion 2 (live November 2025); Illumina MiSeq i100',
+  },
   { label: 'Instruments on site', value: '~80, sourced via Bay Area biotech auctions' },
   {
     label: 'Services',

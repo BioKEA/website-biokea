@@ -11,8 +11,8 @@ const services = [
     target:
       'environmental DNA customers (conservation nonprofits, agencies, academic labs, environmental consultancies)',
     description:
-      'Water, soil, and sediment samples through extraction, amplification, quantification, and long-read or amplicon sequencing. Delivered as a FAIR-compliant data package (DwC-A, NCBI SRA, GBIF, Zenodo).',
-    primaryInstrument: 'Oxford Nanopore Promethion 2',
+      'Water, soil, and sediment samples through extraction, amplification, quantification, and long-read or amplicon sequencing, on the ONT Promethion 2 or Illumina MiSeq i100. Delivered as a FAIR-compliant data package (DwC-A, NCBI SRA, GBIF, Zenodo).',
+    primaryInstrument: 'Oxford Nanopore Promethion 2; Illumina MiSeq i100',
     status: 'primary',
   },
   {
@@ -54,6 +54,7 @@ export const GET: APIRoute = () =>
           location: 'Berkeley, CA',
           operationalDate: '2026-03',
           sequencer: 'Oxford Nanopore Promethion 2',
+          sequencers: ['Oxford Nanopore Promethion 2', 'Illumina MiSeq i100'],
           sequencerLiveSince: '2025-11',
         },
         services,

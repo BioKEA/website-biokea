@@ -36,6 +36,10 @@ test('/api/capabilities.json returns lab, services, equipment, and partners', as
     location: 'Berkeley, CA',
     sequencer: 'Oxford Nanopore Promethion 2',
   });
+  expect(payload.lab.sequencers).toEqual(['Oxford Nanopore Promethion 2', 'Illumina MiSeq i100']);
+  const edna = payload.services.find((s: { name: string }) => s.name === 'eDNA and metabarcoding');
+  expect(edna.primaryInstrument).toContain('Oxford Nanopore Promethion 2');
+  expect(edna.primaryInstrument).toContain('Illumina MiSeq i100');
   expect(Array.isArray(payload.services)).toBe(true);
   const serviceNames = payload.services.map((s: { name: string }) => s.name);
   expect(serviceNames).toContain('eDNA and metabarcoding');

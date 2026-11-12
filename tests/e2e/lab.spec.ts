@@ -39,3 +39,8 @@ test('BugPicker media: click-to-load video with poster, and the three stills', a
   await expect(video).toHaveAttribute('preload', 'none');
   await expect(page.locator('#lab-bugpicker img')).toHaveCount(3);
 });
+
+test('lab page lists the in-house Illumina MiSeq i100', async ({ page }) => {
+  await page.goto('/lab');
+  await expect(page.getByText('Illumina MiSeq i100').first()).toBeVisible();
+});

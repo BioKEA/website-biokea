@@ -84,6 +84,9 @@ export const equipmentByStage: EquipmentStage[] = [
       name: 'Oxford Nanopore Promethion 2',
       why: 'Two flow cells of long-read nanopore sequencing on demand. Live on site since November 2025 — the heart of the LDC.',
     },
-    secondary: ['On-site library QC (Qubit 4, LabChip GXII, Qiaxcel) feeding directly in.'],
+    secondary: [
+      'Illumina MiSeq i100 for short-read amplicon sequencing, including client-prepared libraries.',
+      'On-site library QC (Qubit 4, LabChip GXII, Qiaxcel) feeding directly in.',
+    ],
   },
 ];

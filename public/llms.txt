@@ -80,7 +80,7 @@ BioKEA is set up as a molecular sequencing service for the eDNA and biodiversity
 - **Extraction** · Thermo KingFisher Flex fleet (multi-unit), Thermo KingFisher Presto (×2), Thermo KingFisher 711 Flex, Qiagen QIAcube Connect, Eppendorf epMotion 5075 liquid handler
 - **Prep & Amplification** · 3× Qiagen QIAgility Automated PCR Prep System; 2× Bio-Rad S1000 Thermal Cycler; MJ Research PTC-200 and PTC-225 Tetrad; Eppendorf Mastercycler Satellite X50i; CyBio CyBi-SELMA 96 semi-automated pipettor
 - **Quantification** · 2× Roche LightCycler 480 II Real-Time PCR; Qiagen Qiaxcel Advanced Capillary Electrophoresis; Caliper Life Sciences LabChip GXII; Applied Biosystems StepOne Real-Time PCR; Qubit 4 fluorometer; Molecular Devices FilterMax F3 microplate reader
-- **Sequencing** · 1× Oxford Nanopore Promethion 2 (live on site since November 2025)
+- **Sequencing** · 1× Oxford Nanopore Promethion 2 (live on site since November 2025); 1× Illumina MiSeq i100
 - **Infrastructure** · ESCO Airstream + Labconco Purifier Logic+ A2 biosafety cabinets; Cleatech HEPA glove box; Thermo Scientific HERACELL 150i CO2 incubator; VWR Revco -80 °C freezer; Fisher Scientific SterileElite 24 autoclave
 
 Full inventory (~80 items) available on request. Hardware was sourced across 2025–2026 through Bay Area biotech auctions in San Jose, San Francisco, and Berkeley — near-new units acquired at roughly one-tenth retail cost.
