@@ -60,6 +60,32 @@ import { credentialsFor } from '@/data/credentials';
       }
     </div>
 
+    <div class="mt-12">
+      <Eyebrow>ADVISORS</Eyebrow>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 max-w-3xl">
+        {
+          team
+            .filter((p) => p.tier === 'advisor')
+            .map((p) => (
+              <div>
+                <Portrait
+                  src={p.image}
+                  alt={p.alt}
+                  name={p.name}
+                  role={p.role}
+                  postNominal={p.postNominal}
+                  credentials={credentialsFor(p.name)
+                    .filter((c) => !c.hideOnPortrait)
+                    .map((c) => c.label)}
+                  size="sm"
+                />
+                {p.bio && <p class="mt-2 text-xs text-slate-600 leading-snug">{p.bio}</p>}
+              </div>
+            ))
+        }
+      </div>
+    </div>
+
     <figure class="mt-10 max-w-3xl">
       <img
         src="/assets/images/moving-day.jpg"
@@ -183,7 +209,7 @@ import { credentialsFor } from '@/data/credentials';
           name: p.name,
           ...(p.postNominal ? { honorificSuffix: p.postNominal } : {}),
           jobTitle: p.role,
-          worksFor: { '@id': 'https://biokea.ai/#org' },
+          ...(p.tier === 'advisor' ? {} : { worksFor: { '@id': 'https://biokea.ai/#org' } }),
           ...(isPlaceholderImage ? {} : { image: `https://biokea.ai${p.image}` }),
           ...(p.bio ? { description: p.bio } : {}),
           ...(p.knowsAbout && p.knowsAbout.length > 0 ? { knowsAbout: p.knowsAbout } : {}),

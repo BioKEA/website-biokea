@@ -49,7 +49,7 @@ Engagement routes (Contact-form topics): Sequencing service inquiry, Partnership
 
 ## Team
 
-- **Sean Jungbluth, PhD** — CEO / CTO, Founder · Anthropic Claude Community Ambassador · Built with Claude Sonnet 4.5 Challenge winner
+- **Sean Jungbluth, PhD** — CEO, Founder · Anthropic Claude Community Ambassador · Built with Claude Sonnet 4.5 Challenge winner
 - **Michelle Jungbluth, PhD** — CSO, Co-Founder
 - **Austin Baker, PhD** — Research Scientist
 - **Stephanie Castillo, PhD** — Research Associate

@@ -31,9 +31,9 @@ import { usd } from '@/lib/pricing/format';
 import { serviceOfferings } from '@/data/services';
 
 describe('team data', () => {
-  it('has four core team members and no advisors', () => {
+  it('has four core team members and one advisor, Chris Anderson', () => {
     expect(team.filter((p) => p.tier !== 'advisor')).toHaveLength(4);
-    expect(team.filter((p) => p.tier === 'advisor')).toHaveLength(0);
+    expect(team.filter((p) => p.tier === 'advisor').map((p) => p.name)).toEqual(['Chris Anderson']);
   });
   it('every entry has name, role, image, alt', () => {
     for (const p of team) {
@@ -50,14 +50,14 @@ describe('team data', () => {
     expect(names).toContain('Austin Baker');
     expect(names).toContain('Stephanie Castillo');
   });
-  it('every entry has a non-empty bio', () => {
-    for (const p of team) {
+  it('every core team member has a non-empty bio', () => {
+    for (const p of team.filter((m) => m.tier !== 'advisor')) {
       expect(p.bio).toBeTruthy();
       expect(p.bio!.length).toBeGreaterThan(20);
     }
   });
-  it('every entry has a knowsAbout array of length >= 1', () => {
-    for (const p of team) {
+  it('every core team member has a knowsAbout array of length >= 1', () => {
+    for (const p of team.filter((m) => m.tier !== 'advisor')) {
       expect(Array.isArray(p.knowsAbout)).toBe(true);
       expect(p.knowsAbout!.length).toBeGreaterThanOrEqual(1);
     }

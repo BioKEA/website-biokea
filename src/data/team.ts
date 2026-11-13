@@ -16,7 +16,7 @@ export interface TeamMember {
 export const team: TeamMember[] = [
   {
     name: 'Sean Jungbluth',
-    role: 'CEO / CTO, Founder',
+    role: 'CEO, Founder',
     postNominal: 'PhD',
     image: '/assets/images/portrait-sean.webp',
     alt: 'Headshot of Sean Jungbluth',
@@ -67,5 +67,14 @@ export const team: TeamMember[] = [
     tier: 'team',
     bio: 'Entomologist and molecular biologist conducting biodiversity genomics lab work. PhD research at UC Riverside on assassin-bug evolution and diversification, reconstructing phylogenies and describing new species. Previously a field associate at the Natural History Museum of Los Angeles County, collecting for the California Insect Barcoding Initiative.',
     knowsAbout: ['Molecular lab methods', 'Field sampling', 'Entomology'],
+  },
+  {
+    name: 'Chris Anderson',
+    role: 'Advisor',
+    // Photo: London Tech Week speaker headshot (Sean OK'd reuse, 2026-11-12).
+    image: '/assets/images/portrait-chris-anderson.webp',
+    alt: 'Headshot of Chris Anderson',
+    tier: 'advisor',
+    sameAs: ['https://londontechweek.com/past-speakers/chris-anderson'],
   },
 ];

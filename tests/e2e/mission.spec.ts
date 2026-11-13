@@ -90,19 +90,29 @@ test('mission Person JSON-LD reflects both Sean credentials', async ({ page }) =
   expect(sean.sameAs).toContain('https://x.com/alexalbert__/status/1978220407716245581');
 });
 
-test('mission page shows team bios and no advisors section', async ({ page }) => {
+test('mission page shows team bios and an advisors section with Chris Anderson', async ({
+  page,
+}) => {
   await page.goto('/mission');
   await expect(page.getByText(/Microbial genomicist/i)).toBeVisible();
-  await expect(page.getByText('ADVISORS')).toHaveCount(0);
+  await expect(page.getByText('ADVISORS', { exact: true })).toBeVisible();
+  await expect(page.getByText('Chris Anderson')).toBeVisible();
+  await expect(page.locator('body')).not.toContainText('Renaissance');
 });
 
-test('mission JSON-LD has 4 Person nodes each with description', async ({ page }) => {
+test('mission JSON-LD has 5 Person nodes; core team described; advisors not employees', async ({
+  page,
+}) => {
   await page.goto('/mission');
   const ld = await page.locator('script[type="application/ld+json"]').first().textContent();
   const parsed = JSON.parse(ld!);
   const people = parsed['@graph'].filter((n: { '@type': string }) => n['@type'] === 'Person');
-  expect(people).toHaveLength(4);
-  for (const p of people) {
+  expect(people).toHaveLength(5);
+  const chris = people.find((p: { name: string }) => p.name === 'Chris Anderson');
+  expect(chris.jobTitle).toBe('Advisor');
+  expect(chris.worksFor).toBeUndefined();
+  expect(chris.description).toBeUndefined();
+  for (const p of people.filter((n: { name: string }) => n.name !== 'Chris Anderson')) {
     expect(typeof p.description).toBe('string');
     expect(p.description.length).toBeGreaterThan(20);
   }
